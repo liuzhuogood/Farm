@@ -167,7 +167,6 @@ function checkTargetOperable(serial: string): boolean {
 
 const {
   isRunning: batchRunning,
-  currentAction,
   currentBatchId,
   results: batchResults,
   runBatch,
@@ -392,7 +391,6 @@ onUnmounted(() => {
       :online-count="onlineCount"
       :is-all-selected="isAllSelected"
       :batch-running="batchRunning"
-      :current-action="currentAction"
       :is-sync-active="isSyncActive"
       :display-name="store.displayName"
       @update:keyword="store.keyword = $event"

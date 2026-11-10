@@ -31,7 +31,7 @@
 |---|---|---|
 | 设备卡片 | 卡片 | `frontend/src/components/device/DeviceCard.vue` |
 | 顶栏 | header、顶部导航 | `frontend/src/components/layout/AppHeader.vue`；首页顶栏与主内容滚动区分离，使用 Liquid Glass 材质，其他页面保留原有默认样式 |
-| 小窗顶栏 | 小窗工具条、投屏工具栏 | `frontend/src/components/player/DevicePlayer.vue` 内的工具栏;自动隐藏至小横条，鼠标悬停小横条自动滑出显示，亦可用恢复小窗快捷键或菜单“视图 → 恢复所有小窗”恢复 |
+| 小窗顶栏 | 小窗工具条、投屏工具栏、收边条、指示灯 | `frontend/src/components/player/DevicePlayer.vue` 内的工具栏；小窗默认收起，仅悬停或点击顶部可见收边条（含连接指示灯）时展开，顶部其余区域不唤出；展开后移出工具条延时收起，使用菜单期间保持展开；恢复小窗快捷键或菜单“视图 → 恢复所有小窗”保留 |
 | 小窗窗口设置 | 透明度菜单、鼠标穿透菜单 | `frontend/src/components/player/WindowEffectsControl.vue`;原生小窗的透明度、鼠标穿透与无边框开关 |
 | 主窗口窗口设置 | 主窗口透明度菜单、主窗口效果 | `frontend/src/components/layout/MainWindowEffectsControl.vue` 与原生菜单栏“窗口”菜单;主窗口置顶、透明度调节、鼠标穿透与恢复默认 |
 | 无边框 | 隐藏系统标题栏 | 原生投屏小窗默认无系统边框；窗口、设置与菜单中的切换入口已移除。小窗工具栏为半透明覆盖层，显隐不改变视频尺寸；主窗口保持原有系统标题栏覆盖外观 |
@@ -71,6 +71,7 @@
 | 总状态及决策 | AI 决策、状态决策 | 共用单轮采集并在服务端调用视觉 AI 模型进行决策建议；接口 `POST /api/device-state/{serial}/decision` |
 | 通用操作技能 | 通用技能、my-scrcpy-common | `skills/my-scrcpy-common`；共享规则、Wiki 与通用操作脚本（观察、刷视频、返回、启动/重启应用、解锁屏幕） |
 | 动作执行 | 拟人化注入、input 执行 | 两种模式:SDK 拟人化注入(贝塞尔曲线/落点微抖动)与 ADB Shell input 系统级穿透 |
+| 投屏右键返回 | 右键返回、右键返回键 | `frontend/src/scrcpy/usePlayer.ts`；投屏画面右键点击发送一次完整返回键按下/抬起，复用工具条返回操作与群控同步；检查模式开启时由检查器接管，不向设备派发返回 |
 | 最新帧图片流接口 | 最新帧、最新截图、投屏截图流 | 接口 `GET /api/devices/{serial}/latest-frame` 与 `GET /api/device-state/{serial}/screenshot`；优先从服务端视频流提取最新解码帧并返回图片流，供所有视觉相关接口统一消费 |
 | 像素点取色接口 | 获取像素点、像素颜色接口、坐标取色 | 接口 `GET/POST /api/v1/vision/pixel`；支持归一化坐标(0~1)与绝对像素坐标，基于最新帧画面快速提取像素并返回详细颜色信息(RGB/RGBA/HEX) |
 | 投屏拖拽安装 | 拖拽安装、APK 拖拽安装、投屏文件投放 | 投屏详情页与小窗投屏画面支持直接拖入文件；APK 文件弹出安装确认弹窗（支持保留数据覆盖、自动授权、允许降级），其他文件弹出保存到设备 Downloads 目录（`/storage/emulated/0/Download/`）确认弹窗 |

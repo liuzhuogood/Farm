@@ -8,13 +8,13 @@ function target() {
   return {
     addEventListener(type, cb) { if (!listeners.has(type)) listeners.set(type, new Set()); listeners.get(type).add(cb); },
     removeEventListener(type, cb) { listeners.get(type)?.delete(cb); },
-    fire(type, props = {}) { const e = { preventDefault() {}, ...props }; for (const cb of listeners.get(type) ?? []) cb(e); },
+    fire(type, props = {}) { const e = { button: 0, preventDefault() {}, ...props }; for (const cb of listeners.get(type) ?? []) cb(e); },
     listenerCount(type) { return listeners.get(type)?.size ?? 0; },
   };
 }
 async function fixture(mode = 'sdk') {
-  const mounted = [], unmounted = [], frames = new Map(), timers = new Map(), sockets = [], broadcasts = [], logs = [];
-  let next = 0, channel;
+  const mounted = [], unmounted = [], frames = new Map(), timers = new Map(), sockets = [], broadcasts = [], logs = [], operations = [];
+  let next = 0, channel, inspecting = false;
   const window = Object.assign(target(), {
     setTimeout(cb) { const id = ++next; timers.set(id, cb); return id; }, clearTimeout(id) { timers.delete(id); },
     setInterval() { return ++next; }, clearInterval() {},
@@ -49,7 +49,7 @@ async function fixture(mode = 'sdk') {
     setTimeout: window.setTimeout, clearTimeout: window.clearTimeout, setInterval: window.setInterval, clearInterval: window.clearInterval,
     require(name) {
       if (name === 'vue') return { ref: value => ({ value }), watch() {}, onMounted: cb => mounted.push(cb), onUnmounted: cb => unmounted.push(cb) };
-      if (name === '@/inspector/guard') return { inspectorConsumesInput: () => false };
+      if (name === '@/inspector/guard') return { inspectorConsumesInput: () => inspecting };
       if (name === './protocol') return load('protocol');
       if (name === './controlSender') return load('controlSender');
       if (name === './decoder') return { ScrcpyDecoder: class { configure() {} close() {} } };
@@ -63,16 +63,52 @@ async function fixture(mode = 'sdk') {
       throw new Error(name);
     },
   });
-  const player = module.exports.usePlayer('xiaomi');
+  const player = module.exports.usePlayer('xiaomi', { onOp: (type, data) => operations.push({ type, ...data }) });
   player.canvasRef.value = canvas;
   player.stageRef.value = { clientWidth: 360, clientHeight: 800 };
   mounted.forEach(cb => cb()); await Promise.resolve(); await Promise.resolve();
   sockets[0].ready();
   const frame = () => { const copy = [...frames]; frames.clear(); copy.forEach(([, cb]) => cb()); };
   frame(); frame();
-  return { player, canvas, window, settings, sockets, frames, timers, broadcasts, logs, frame, channel, unmount() { unmounted.forEach(cb => cb()); } };
+  return { player, canvas, window, settings, sockets, frames, timers, broadcasts, logs, operations, frame, channel, setInspecting(value) { inspecting = value; }, unmount() { unmounted.forEach(cb => cb()); } };
 }
 (async () => {
+  for (const mode of ['sdk', 'adb', 'hid']) {
+    const f = await fixture(mode); const ws = f.sockets[0];
+    let menusPrevented = 0;
+    f.canvas.fire('mousedown', { button: 2, clientX: 10, clientY: 10 });
+    f.window.fire('mouseup', { button: 2, clientX: 10, clientY: 10 });
+    f.canvas.fire('contextmenu', { preventDefault() { menusPrevented++; } });
+    f.frame();
+    assert.deepEqual(ws.sent.map(packet => Array.from(packet)), [[4, 0], [4, 1]], `${mode}: a right click sends one complete Back key without touching the screen`);
+    assert.equal(f.broadcasts.length, 2, `${mode}: group control receives both Back actions exactly once`);
+    assert.deepEqual(f.operations, [{ type: 'key', label: '返回', keycode: 'KEYCODE_BACK' }]);
+    assert.equal(menusPrevented, 1, 'native browser context menu remains suppressed');
+    f.unmount();
+  }
+  {
+    const f = await fixture(); const ws = f.sockets[0];
+    f.setInspecting(true);
+    f.canvas.fire('mousedown', { button: 2, clientX: 10, clientY: 10 });
+    f.window.fire('mouseup', { button: 2, clientX: 10, clientY: 10 });
+    f.canvas.fire('contextmenu');
+    assert.equal(ws.sent.length, 0, 'inspection mode consumes right clicks without navigating the device');
+    assert.equal(f.broadcasts.length, 0);
+    assert.equal(f.operations.length, 0);
+    f.unmount();
+  }
+  {
+    const f = await fixture(); const ws = f.sockets[0];
+    f.canvas.fire('mousedown', { button: 0, clientX: 10, clientY: 10 });
+    f.canvas.fire('mousedown', { button: 2, clientX: 10, clientY: 10 });
+    f.window.fire('mouseup', { button: 2, clientX: 10, clientY: 10 });
+    assert.equal(ws.sent.length, 3, 'right-button release must not terminate an ongoing left-button gesture');
+    f.window.fire('mousemove', { clientX: 80, clientY: 80 });
+    f.frame();
+    f.window.fire('mouseup', { button: 0, clientX: 80, clientY: 80 });
+    assert.deepEqual(ws.sent.map(packet => [packet[0], packet[1]]), [[2, 0], [4, 0], [4, 1], [2, 2], [2, 1]]);
+    f.unmount();
+  }
   {
     const f = await fixture(); const ws = f.sockets[0];
     f.canvas.fire('mousedown', { button: 0, clientX: 10, clientY: 10 });
@@ -119,5 +155,5 @@ async function fixture(mode = 'sdk') {
     assert.ok(f.logs.some(args => args[0] === '[input]'));
     const count = ws.sent.length; f.frame(); assert.equal(ws.sent.length, count, 'old move never leaks to a reconnect'); f.unmount();
   }
-  console.log('PASS: usePlayer mouse/touch event bursts, final coordinates, group no-echo, cancellation, unchanged ADB/HID and congestion recovery');
+  console.log('PASS: usePlayer right-click Back, inspection guards, mouse/touch event bursts, final coordinates, group no-echo, cancellation, unchanged ADB/HID and congestion recovery');
 })().catch(error => { console.error(error); process.exitCode = 1; });

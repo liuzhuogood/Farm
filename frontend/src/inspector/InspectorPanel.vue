@@ -108,7 +108,8 @@ onUnmounted(() => {
 <template>
   <aside class="ui-inspector-panel flex h-full min-h-0 w-full flex-col overflow-hidden bg-card" aria-label="检查面板">
     <SidePanelHeader title="检查" @close="close()">
-      <template #actions>
+      <template #title>
+        <strong class="truncate text-sm font-semibold">检查</strong>
         <Button variant="ghost" size="icon" class="h-7 w-7" :class="{ 'bg-primary/10 text-primary': inspectionMode }" aria-label="检查模式" :aria-pressed="inspectionMode" :title="inspectionMode ? '退出检查模式' : '进入检查模式'" :disabled="inspectorTab === 'page' || inspectorTab === 'log'" @click="toggleInspection"><MousePointer2 class="size-4" /></Button>
       </template>
     </SidePanelHeader>

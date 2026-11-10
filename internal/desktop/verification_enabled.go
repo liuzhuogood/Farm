@@ -18,6 +18,7 @@ func registerVerification(mux *http.ServeMux, authorize func(http.HandlerFunc) h
 	mux.HandleFunc("POST /api/desktop/native-verification", authorize(func(w http.ResponseWriter, r *http.Request) {
 		var report struct {
 			PlayerWindows     json.RawMessage `json:"player_windows,omitempty"`
+			GroupControl      json.RawMessage `json:"group_control,omitempty"`
 			Tauri             bool            `json:"tauri"`
 			UpdaterInvokable  bool            `json:"updater_invokable"`
 			UpdaterError      string          `json:"updater_error"`

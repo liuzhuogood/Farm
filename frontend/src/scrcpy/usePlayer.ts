@@ -524,8 +524,7 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
     if (inspectorConsumesInput())
       return
     if (e.button === 2) {
-      send(packer.back(KEY_UP)) // 右键 = 返回
-      op('key', { label: '返回', keycode: 'KEYCODE_BACK' })
+      pressBack()
       return
     }
     mouseDown = true
@@ -572,7 +571,7 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
   }
 
   function onMouseUp(e: MouseEvent) {
-    if (!mouseDown)
+    if (e.button === 2 || !mouseDown)
       return
     mouseDown = false
     const { x, y } = toDevice(e.clientX, e.clientY)

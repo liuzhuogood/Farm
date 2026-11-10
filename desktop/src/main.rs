@@ -13,6 +13,8 @@ mod updater;
 mod verify;
 #[cfg(feature = "native-verify")]
 mod verify_players;
+#[cfg(feature = "native-verify")]
+mod verify_group_control;
 
 use std::{
     path::PathBuf,

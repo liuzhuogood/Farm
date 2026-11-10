@@ -26,9 +26,10 @@ if (!window.__playerVerifyStarted && document.querySelector('canvas') && documen
     if (data.serial !== serial || data.instance !== instance) return;
     try {
       if (data.action === 'frame_controls') {
-        const reveal = () => document.querySelector('[aria-label="展开工具条"]')?.parentElement.dispatchEvent(new MouseEvent('mouseenter'));
+        const reveal = () => document.querySelector('[aria-label="展开工具条"]')?.dispatchEvent(new MouseEvent('mouseenter'));
         reveal();
         await waitFor(() => document.querySelector('[aria-label="窗口设置"]'), 'window toolbar did not open');
+        document.querySelector('header').dispatchEvent(new MouseEvent('mouseenter'));
         const canvas = document.querySelector('canvas');
         canvas.width = 1080; canvas.height = 2400;
         await invoke('fit_player_window', {videoWidth:1080, videoHeight:2400});

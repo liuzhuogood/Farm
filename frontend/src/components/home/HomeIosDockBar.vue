@@ -52,14 +52,12 @@ const props = withDefaults(
     onlineCount: number
     isAllSelected?: boolean
     batchRunning?: boolean
-    currentAction?: string
     isSyncActive?: boolean
     displayName?: (device: Device) => string
   }>(),
   {
     isAllSelected: false,
     batchRunning: false,
-    currentAction: '',
     isSyncActive: false,
     displayName: (d: Device) => d.alias || d.model || d.serial,
   },
@@ -322,6 +320,7 @@ function handleDeviceClick(serial: string) {
                 {{ isAllSelected ? '取消全选' : '全选在线' }}
               </Button>
               <Button
+                v-if="!batchRunning"
                 variant="ghost"
                 size="sm"
                 class="h-7 rounded-xl text-xs font-medium cursor-pointer text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
@@ -329,6 +328,15 @@ function handleDeviceClick(serial: string) {
                 @click="emit('clearSelection')"
               >
                 清空
+              </Button>
+              <Button
+                v-else
+                variant="ghost"
+                size="sm"
+                class="h-7 rounded-xl text-xs font-medium cursor-pointer text-red-600 hover:text-red-700"
+                @click="emit('cancelBatch')"
+              >
+                取消
               </Button>
             </div>
           </div>
@@ -399,19 +407,6 @@ function handleDeviceClick(serial: string) {
             <Switch id="group-control-mode" :model-value="isSyncActive" :disabled="selectedSerials.length === 0 || batchRunning" @update:model-value="emit('toggleSync')" />
           </div>
 
-          <!-- 批量执行状态反馈 -->
-          <div
-            v-if="batchRunning"
-            class="flex items-center justify-between rounded-xl bg-blue-50/80 p-2.5 text-xs text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40"
-          >
-            <div class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-blue-500 animate-ping" />
-              <span>正在向 {{ selectedSerials.length }} 台设备派发【{{ currentAction }}】指令...</span>
-            </div>
-            <Button variant="ghost" size="sm" class="h-6 rounded-lg px-2 text-xs text-red-600 hover:text-red-700" @click="emit('cancelBatch')">
-              取消
-            </Button>
-          </div>
         </div>
 
         <!-- 2. 视图面板内容 -->

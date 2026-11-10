@@ -191,8 +191,17 @@ function onToolbarLeave() {
     clearTimeout(nativeToolbarTimer)
   }
   nativeToolbarTimer = setTimeout(() => {
-    isNativeToolbarHovered.value = false
+    nativeToolbarTimer = undefined
+    // Revealing replaces the handle under the pointer before mouseenter may fire.
+    isNativeToolbarHovered.value = Boolean(p.stageRef.value?.querySelector('[data-player-toolbar]:hover'))
   }, 400)
+}
+
+function revealToolbar() {
+  onToolbarEnter()
+  // The handle is replaced on reveal; hide again if the pointer has already left
+  // rather than relying on a mouseleave event from the removed handle.
+  onToolbarLeave()
 }
 
 async function dragBorderlessWindow(event: MouseEvent) {
@@ -250,12 +259,6 @@ onMounted(() => {
   }
   if (props.embedded && isGui.value) {
     void initAlwaysOnTop()
-  }
-  if (props.embedded) {
-    isNativeToolbarHovered.value = true
-    nativeToolbarTimer = setTimeout(() => {
-      isNativeToolbarHovered.value = false
-    }, 1200)
   }
 })
 
@@ -433,17 +436,18 @@ defineExpose({ handleEscape })
     <!-- 工具栏隐藏时的顶部唤出把手 -->
     <div
       v-if="!toolbarVisible"
-      class="group absolute top-0 inset-x-0 z-50 flex h-6 items-start justify-center cursor-pointer"
-      @mouseenter="onToolbarEnter"
-      @mousedown="dragBorderlessWindow"
+      class="pointer-events-none absolute top-0 inset-x-0 z-50 flex items-start justify-center"
     >
       <button
         type="button"
-        class="flex h-4 items-center justify-center rounded-b bg-muted/80 px-4 text-muted-foreground shadow-sm backdrop-blur transition-all hover:h-5 hover:bg-muted hover:text-foreground cursor-pointer opacity-60 hover:opacity-100"
+        class="pointer-events-auto flex h-4 items-center justify-center gap-1.5 rounded-b bg-muted/80 px-4 text-muted-foreground shadow-sm backdrop-blur transition-all hover:h-5 hover:bg-muted hover:text-foreground cursor-pointer opacity-60 hover:opacity-100"
         aria-label="展开工具条"
-        title="鼠标悬停展开工具条"
-        @click="onToolbarEnter"
+        title="悬停或点击展开工具条"
+        @mouseenter="revealToolbar"
+        @mouseleave="onToolbarLeave"
+        @click="revealToolbar"
       >
+        <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full" :class="p.live.value ? 'bg-emerald-500' : 'bg-slate-400'" />
         <ChevronDown class="h-3 w-3" />
       </button>
     </div>
@@ -451,6 +455,7 @@ defineExpose({ handleEscape })
     <!-- 工具栏复用 AppHeader 公共组件 -->
     <AppHeader
       v-if="toolbarVisible"
+      data-player-toolbar
       :embedded="embedded"
       :compact-toolbar="compactToolbar"
       :show-nav="false"

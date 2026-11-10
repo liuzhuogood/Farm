@@ -6,6 +6,10 @@ pub fn start(app: &AppHandle) {
     if std::env::var_os("MYWEBSCRCPY_NATIVE_REPORT").is_none() {
         return;
     }
+    if std::env::var_os("MYWEBSCRCPY_VERIFY_GROUP_CONTROL").is_some() {
+        crate::verify_group_control::start(app);
+        return;
+    }
     if std::env::var_os("MYWEBSCRCPY_VERIFY_PLAYERS").is_some() {
         crate::verify_players::start(app);
         return;
