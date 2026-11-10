@@ -168,12 +168,14 @@ function checkTargetOperable(serial: string): boolean {
 const {
   isRunning: batchRunning,
   currentAction,
+  currentBatchId,
+  results: batchResults,
   runBatch,
   cancelBatch,
   destroy: destroyBatch,
 } = useDeviceBatch(checkTargetOperable)
 
-async function handleBatchAction(action: 'back' | 'home' | 'app_switch' | 'power') {
+async function handleBatchAction(action: 'back' | 'home' | 'app_switch' | 'lock' | 'unlock') {
   if (store.mockEnabled) {
     toast.error('当前处于 Mock 模拟状态，无法执行真机批量操作')
     return
@@ -189,8 +191,17 @@ async function handleBatchAction(action: 'back' | 'home' | 'app_switch' | 'power
     deviceMap[d.serial] = store.displayName(d)
   }
 
-  await runBatch(validTargets, action, deviceMap)
-  if (action === 'power') void store.load(true)
+  const pendingBatch = runBatch(validTargets, action, deviceMap)
+  const batchId = currentBatchId.value
+  await pendingBatch
+  if (currentBatchId.value !== batchId)
+    return
+  if (action === 'lock' || action === 'unlock') {
+    const failed = batchResults.value.filter(item => item.status === 'failed' || item.status === 'unknown')
+    if (failed.length > 0)
+      toast.error(`${failed.length} 台设备${action === 'lock' ? '锁屏' : '解锁'}未完成：${failed[0]?.error}`)
+    void store.load(true)
+  }
 }
 
 // 群控同步操作状态

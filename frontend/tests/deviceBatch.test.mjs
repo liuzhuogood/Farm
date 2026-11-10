@@ -158,3 +158,47 @@ test('batch power sends the named power event without the screen-lock command pa
     assert.equal(calls[0].body.event, 'power')
   } finally { globalThis.fetch = previousFetch }
 })
+
+function mockScreenRequests(t, screenState) {
+  const calls = []
+  t.mock.method(console, 'info', () => {})
+  t.mock.method(globalThis, 'fetch', async (url, init = {}) => {
+    const body = init.body ? JSON.parse(init.body) : undefined
+    calls.push({ url, body })
+    return Response.json(body
+      ? { status: 'completed', exit_code: 0 }
+      : screenState)
+  })
+  return calls
+}
+
+test('batch lock sends sleep and verifies screen off for each selected device', async t => {
+  const calls = mockScreenRequests(t, { screenOn: false })
+  const { summary } = await executeBatchAction({ batchId: 'lock', generation: 1, serials: ['a:5555', 'b:5555'], action: 'lock' })
+  assert.equal(summary.success, 2)
+  assert.deepEqual(calls.filter(call => call.body).map(call => call.body.args), [
+    ['shell', 'input', 'keyevent', 'KEYCODE_SLEEP'],
+    ['shell', 'input', 'keyevent', 'KEYCODE_SLEEP'],
+  ])
+  for (const serial of ['a%3A5555', 'b%3A5555'])
+    assert.ok(calls.some(call => !call.body && call.url === `/api/screen-state?serial=${serial}`))
+})
+
+test('batch unlock wakes and dismisses keyguard, then verifies the unlocked state', async t => {
+  const calls = mockScreenRequests(t, { screenOn: true, screenLocked: false })
+  const { summary } = await executeBatchAction({ batchId: 'unlock', generation: 1, serials: ['a:5555'], action: 'unlock' })
+  assert.equal(summary.success, 1)
+  assert.deepEqual(calls.filter(call => call.body).map(call => call.body.args), [
+    ['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP'],
+    ['shell', 'wm', 'dismiss-keyguard'],
+  ])
+  assert.equal(calls.at(-1).url, '/api/screen-state?serial=a%3A5555&lock=1')
+})
+
+test('batch unlock reports a remaining password lock as failure', async t => {
+  mockScreenRequests(t, { screenOn: true, screenLocked: true })
+  const { summary, results } = await executeBatchAction({ batchId: 'secure-unlock', generation: 1, serials: ['secure'], action: 'unlock' })
+  assert.equal(summary.success, 0)
+  assert.equal(summary.failed, 1)
+  assert.match(results[0].error, /请在设备上完成解锁/)
+})

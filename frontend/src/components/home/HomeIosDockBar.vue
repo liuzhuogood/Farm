@@ -13,7 +13,6 @@ import {
   Maximize2,
   Minimize2,
   Plus,
-  Power,
   Search,
   Settings,
   SlidersHorizontal,
@@ -73,7 +72,7 @@ const emit = defineEmits<{
   (e: 'toggleSelect', serial: string): void
   (e: 'selectAll'): void
   (e: 'clearSelection'): void
-  (e: 'triggerAction', action: 'back' | 'home' | 'app_switch' | 'power'): void
+  (e: 'triggerAction', action: 'back' | 'home' | 'app_switch' | 'lock' | 'unlock'): void
   (e: 'toggleSync'): void
   (e: 'cancelBatch'): void
   (e: 'openAdd'): void
@@ -374,7 +373,24 @@ function handleDeviceClick(serial: string) {
                 <span class="text-xs">多任务</span>
               </Button>
 
-              <Button variant="secondary" size="sm" class="h-9 rounded-xl" :disabled="selectedSerials.length === 0 || batchRunning" @click="emit('triggerAction', 'power')"><Power class="h-4 w-4" /><span class="text-xs">电源键</span></Button>
+              <div role="group" aria-label="屏幕锁定控制" class="flex h-9 min-w-0 rounded-xl border border-slate-200/60 bg-white/70 shadow-xs dark:border-white/10 dark:bg-white/5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="h-full min-w-0 flex-1 rounded-none rounded-l-xl border-r border-slate-200/60 px-1 text-xs cursor-pointer hover:bg-blue-50/50 hover:text-blue-600 dark:border-white/10 dark:hover:bg-blue-950/20 dark:hover:text-blue-400"
+                  :disabled="selectedSerials.length === 0 || batchRunning"
+                  title="锁屏"
+                  @click="emit('triggerAction', 'lock')"
+                >锁屏</Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="h-full min-w-0 flex-1 rounded-none rounded-r-xl px-1 text-xs cursor-pointer hover:bg-blue-50/50 hover:text-blue-600 dark:hover:bg-blue-950/20 dark:hover:text-blue-400"
+                  :disabled="selectedSerials.length === 0 || batchRunning"
+                  title="解锁"
+                  @click="emit('triggerAction', 'unlock')"
+                >解锁</Button>
+              </div>
             </div>
           </div>
 
