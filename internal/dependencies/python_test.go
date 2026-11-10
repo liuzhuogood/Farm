@@ -24,6 +24,9 @@ import (
 func TestMain(m *testing.M) {
 	if root := os.Getenv("FARM_TEST_PYTHON"); root != "" {
 		if len(os.Args) > 2 && os.Args[1] == "-m" && os.Args[2] == "pip" {
+			if _, err := os.Stat(filepath.Join(root, "slow")); err == nil {
+				time.Sleep(10 * time.Second)
+			}
 			source := strings.TrimSuffix(os.Args[len(os.Args)-1], "[vision]")
 			project, err := os.ReadFile(filepath.Join(source, "pyproject.toml"))
 			if err != nil {
@@ -31,9 +34,6 @@ func TestMain(m *testing.M) {
 				os.Exit(1)
 			}
 			_ = os.WriteFile(filepath.Join(root, "sdk-project.toml"), project, 0600)
-			if _, err := os.Stat(filepath.Join(root, "slow")); err == nil {
-				time.Sleep(10 * time.Second)
-			}
 			time.Sleep(200 * time.Millisecond)
 			if _, err := os.Stat(filepath.Join(root, "fail")); err == nil {
 				fmt.Fprintln(os.Stderr, "controlled pip failure")

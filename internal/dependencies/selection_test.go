@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -39,7 +40,9 @@ func TestPythonSwitchStopsOldProcessAndPersistsSelection(t *testing.T) {
 	waited := false
 	t.Cleanup(func() {
 		if !waited {
-			_ = cmd.Process.Kill()
+			if err := cmd.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) && !strings.Contains(err.Error(), "Access is denied") {
+				t.Logf("cleanup kill failed: %v", err)
+			}
 			_ = cmd.Wait()
 			release()
 		}
@@ -58,7 +61,7 @@ func TestPythonSwitchStopsOldProcessAndPersistsSelection(t *testing.T) {
 		if err := m.InstallPythonModules(next.Python); err == nil {
 			t.Error("pip installation entered during switch")
 		}
-		if err := cmd.Process.Kill(); err != nil {
+		if err := cmd.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) && !strings.Contains(err.Error(), "Access is denied") {
 			return err
 		}
 		_ = cmd.Wait()
