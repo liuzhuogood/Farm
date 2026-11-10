@@ -5,8 +5,8 @@ import (
 	"log"
 	"sync"
 
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/db"
+	"farm/internal/action"
+	"farm/internal/db"
 )
 
 // inputconfig 系统设置里的默认点击/滑动注入模式。

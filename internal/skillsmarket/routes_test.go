@@ -68,7 +68,7 @@ func TestRoutesListAndGetSkills(t *testing.T) {
 	}
 
 	// Get existing skill
-	req = httptest.NewRequest("GET", "/api/skills/mywebscrcpy-device-base", nil)
+	req = httptest.NewRequest("GET", "/api/skills/farm-device-base", nil)
 	rec = httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
@@ -98,7 +98,7 @@ func TestRoutesDownloadSkill(t *testing.T) {
 	handler, _ := setupTestServer(t)
 
 	// Valid skill download
-	req := httptest.NewRequest("GET", "/api/skills/mywebscrcpy-kuaishou-daily/download", nil)
+	req := httptest.NewRequest("GET", "/api/skills/farm-kuaishou-daily/download", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
@@ -112,7 +112,7 @@ func TestRoutesDownloadSkill(t *testing.T) {
 	}
 
 	cd := rec.Header().Get("Content-Disposition")
-	if !strings.Contains(cd, "mywebscrcpy-kuaishou-daily.zip") {
+	if !strings.Contains(cd, "farm-kuaishou-daily.zip") {
 		t.Fatalf("unexpected Content-Disposition: %s", cd)
 	}
 
@@ -141,7 +141,7 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 
 	// 1. Success install
 	reqBody := `{"targets":["codex","claude-code"]}`
-	req := httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", strings.NewReader(reqBody))
+	req := httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(reqBody))
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Origin", "http://localhost:8080")
@@ -166,7 +166,7 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 	}
 
 	// 2. Cross-origin rejection
-	req = httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", strings.NewReader(reqBody))
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(reqBody))
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Origin", "http://evil.com")
@@ -178,7 +178,7 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 	}
 
 	// 3. Sec-Fetch-Site cross-site rejection
-	req = httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", strings.NewReader(reqBody))
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(reqBody))
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Sec-Fetch-Site", "cross-site")
@@ -190,7 +190,7 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 	}
 
 	// 4. Content-Type rejection
-	req = httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", strings.NewReader(reqBody))
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(reqBody))
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "text/plain")
 	rec = httptest.NewRecorder()
@@ -201,7 +201,7 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 	}
 
 	// 5. Unknown fields rejection
-	req = httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", strings.NewReader(`{"targets":["codex"],"unknown_field":123}`))
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(`{"targets":["codex"],"unknown_field":123}`))
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	rec = httptest.NewRecorder()
@@ -212,7 +212,7 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 	}
 
 	// 6. Duplicate targets rejection
-	req = httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", strings.NewReader(`{"targets":["codex","codex"]}`))
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(`{"targets":["codex","codex"]}`))
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	rec = httptest.NewRecorder()
@@ -223,7 +223,7 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 	}
 
 	// 7. Empty targets rejection
-	req = httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", strings.NewReader(`{"targets":[]}`))
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(`{"targets":[]}`))
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	rec = httptest.NewRecorder()
@@ -245,7 +245,7 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 	}
 
 	// 9. Status of skill reflects installation
-	detail, ok := mgr.GetSkillDetail("mywebscrcpy-device-base")
+	detail, ok := mgr.GetSkillDetail("farm-device-base")
 	if !ok {
 		t.Fatal("skill not found")
 	}
@@ -297,7 +297,7 @@ func TestNilTargetsEmptyArrayContract(t *testing.T) {
 	}
 
 	// Check /api/skills/:id
-	req = httptest.NewRequest("GET", "/api/skills/mywebscrcpy-device-base", nil)
+	req = httptest.NewRequest("GET", "/api/skills/farm-device-base", nil)
 	rec = httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
@@ -320,7 +320,7 @@ func TestRoutesTrailingJSONRejected(t *testing.T) {
 
 	// Body contains valid JSON followed by another JSON object
 	body := strings.NewReader(`{"targets":["codex"]}{"targets":["claude-code"]}`)
-	req := httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", body)
+	req := httptest.NewRequest("POST", "/api/skills/farm-device-base/install", body)
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
@@ -341,7 +341,7 @@ func TestRoutesBadContentTypeRejected(t *testing.T) {
 		"multipart/form-data",
 	} {
 		body := strings.NewReader(`{"targets":["codex"]}`)
-		req := httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", body)
+		req := httptest.NewRequest("POST", "/api/skills/farm-device-base/install", body)
 		req.Host = "localhost:8080"
 		req.Header.Set("Content-Type", badType)
 		rec := httptest.NewRecorder()
@@ -358,7 +358,7 @@ func TestRoutesCrossOriginRejected(t *testing.T) {
 
 	// Cross-site via Sec-Fetch-Site
 	body := strings.NewReader(`{"targets":["codex"]}`)
-	req := httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", body)
+	req := httptest.NewRequest("POST", "/api/skills/farm-device-base/install", body)
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Sec-Fetch-Site", "cross-site")
@@ -371,7 +371,7 @@ func TestRoutesCrossOriginRejected(t *testing.T) {
 
 	// Malformed Origin
 	body = strings.NewReader(`{"targets":["codex"]}`)
-	req = httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", body)
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", body)
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Origin", "://bad-url")
@@ -384,7 +384,7 @@ func TestRoutesCrossOriginRejected(t *testing.T) {
 
 	// Cross-origin Origin header
 	body = strings.NewReader(`{"targets":["codex"]}`)
-	req = httptest.NewRequest("POST", "/api/skills/mywebscrcpy-device-base/install", body)
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", body)
 	req.Host = "localhost:8080"
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Origin", "http://attacker.example.com")
@@ -401,7 +401,7 @@ func TestRoutesNoStoreHeader(t *testing.T) {
 
 	for _, path := range []string{
 		"/api/skills",
-		"/api/skills/mywebscrcpy-device-base",
+		"/api/skills/farm-device-base",
 	} {
 		req := httptest.NewRequest("GET", path, nil)
 		rec := httptest.NewRecorder()

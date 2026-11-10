@@ -322,7 +322,7 @@ async function saveDownload() {
     return
   }
   const b = cap.bounds()
-  await downloadBlob(blob, `mywebscrcpy-${props.serial || 'screen'}-${b?.width ?? 0}x${b?.height ?? 0}.png`)
+  await downloadBlob(blob, `farm-${props.serial || 'screen'}-${b?.width ?? 0}x${b?.height ?? 0}.png`)
 }
 
 async function copyImage() {

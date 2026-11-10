@@ -2,14 +2,14 @@ package device
 
 import (
 	"context"
+	"farm/internal/dependencies"
 	"fmt"
-	"mywebscrcpy/internal/dependencies"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"mywebscrcpy/internal/db"
+	"farm/internal/db"
 )
 
 // Device 表示一台设备，融合了 adb 动态状态与持久化配置。

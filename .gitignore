@@ -1,7 +1,11 @@
 # Binaries
-mywebscrcpy
-mywebscrcpy-linux-*
+farm
+farm-linux-*
 *.exe
+
+# Android package source may share the CLI executable basename.
+!mobile/android/app/src/main/kotlin/com/farm/
+!mobile/android/app/src/main/kotlin/com/farm/**
 
 # Go
 vendor/
@@ -48,8 +52,8 @@ packages/python-sdk/src/*.egg-info/
 packages/python-sdk/**/__pycache__/
 
 # Keep SDK sources despite the executable basename ignore rule.
-!packages/python-sdk/src/mywebscrcpy/
-!packages/python-sdk/src/mywebscrcpy/*.py
+!packages/python-sdk/src/farm/
+!packages/python-sdk/src/farm/*.py
 
 # SDK v1.22 isolated tests and evidence
 .cache/sdk-v122/

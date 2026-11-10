@@ -3,14 +3,14 @@ use std::{thread, time::Duration};
 use tauri::{AppHandle, Manager};
 
 pub fn start(app: &AppHandle) {
-    if std::env::var_os("MYWEBSCRCPY_NATIVE_REPORT").is_none() {
+    if std::env::var_os("FARM_NATIVE_REPORT").is_none() {
         return;
     }
-    if std::env::var_os("MYWEBSCRCPY_VERIFY_GROUP_CONTROL").is_some() {
+    if std::env::var_os("FARM_VERIFY_GROUP_CONTROL").is_some() {
         crate::verify_group_control::start(app);
         return;
     }
-    if std::env::var_os("MYWEBSCRCPY_VERIFY_PLAYERS").is_some() {
+    if std::env::var_os("FARM_VERIFY_PLAYERS").is_some() {
         crate::verify_players::start(app);
         return;
     }
@@ -41,7 +41,7 @@ pub fn start(app: &AppHandle) {
  let updater;let updaterError='';
  try{updater=await window.__TAURI_INTERNALS__.invoke('desktop_check_update')}catch(error){updaterError=String(error)}
  fetch('/api/desktop/native-verification', {
-                      method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.__MYWEBSCRCPY_DESKTOP_TOKEN__},
+                      method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.__FARM_DESKTOP_TOKEN__},
                       body:JSON.stringify({title:document.title,path:location.pathname,
                         tauri:window.isTauri===true, updater_invokable:updater?.runtime_mode==='desktop',updater_error:updaterError,
                         mounted:!!document.querySelector('#app')?.childElementCount,
@@ -54,7 +54,7 @@ pub fn start(app: &AppHandle) {
                 let _ = window.eval(script);
             }
         });
-        let report=std::env::var("MYWEBSCRCPY_NATIVE_REPORT").unwrap();
+        let report=std::env::var("FARM_NATIVE_REPORT").unwrap();
         for _ in 0..400 {if std::path::Path::new(&report).is_file(){app.exit(0);return};thread::sleep(Duration::from_millis(100));}
         app.exit(1);
     });

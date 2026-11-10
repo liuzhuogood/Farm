@@ -11,8 +11,8 @@ import (
 
 func pythonSelectionFixture(t *testing.T) Selection {
 	t.Helper()
-	t.Setenv("MYWEBSCRCPY_TEST_PYTHON", t.TempDir())
-	t.Setenv("MYWEBSCRCPY_PYTHON", "")
+	t.Setenv("FARM_TEST_PYTHON", t.TempDir())
+	t.Setenv("FARM_PYTHON", "")
 	exe, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)
@@ -24,7 +24,7 @@ func TestPythonSwitchStopsOldProcessAndPersistsSelection(t *testing.T) {
 	m := newTestManager(t)
 	next := m.Settings()
 	next.Python = pythonSelectionFixture(t)
-	if err := os.WriteFile(filepath.Join(os.Getenv("MYWEBSCRCPY_TEST_PYTHON"), "slow"), nil, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(os.Getenv("FARM_TEST_PYTHON"), "slow"), nil, 0600); err != nil {
 		t.Fatal(err)
 	}
 	release, err := m.acquire("python")

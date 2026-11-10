@@ -114,7 +114,7 @@ function handleConfirm() {
 
         <!-- 宿主机说明提示 -->
         <p class="text-[11px] text-muted-foreground leading-normal">
-          * 技能文件将写入运行 MyWebScrcpy 服务的宿主机对应助手目录，已存在且被用户修改的文件将受保护不被覆盖。
+          * 技能文件将写入运行 Farm 服务的宿主机对应助手目录，已存在且被用户修改的文件将受保护不被覆盖。
         </p>
 
         <!-- 最近安装结果反馈 -->

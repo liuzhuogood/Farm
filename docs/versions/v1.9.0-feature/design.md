@@ -2,7 +2,7 @@
 
 ## 1. 背景与现状
 
-MyWebScrcpy 目前拥有成熟的投屏与动作执行体系：
+Farm 目前拥有成熟的投屏与动作执行体系：
 1. **控制通道现状**：所有来自 Web 端（鼠标/键盘事件）或外部 Vision 客户端（`action.request`）的控制动作，均统一汇聚至设备级动作队列 `action.Queue`，并由 `deviceActionExecutor` 负责执行。
 2. **底层执行方式**：当前仅支持 scrcpy 控制 Socket 协议（即 `sdk` 模式）。底层通过在 Android 端运行的 `scrcpy-server.jar` 内部反射调用系统 `android.hardware.input.InputManager` 的 `injectInputEvent` 注入 `MotionEvent` / `KeyEvent`。
 3. **优势与痛点**：
@@ -67,7 +67,7 @@ flowchart TB
         REST["REST API 客户端"]
     end
 
-    subgraph CoreQueue["核心控制网关 (MyWebScrcpy Action Layer)"]
+    subgraph CoreQueue["核心控制网关 (Farm Action Layer)"]
         Req["action.Request\n(action: tap/swipe, mode: sdk|adb, duration_ms)"]
         AQueue["action.Queue (设备级串行队列)"]
         Executor["deviceActionExecutor (分流路由)"]
@@ -189,7 +189,7 @@ sequenceDiagram
     participant Host as 宿主机 (Mac/Linux/Windows)
     participant USBCable as 单根物理 USB 数据线
     participant Android as 手机 USB 控制器 (USB Gadget 驱动)
-    participant Scrcpy as MyWebScrcpy (视频流/ADB 连接)
+    participant Scrcpy as Farm (视频流/ADB 连接)
     participant AOAProcess as 外部 AOA 独立进程
 
     Note over Host,Android: 当前状态：USB 处于 ADB 调试模式 (VID:PID 如 18d1:4ee7)<br/>Scrcpy 视频流正在传输中

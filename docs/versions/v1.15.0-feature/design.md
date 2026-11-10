@@ -16,7 +16,7 @@ graph LR
         Scrcpy[scrcpy-server]
     end
 
-    subgraph GoServer [MyWebScrcpy Go 服务]
+    subgraph GoServer [Farm Go 服务]
         Hub[Hub 共享 Session]
         VisionStream["/api/vision/stream (H.264 推流)"]
         VisionResults["/api/vision/results (结果广播)"]

@@ -3,9 +3,9 @@
 生成工具：内置 image_gen；2026-10-16。此图为视觉概念，不是浏览器截图。
 
 ```text
-Create a high-fidelity Chinese desktop application UI design mockup for MyWebScrcpy version 1.26.0, a real Android device automation app. Output one extremely crisp full desktop screen, landscape aspect ratio around 16:11, flat front-facing UI filling the image, no perspective or laptop, high resolution readable Simplified Chinese. This is a visual design concept for a new AI integration page, not a screenshot of a real implemented feature.
+Create a high-fidelity Chinese desktop application UI design mockup for Farm version 1.26.0, a real Android device automation app. Output one extremely crisp full desktop screen, landscape aspect ratio around 16:11, flat front-facing UI filling the image, no perspective or laptop, high resolution readable Simplified Chinese. This is a visual design concept for a new AI integration page, not a screenshot of a real implemented feature.
 
-Existing project visual language: restrained shadcn-like white interface, #2563eb primary blue, near-black text, #737373 secondary text, light gray 1px borders, 10px rounded cards, subtle shadows only, generous spacing. Compact top app header with small blue app icon, "MyWebScrcpy" and small "v1.26.0" at left. Right top navigation: "设备" "任务" "AI 集成" (selected blue tinted pill with small sparkles outline icon), "大屏模式", "系统设置" with gear. Do not introduce a permanent left sidebar. Chinese typography like PingFang SC, professional developer utility, elegant real shippable UI.
+Existing project visual language: restrained shadcn-like white interface, #2563eb primary blue, near-black text, #737373 secondary text, light gray 1px borders, 10px rounded cards, subtle shadows only, generous spacing. Compact top app header with small blue app icon, "Farm" and small "v1.26.0" at left. Right top navigation: "设备" "任务" "AI 集成" (selected blue tinted pill with small sparkles outline icon), "大屏模式", "系统设置" with gear. Do not introduce a permanent left sidebar. Chinese typography like PingFang SC, professional developer utility, elegant real shippable UI.
 
 Main page content has a max-width around 1350px, centered with 40px side gutters.
 Page heading row: breadcrumb small "工作台 / AI 集成"; large title "AI 集成"; under it one short subtitle "连接 AI 助手，使用技能自动化操作手机". Small understated "查看文档 ↗" link aligned right.

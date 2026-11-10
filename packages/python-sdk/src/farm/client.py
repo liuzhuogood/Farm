@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 try:
     import httpx
 except ImportError as error:
-    raise ImportError("请在当前 Python 环境安装 mywebscrcpy-sdk，或安装 httpx") from error
+    raise ImportError("请在当前 Python 环境安装 farm-sdk，或安装 httpx") from error
 
 from .errors import ConnectionError, HTTPError, ProtocolError, SDKError
 from .net import httpx_options, resolve_proxy
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Client:
     """HTTP client. No device process, service or Vision session starts implicitly.
 
-    默认不使用代理；可用 `proxy=` 或环境变量 `MYWEBSCRCPY_PROXY` 指定代理，
+    默认不使用代理；可用 `proxy=` 或环境变量 `FARM_PROXY` 指定代理，
     该设置同时作用于 HTTP 请求、Vision WebSocket 与 OCR 上传。
     """
 

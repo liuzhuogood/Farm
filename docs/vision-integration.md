@@ -1,13 +1,13 @@
 # Python Vision 对接说明
 
-本文档说明 Python Vision 如何连接 MyWebScrcpy，直接接收 Android 实时视频流，在内存中的解码帧上执行 OpenCV/YOLO/OCR 识别，回传识别框，并按需请求设备动作。
+本文档说明 Python Vision 如何连接 Farm，直接接收 Android 实时视频流，在内存中的解码帧上执行 OpenCV/YOLO/OCR 识别，回传识别框，并按需请求设备动作。
 
 Vision 的输入不是本地截图或本地视频文件。Python 只需要提供设备 `serial`，通过 `/api/vision/stream` 接收实时 H.264 帧；模板图片、模型权重等识别资源仍可放在本地目录，但不需要把每一帧保存成文件。
 
 ## 1. 启动
 
 ```bash
-cd /Users/liuzhuo/code/MyWebScrcpy
+cd /Users/liuzhuo/code/Farm
 go run .
 adb devices -l
 curl http://127.0.0.1:8080/api/devices
@@ -18,7 +18,7 @@ cd /Users/liuzhuo/code/yolo_wepork
 .venv/bin/python -m opencv_match.stream_vision --serial 10.0.0.30:5555
 ```
 
-如果 MyWebScrcpy 部署在 `10.0.0.6` 且使用内置自签名证书，应改用 `wss` 并增加 `--insecure`：
+如果 Farm 部署在 `10.0.0.6` 且使用内置自签名证书，应改用 `wss` 并增加 `--insecure`：
 
 ```bash
 cd /Users/liuzhuo/code/yolo_wepork

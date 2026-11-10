@@ -16,11 +16,11 @@ import (
 	"time"
 )
 
-// MYWEBSCRCPY_MATCHING_TEST_PYTHON opts into real decoding/matching with installed vision dependencies.
+// FARM_MATCHING_TEST_PYTHON opts into real decoding/matching with installed vision dependencies.
 func TestRealPythonWorkers(t *testing.T) {
-	python := os.Getenv("MYWEBSCRCPY_MATCHING_TEST_PYTHON")
+	python := os.Getenv("FARM_MATCHING_TEST_PYTHON")
 	if python == "" {
-		t.Skip("set MYWEBSCRCPY_MATCHING_TEST_PYTHON for full SDK integration")
+		t.Skip("set FARM_MATCHING_TEST_PYTHON for full SDK integration")
 	}
 	dir := t.TempDir()
 	generator := `import sys
@@ -213,9 +213,9 @@ for name,data in [('config',config),('packet',packet),('image',cv2.imencode('.pn
 }
 
 func TestRealPythonMissingDependencies(t *testing.T) {
-	python := os.Getenv("MYWEBSCRCPY_MATCHING_TEST_PYTHON")
+	python := os.Getenv("FARM_MATCHING_TEST_PYTHON")
 	if python == "" {
-		t.Skip("set MYWEBSCRCPY_MATCHING_TEST_PYTHON for interpreter tests")
+		t.Skip("set FARM_MATCHING_TEST_PYTHON for interpreter tests")
 	}
 	dir := filepath.Join(t.TempDir(), "isolated")
 	if output, err := exec.Command(python, "-m", "venv", "--without-pip", dir).CombinedOutput(); err != nil {

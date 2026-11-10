@@ -1,6 +1,6 @@
-# MyWebScrcpy 前端
+# Farm 前端
 
-Vue 3 + TypeScript + Vite，源码由 `MyWebScrcpyNew` 迁入。组件沿用 shadcn-vue。
+Vue 3 + TypeScript + Vite，源码由 `FarmNew` 迁入。组件沿用 shadcn-vue。
 
 ## 开发
 

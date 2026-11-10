@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/vision"
+	"farm/internal/dependencies"
+	"farm/internal/vision"
 )
 
 const MaxStabilizationMS int64 = 5000

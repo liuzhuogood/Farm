@@ -632,7 +632,7 @@ function handleDeviceClick(serial: string) {
           <div class="rounded-2xl border border-slate-200/70 bg-slate-50/70 p-3 dark:border-white/10 dark:bg-black/20 text-xs space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-slate-500 dark:text-slate-400">版本</span>
-              <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">MyWebScrcpy v1.31.0</span>
+              <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">Farm v1.31.0</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-slate-500 dark:text-slate-400">ADB 服务</span>

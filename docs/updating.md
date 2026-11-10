@@ -13,7 +13,7 @@
 | systemd | 使用服务部署流程升级；应用内不自行重启或替换文件 |
 | Docker/Podman | 拉取新版镜像并重建容器；应用内保留版本检查，禁止二进制升级 |
 
-官方 Docker 镜像设置 `MYWEBSCRCPY_RUNTIME=docker`，同时识别 `/.dockerenv`、`/run/.containerenv`。自定义镜像应保留该变量。systemd 使用 `INVOCATION_ID`，也可以明确设置 `MYWEBSCRCPY_RUNTIME=systemd`。桌面宿主通过既有 `--desktop-ready` 标识服务。
+官方 Docker 镜像设置 `FARM_RUNTIME=docker`，同时识别 `/.dockerenv`、`/run/.containerenv`。自定义镜像应保留该变量。systemd 使用 `INVOCATION_ID`，也可以明确设置 `FARM_RUNTIME=systemd`。桌面宿主通过既有 `--desktop-ready` 标识服务。
 
 ## 更新保护
 
@@ -51,7 +51,7 @@ Actions 配置：
 
 - Secret `TAURI_SIGNING_PRIVATE_KEY`：更新签名私钥。
 - 可选 Secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`：加密私钥密码。
-- Variable `MYWEBSCRCPY_UPDATER_PUBLIC_KEY`：与 `desktop/updater.pub` 相同的更新公钥。
+- Variable `FARM_UPDATER_PUBLIC_KEY`：与 `desktop/updater.pub` 相同的更新公钥。
 - Apple 系统签名/公证：Secrets `APPLE_CERTIFICATE`、`APPLE_CERTIFICATE_PASSWORD`、`APPLE_ID`、`APPLE_PASSWORD`；Variables `APPLE_SIGNING_IDENTITY`、`APPLE_TEAM_ID`。
 
 更新签名与 Apple 系统签名是两套独立凭据。更新私钥已保存到本机受保护目录并配置到仓库 Secret；仓库只保存公钥。Apple 凭据尚未配置，当前 macOS 包只有本机 ad-hoc 签名，不能宣称通过正式签名和公证。私钥不得提交到 Git，也不能随意重新生成，否则已安装版本无法验证后续更新。
@@ -60,7 +60,7 @@ Actions 配置：
 
 ## 验证边界
 
-本机应运行 Go 测试/race/vet、前端构建、Rust check/clippy、Actions 语法检查、桌面服务集成检查、发布清单契约检查和原生 IPC 检查。原生验证构建使用独立应用标识 `com.mywebscrcpy.desktop.verification`，不会复用正式应用数据目录；交付前重新构建普通版本。
+本机应运行 Go 测试/race/vet、前端构建、Rust check/clippy、Actions 语法检查、桌面服务集成检查、发布清单契约检查和原生 IPC 检查。原生验证构建使用独立应用标识 `com.farm.desktop.verification`，不会复用正式应用数据目录；交付前重新构建普通版本。
 
 完整 Release 上的真实版本升级、Windows/Linux 安装器、systemd 部署和 Docker 容器重建还需要各环境验收；单元测试和本机 macOS 打包不能替代这些验证。
 

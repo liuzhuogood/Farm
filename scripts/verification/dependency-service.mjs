@@ -7,11 +7,11 @@ import { once } from 'node:events'
 
 const executable = process.argv[2]
 if (!executable) throw new Error('需要待验证的主程序路径')
-const directory = await mkdtemp(path.join(os.tmpdir(), 'mywebscrcpy-dependency-api-'))
+const directory = await mkdtemp(path.join(os.tmpdir(), 'farm-dependency-api-'))
 const readyFile = path.join(directory, 'ready.json')
 const child = spawn(path.resolve(executable), ['--no-gui', '--listen', '127.0.0.1:0', '--data-dir', directory, '--desktop-ready', readyFile], {
   stdio: ['pipe', 'ignore', 'pipe'],
-  env: { ...process.env, MYWEBSCRCPY_ADB: path.join(directory, 'missing-adb'), TLS_CERT: '', TLS_KEY: '' },
+  env: { ...process.env, FARM_ADB: path.join(directory, 'missing-adb'), TLS_CERT: '', TLS_KEY: '' },
 })
 let log = ''
 child.stderr.on('data', data => { log = (log + data.toString()).slice(-8192) })

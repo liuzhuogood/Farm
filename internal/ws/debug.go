@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	debuglog "mywebscrcpy/internal/debug"
+	debuglog "farm/internal/debug"
 )
 
 // ServeVisionDebug returns a bounded, read-only diagnostic event snapshot.

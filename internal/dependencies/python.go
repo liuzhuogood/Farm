@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	pythonsdk "farm/packages/python-sdk"
 	"github.com/gofrs/flock"
-	pythonsdk "mywebscrcpy/packages/python-sdk"
 )
 
 const pythonModulesJob = "python-modules"
@@ -44,7 +44,7 @@ func (m *Manager) resolvePython(s Selection) (string, error) {
 	if runtime.GOOS == "windows" {
 		name = "python"
 	}
-	return pathFor(chosenPath("MYWEBSCRCPY_PYTHON", s.Path), name)
+	return pathFor(chosenPath("FARM_PYTHON", s.Path), name)
 }
 
 // The lease protects the selected runtime during generation and task execution.
@@ -72,12 +72,12 @@ if sys.version_info < (3, 10):
 sdk_version = ""
 sdk_error = ""
 try:
-    sdk_version = version("mywebscrcpy-sdk")
+    sdk_version = version("farm-sdk")
 except PackageNotFoundError:
     pass
 if sdk_version:
     try:
-        from mywebscrcpy import Client, Device, CommandResult, PageInfo
+        from farm import Client, Device, CommandResult, PageInfo
     except Exception as error:
         sdk_error = str(error)
 print(json.dumps({"version": sys.version.split()[0], "pip_available": importlib.util.find_spec("pip") is not None, "sdk_version": sdk_version, "sdk_error": sdk_error}))`
@@ -178,19 +178,17 @@ func (m *Manager) InstallPythonModules(s Selection) error {
 		defer release()
 		defer cancel()
 		log.Printf("[Dependencies] Python 模块安装开始 source=%s version=%s", s.Source, pythonsdk.Version)
-		localSDK := filepath.Join(filepath.Dir(m.root), "packages", "python-sdk")
-		var cmd *exec.Cmd
-		if stat, statErr := os.Stat(filepath.Join(localSDK, "pyproject.toml")); statErr == nil && !stat.IsDir() {
-			cmd = exec.CommandContext(ctx, tool.Path, "-m", "pip", "install", "--disable-pip-version-check", "--no-input", localSDK)
-		} else {
-			cmd = exec.CommandContext(ctx, tool.Path, "-m", "pip", "install", "--disable-pip-version-check", "--no-input", "--index-url", "https://pypi.org/simple", "mywebscrcpy-sdk[vision]=="+pythonsdk.Version)
-		}
-		cmd.Dir = os.TempDir()
-		cmd.Env = PythonEnvironment()
-		cmd.WaitDelay = 2 * time.Second
 		var output boundedOutput
-		cmd.Stdout, cmd.Stderr = &output, &output
-		err := cmd.Run()
+		localSDK, cleanup, err := pythonsdk.ExtractSource()
+		if err == nil {
+			defer cleanup()
+			cmd := exec.CommandContext(ctx, tool.Path, "-m", "pip", "install", "--disable-pip-version-check", "--no-input", "--index-url", "https://pypi.org/simple", localSDK+"[vision]")
+			cmd.Dir = os.TempDir()
+			cmd.Env = PythonEnvironment()
+			cmd.WaitDelay = 2 * time.Second
+			cmd.Stdout, cmd.Stderr = &output, &output
+			err = cmd.Run()
+		}
 		if err == nil {
 			verified := inspectPython(ctx, Tool{}, tool.Path)
 			if !verified.Installed || verified.Python == nil || !verified.Python.Ready {

@@ -6,7 +6,7 @@
 
 当前 Go 主服务管理模板资产、提供 `/api/vision/stream` 和 `/api/vision/results`，本身不执行模板匹配。`scripts/template_matcher/` 通过 HTTP 加载模板、PyAV 解码 H.264、OpenCV 匹配，再回传 `detection.result`。使用者目前必须运行独立脚本或自己拼接协议。
 
-本版设计一个项目内可安装的 Python SDK，业务脚本通过 import 调用即可管理模板、获取设备画面、匹配与操作设备。匹配计算在调用方 Python 进程运行，不自动拉起外部匹配进程。远程设备模式仍要求 MyWebScrcpy 主服务可达及设备可连接；仅对传入内存图像执行本地 match_image 不依赖主服务。
+本版设计一个项目内可安装的 Python SDK，业务脚本通过 import 调用即可管理模板、获取设备画面、匹配与操作设备。匹配计算在调用方 Python 进程运行，不自动拉起外部匹配进程。远程设备模式仍要求 Farm 主服务可达及设备可连接；仅对传入内存图像执行本地 match_image 不依赖主服务。
 
 首版目标：Python 3.10+、同步 API、pip 本地安装与 wheel 分发、类型化结果、清晰异常与资源生命周期。实现完成后才确定依赖版本范围和正式发布版本。
 
@@ -26,7 +26,7 @@
 packages/python-sdk/
   pyproject.toml
   README.md
-  src/mywebscrcpy/
+  src/farm/
     __init__.py
     client.py          # HTTP 连接、设备入口、配置与关闭
     templates.py       # 模板资产与在线缓存
@@ -44,7 +44,7 @@ packages/python-sdk/
 
 基础安装包含 HTTPX、websocket-client；导入包和管理模板时不得加载 OpenCV/PyAV。`[vision]` 包含 PyAV、opencv-python-headless、NumPy，调用取帧或匹配前检查依赖，缺失给出安装命令。不自行编写 HTTP/WebSocket/视频解码库。
 
-采用 pyproject.toml、src 布局、成熟 setuptools 构建 wheel/sdist。初期可从本地目录或 wheel 安装，候选分发名 `mywebscrcpy-sdk`、导入名 `mywebscrcpy`；PyPI 名称及公开发布另行确认。SDK 元数据只使用纯 SemVer，不把 feature 后缀写入包版本。本版包版本为 0.2.0，主项目 VERSION 不变。
+采用 pyproject.toml、src 布局、成熟 setuptools 构建 wheel/sdist。初期可从本地目录或 wheel 安装，候选分发名 `farm-sdk`、导入名 `farm`；PyPI 名称及公开发布另行确认。SDK 元数据只使用纯 SemVer，不把 feature 后缀写入包版本。本版包版本为 0.2.0，主项目 VERSION 不变。
 
 参考：[HTTPX 官方文档](https://www.python-httpx.org/)、[websocket-client 官方文档](https://websocket-client.readthedocs.io/en/latest/)、[PyPA 打包指南](https://packaging.python.org/en/latest/tutorials/packaging-projects/)。
 
@@ -57,7 +57,7 @@ pip install './packages/python-sdk[vision]'
 ```
 
 ```python
-from mywebscrcpy import Client
+from farm import Client
 
 with Client('http://127.0.0.1:8080') as client:
     templates = client.templates.list(serial='10.0.0.30:5555')
@@ -115,7 +115,7 @@ Frame 包含 frame_id、session_id、device_id、尺寸、服务端时间戳（�
 sequenceDiagram
     participant User as 业务 Python 脚本
     participant SDK as Python SDK
-    participant Go as MyWebScrcpy 主服务
+    participant Go as Farm 主服务
     participant Web as 网页播放器
     User->>SDK: device.match(template_id)
     SDK->>Go: 获取模板元数据和主图片
@@ -177,6 +177,6 @@ sequenceDiagram
 
 ## 更新后与 v1.21 的关系
 
-2026-10-13 用户确认先完成 SDK 基础能力并接入 v1.21，完整视频解码与模板匹配留在 v1.22。统一包为 packages/python-sdk、分发名 mywebscrcpy-sdk、导入名 mywebscrcpy；v1.21 基础版 0.1.0 提供 Client、Device.adb/page_info、结果和异常，使用 HTTPX，不另建 mywebscrcpy_runtime。生成脚本通过 ADB 参数执行基础动作，可安装包后在应用外运行。
+2026-10-13 用户确认先完成 SDK 基础能力并接入 v1.21，完整视频解码与模板匹配留在 v1.22。统一包为 packages/python-sdk、分发名 farm-sdk、导入名 farm；v1.21 基础版 0.1.0 提供 Client、Device.adb/page_info、结果和异常，使用 HTTPX，不另建 farm_runtime。生成脚本通过 ADB 参数执行基础动作，可安装包后在应用外运行。
 
 本版继续在同一 SDK 增加模板管理、Vision 会话、解码、匹配与 action.request/result；不重复 HTTP 连接、错误类型或建立第二套设备封装。当前基础 Device 上下文只管理 HTTP 操作，不开启 Vision；本版已实现完整会话握手和专用 tap/swipe/key/text，并增加 [vision] 安装项与 websocket-client。用户随后授权完整 SDK 实施及 Pi 接入，本版将现有生成契约升级为 sdk-v2，增加视觉方法校验、真实模板 ID 校验与模板内容指纹，并扩展任务桥接的只读模板和 Vision 通路；沿用现有生成流程。

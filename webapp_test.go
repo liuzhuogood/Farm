@@ -35,7 +35,7 @@ func TestAppRoutesAndStaticAssets(t *testing.T) {
 		{"GET", "/tasks", 404, ""},
 		{"GET", "/dependencies", 200, `id="app"`},
 		{"GET", "/ai-integration", 200, `id="app"`},
-		{"GET", "/ai-integration/skills/mywebscrcpy-device-base", 200, `id="app"`},
+		{"GET", "/ai-integration/skills/farm-device-base", 200, `id="app"`},
 		{"GET", "/ai-integration/skills/unknown-skill", 200, `id="app"`},
 		{"GET", "/ai-integration/skills/unknown-skill/extra", 404, ""},
 		{"GET", "/files?serial=device-1", 200, `id="app"`},

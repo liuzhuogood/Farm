@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 func TestNormalizeVisionFPS(t *testing.T) {

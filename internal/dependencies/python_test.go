@@ -18,12 +18,19 @@ import (
 	"testing"
 	"time"
 
-	pythonsdk "mywebscrcpy/packages/python-sdk"
+	pythonsdk "farm/packages/python-sdk"
 )
 
 func TestMain(m *testing.M) {
-	if root := os.Getenv("MYWEBSCRCPY_TEST_PYTHON"); root != "" {
+	if root := os.Getenv("FARM_TEST_PYTHON"); root != "" {
 		if len(os.Args) > 2 && os.Args[1] == "-m" && os.Args[2] == "pip" {
+			source := strings.TrimSuffix(os.Args[len(os.Args)-1], "[vision]")
+			project, err := os.ReadFile(filepath.Join(source, "pyproject.toml"))
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "packaged SDK source missing:", err)
+				os.Exit(1)
+			}
+			_ = os.WriteFile(filepath.Join(root, "sdk-project.toml"), project, 0600)
 			if _, err := os.Stat(filepath.Join(root, "slow")); err == nil {
 				time.Sleep(10 * time.Second)
 			}
@@ -49,8 +56,8 @@ func TestMain(m *testing.M) {
 func TestPythonSelectionAndModuleInstallation(t *testing.T) {
 	m := newTestManager(t)
 	root := t.TempDir()
-	t.Setenv("MYWEBSCRCPY_TEST_PYTHON", root)
-	t.Setenv("MYWEBSCRCPY_PYTHON", "")
+	t.Setenv("FARM_TEST_PYTHON", root)
+	t.Setenv("FARM_PYTHON", "")
 	exe, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)
@@ -92,9 +99,20 @@ func TestPythonSelectionAndModuleInstallation(t *testing.T) {
 	if err := json.Unmarshal(raw, &args); err != nil {
 		t.Fatal(err)
 	}
-	expected := []string{"-m", "pip", "install", "--disable-pip-version-check", "--no-input", "--index-url", "https://pypi.org/simple", "mywebscrcpy-sdk[vision]==" + pythonsdk.Version}
-	if !reflect.DeepEqual(args, expected) {
+	expected := []string{"-m", "pip", "install", "--disable-pip-version-check", "--no-input", "--index-url", "https://pypi.org/simple"}
+	if len(args) != len(expected)+1 || !reflect.DeepEqual(args[:len(expected)], expected) {
 		t.Fatalf("unexpected pip command: %v", args)
+	}
+	local := strings.TrimSuffix(args[len(args)-1], "[vision]")
+	if !strings.HasSuffix(args[len(args)-1], "[vision]") || !filepath.IsAbs(local) || !strings.HasPrefix(filepath.Base(local), "farm-sdk-") {
+		t.Fatalf("pip did not install the bundled SDK with vision dependencies: %v", args)
+	}
+	project, err := os.ReadFile(filepath.Join(root, "sdk-project.toml"))
+	if err != nil || !strings.Contains(string(project), `name = "farm-sdk"`) || !strings.Contains(string(project), `version = "`+pythonsdk.Version+`"`) {
+		t.Fatal("pip source is not the exact bundled SDK version", err)
+	}
+	if _, err := os.Stat(local); !os.IsNotExist(err) {
+		t.Fatal("temporary SDK source leaked after pip completed", err)
 	}
 	tool := m.detect("python", s)
 	if !tool.Installed || !tool.Python.Ready || m.tasks[pythonModulesJob].Stage != "ready" {
@@ -118,8 +136,8 @@ func TestPythonModulesFailureAndCancellationReleaseRuntime(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			m := newTestManager(t)
 			root := t.TempDir()
-			t.Setenv("MYWEBSCRCPY_TEST_PYTHON", root)
-			t.Setenv("MYWEBSCRCPY_PYTHON", "")
+			t.Setenv("FARM_TEST_PYTHON", root)
+			t.Setenv("FARM_PYTHON", "")
 			if err := os.WriteFile(filepath.Join(root, mode), nil, 0600); err != nil {
 				t.Fatal(err)
 			}
@@ -214,9 +232,9 @@ func TestPythonArchiveMaterializesInternalLinksAndRejectsEscape(t *testing.T) {
 }
 
 func TestRealManagedPythonFromArchive(t *testing.T) {
-	source := os.Getenv("MYWEBSCRCPY_PYTHON_ARCHIVE")
+	source := os.Getenv("FARM_PYTHON_ARCHIVE")
 	if source == "" {
-		t.Skip("set MYWEBSCRCPY_PYTHON_ARCHIVE to verify standalone runtime and PyPI installation")
+		t.Skip("set FARM_PYTHON_ARCHIVE to verify standalone runtime and PyPI installation")
 	}
 	m := newTestManager(t)
 	raw, err := os.ReadFile(source)
@@ -245,14 +263,14 @@ func TestRealManagedPythonFromArchive(t *testing.T) {
 		t.Fatal(err)
 	}
 	userSite := strings.TrimSpace(string(output))
-	dist := filepath.Join(userSite, "mywebscrcpy_sdk-0.0.0.dist-info")
+	dist := filepath.Join(userSite, "farm_sdk-0.0.0.dist-info")
 	if err := os.MkdirAll(dist, 0700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dist, "METADATA"), []byte("Metadata-Version: 2.1\nName: mywebscrcpy-sdk\nVersion: 0.0.0\n"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(dist, "METADATA"), []byte("Metadata-Version: 2.1\nName: farm-sdk\nVersion: 0.0.0\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(userSite, "mywebscrcpy.py"), []byte("raise RuntimeError('user SDK probe marker')\n"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(userSite, "farm.py"), []byte("raise RuntimeError('user SDK probe marker')\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	userTool := m.detect("python", s)

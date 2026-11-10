@@ -10,10 +10,10 @@ const directory = path.join(root, '.cache/services/desktop-dev')
 const recordFile = path.join(directory, 'process.json')
 const buildFile = path.join(directory, 'build.json')
 const marker = path.join(directory, 'window-ready')
-const logFile = path.join(os.homedir(), 'Library/Application Support/com.mywebscrcpy.desktop/desktop.log')
-const appBundle = path.join(root, 'desktop/target/release/bundle/macos/MyWebScrcpy.app')
-const executable = path.join(appBundle, 'Contents/MacOS/mywebscrcpy-gui')
-const endpointFile = path.join(os.homedir(), 'Library/Application Support/com.mywebscrcpy.desktop/desktop-endpoint.json')
+const logFile = path.join(os.homedir(), 'Library/Application Support/com.farm.desktop/desktop.log')
+const appBundle = path.join(root, 'desktop/target/release/bundle/macos/Farm.app')
+const executable = path.join(appBundle, 'Contents/MacOS/farm-gui')
+const endpointFile = path.join(os.homedir(), 'Library/Application Support/com.farm.desktop/desktop-endpoint.json')
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 function identity(pid) {
@@ -50,7 +50,7 @@ async function endpoint() {
   if (!value || !/^http:\/\/127\.0\.0\.1:\d+$/.test(value.url) || !identity(value.pid)) return undefined
   try {
     const response = await fetch(value.url + '/api/openapi.json', { signal: AbortSignal.timeout(1500) })
-    return response.ok && (await response.json()).info.title === 'MyWebScrcpy API' ? value : undefined
+    return response.ok && (await response.json()).info.title === 'Farm API' ? value : undefined
   } catch { return undefined }
 }
 
@@ -113,7 +113,7 @@ async function main() {
       // The sidecar exits when its GUI parent closes stdin.
       while (await endpoint() && Date.now() < stopDeadline) await sleep(100)
     }
-    if (await endpoint()) throw new Error('已有其他桌面实例运行，请先从 MyWebScrcpy 菜单退出后重试')
+    if (await endpoint()) throw new Error('已有其他桌面实例运行，请先从 Farm 菜单退出后重试')
     if (readJSON(buildFile)?.hash !== hash || !existsSync(executable)) {
       console.log('[构建] 当前工作区桌面开发版')
       // Use the official App bundle so macOS can identify and activate its window.

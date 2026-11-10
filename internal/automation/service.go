@@ -15,12 +15,12 @@ import (
 	"strings"
 	"time"
 
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/inputconfig"
-	"mywebscrcpy/internal/ocr"
-	"mywebscrcpy/internal/template"
-	"mywebscrcpy/internal/ws"
+	"farm/internal/action"
+	"farm/internal/dependencies"
+	"farm/internal/inputconfig"
+	"farm/internal/ocr"
+	"farm/internal/template"
+	"farm/internal/ws"
 )
 
 func newActionID() string {
@@ -827,4 +827,3 @@ func (s *Service) GetPixel(ctx context.Context, req PixelRequest) (*PixelRespons
 
 	return resp, nil
 }
-

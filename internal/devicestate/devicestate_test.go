@@ -16,10 +16,10 @@ import (
 	"sync"
 	"testing"
 
-	"mywebscrcpy/internal/db"
-	"mywebscrcpy/internal/template"
-	"mywebscrcpy/internal/uipage"
-	"mywebscrcpy/internal/visionframes"
+	"farm/internal/db"
+	"farm/internal/template"
+	"farm/internal/uipage"
+	"farm/internal/visionframes"
 )
 
 func createTestPNG(w, h int, c color.Color) []byte {

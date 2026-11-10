@@ -7,12 +7,12 @@
 1. **AI 集成接入指引**：
    - 新增正式入口与路由（`/ai-integration`，`frontend/src/views/AiIntegrationView.vue`），页头导航加入「AI 集成」。
    - 覆盖 Codex、Claude Code、WorkBuddy 三种助手：接入步骤、任务示例提示词、官方文档链接与宿主机上的实际技能目录。
-   - 安装目标始终是**运行 MyWebScrcpy 服务的宿主机**，不是通过浏览器访问的前端机器。
+   - 安装目标始终是**运行 Farm 服务的宿主机**，不是通过浏览器访问的前端机器。
 
 2. **技能市场**：
    - 技能列表支持搜索、分类、按助手已安装状态筛选；二级详情页可刷新、可返回（`/ai-integration/skills/:id`）。
-   - 收录三个技能包：`mywebscrcpy-device-base`（手机操作基础）、`mywebscrcpy-kuaishou-daily`（快手日常助手）、`mywebscrcpy-wechat-helper`（微信消息助手，仅读取与草拟，不自动外发消息）。
-   - 统一以 `mywebscrcpy-` 前缀命名；每个包含 `SKILL.md`（合法 frontmatter）、`scripts/request_client.py`（仅用标准库）与 `.mywebscrcpy-manifest.json`（SHA256 清单，标记管理权属）。
+   - 收录三个技能包：`farm-device-base`（手机操作基础）、`farm-kuaishou-daily`（快手日常助手）、`farm-wechat-helper`（微信消息助手，仅读取与草拟，不自动外发消息）。
+   - 统一以 `farm-` 前缀命名；每个包含 `SKILL.md`（合法 frontmatter）、`scripts/request_client.py`（仅用标准库）与 `.farm-manifest.json`（SHA256 清单，标记管理权属）。
 
 3. **下载与安装**：
    - 下载：生成以技能名为根目录的独立 ZIP，不改变任何安装状态。

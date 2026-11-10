@@ -8,7 +8,7 @@
 - `go test -race ./internal/db ./internal/mdscript ./internal/taskartifact ./internal/taskmanager ./internal/ws ./internal/aiprovider ./internal/scheduler` 通过。
 - `pnpm --dir frontend build` 通过类型检查和正式前端构建。
 - 从当前 HEAD 导出独立目录，仅叠加本次改动；main.go、ScriptEditor.vue、OpenAPI 中的原有 Pi/播放器改动未纳入。独立目录的前端类型检查/构建、Go 全量测试/vet/构建和 Windows amd64 交叉编译通过。
-- 独立验证目录记录在 `/tmp/mywebscrcpy-1194-validation-path`；包含本次代码的服务构建为 `/tmp/mywebscrcpy-1194-validation-server`，交叉编译文件为同路径 `.exe`。前端复用已安装依赖，直接调用 vue-tsc/vite，未更改原工作区依赖。
+- 独立验证目录记录在 `/tmp/farm-1194-validation-path`；包含本次代码的服务构建为 `/tmp/farm-1194-validation-server`，交叉编译文件为同路径 `.exe`。前端复用已安装依赖，直接调用 vue-tsc/vite，未更改原工作区依赖。
 
 用例覆盖严格头部类型与别名/重复键、正文示例不触发、旧文档、中文和跨管道读取 UTF-8、无换行与长行、实时读取、双向/筛选游标、过大游标、容量截断、写盘/索引故障与配额回收、初始日志失败阻止 Python、真实 Python 超时/终止、准备阶段取消不阻塞其他设备、显式批次/快照、准确进程路径恢复、录制 owner/serial 拒绝错配、Range 206/过期 410、报告队列去重/伪造引用/失败修订保留、有限证据预算及模型 HTTP 请求不含工具。
 

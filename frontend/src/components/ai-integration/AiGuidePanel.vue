@@ -24,7 +24,7 @@ async function handleDownloadBase() {
   isDownloading.value = true
   downloadError.value = null
   try {
-    await downloadSkillZip('mywebscrcpy-device-base', 'mywebscrcpy-device-base.zip')
+    await downloadSkillZip('farm-device-base', 'farm-device-base.zip')
   }
   catch (err: unknown) {
     downloadError.value = err instanceof Error ? err.message : '下载失败'

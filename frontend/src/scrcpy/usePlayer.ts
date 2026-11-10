@@ -779,7 +779,7 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
     // Command / Alt 组合一律放行给浏览器
     if (e.metaKey || (e.altKey && !e.ctrlKey))
       return true
-    // 事件目标或当前焦点处于输入控件或可交互浮层/面板内时，不注入设备（与旧版 MyWebScrcpy 对齐）
+    // 事件目标或当前焦点处于输入控件或可交互浮层/面板内时，不注入设备（与旧版 Farm 对齐）
     return isInteractiveTarget(e.target)
   }
 

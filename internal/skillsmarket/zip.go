@@ -63,7 +63,7 @@ func getSkillFiles(skillID SkillID) (map[string][]byte, *Manifest, error) {
 	}
 
 	manifest := &Manifest{
-		ManagedBy: "mywebscrcpy",
+		ManagedBy: "farm",
 		SkillID:   string(skillID),
 		Version:   "1.0.0",
 		Files:     fileChecksums,
@@ -73,7 +73,7 @@ func getSkillFiles(skillID SkillID) (map[string][]byte, *Manifest, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("marshal manifest: %w", err)
 	}
-	files[".mywebscrcpy-manifest.json"] = manifestBytes
+	files[".farm-manifest.json"] = manifestBytes
 
 	return files, manifest, nil
 }

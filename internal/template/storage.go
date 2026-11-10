@@ -44,12 +44,12 @@ func DefaultStorageDir() string {
 		return localDir
 	}
 	if userConfigDir, err := os.UserConfigDir(); err == nil && userConfigDir != "" {
-		return filepath.Join(userConfigDir, "mywebscrcpy", "templates")
+		return filepath.Join(userConfigDir, "farm", "templates")
 	}
 	if cacheDir, err := os.UserCacheDir(); err == nil && cacheDir != "" {
-		return filepath.Join(cacheDir, "mywebscrcpy", "templates")
+		return filepath.Join(cacheDir, "farm", "templates")
 	}
-	return filepath.Join(os.TempDir(), "mywebscrcpy-templates")
+	return filepath.Join(os.TempDir(), "farm-templates")
 }
 
 // NewStorage initializes a template storage engine using baseDir.

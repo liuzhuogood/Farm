@@ -17,12 +17,12 @@ export function useDesktopConfig() {
   const isDesktop = ref(false)
 
   function headers(): Record<string, string> {
-    const desktopToken = (window as Window & { __MYWEBSCRCPY_DESKTOP_TOKEN__?: string }).__MYWEBSCRCPY_DESKTOP_TOKEN__
+    const desktopToken = (window as Window & { __FARM_DESKTOP_TOKEN__?: string }).__FARM_DESKTOP_TOKEN__
     return { 'Content-Type': 'application/json', ...(desktopToken ? { Authorization: `Bearer ${desktopToken}` } : {}) }
   }
 
   async function load() {
-    const desktopToken = (window as Window & { __MYWEBSCRCPY_DESKTOP_TOKEN__?: string }).__MYWEBSCRCPY_DESKTOP_TOKEN__
+    const desktopToken = (window as Window & { __FARM_DESKTOP_TOKEN__?: string }).__FARM_DESKTOP_TOKEN__
     isDesktop.value = Boolean(desktopToken)
     if (!desktopToken) return
 

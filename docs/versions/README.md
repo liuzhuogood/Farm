@@ -47,7 +47,7 @@
 | [v1.18.0-feature](v1.18.0-feature/version.md) | 已完成；真实手机动作另行验收 | 三栏工作台、底部标签、多选设备、所选设备与公共模板合集、明确设备迁移及独立进程管理。2026-10-11 正式构建、Go 全量/race 检查和隔离浏览器验收通过；原动作编译器仍为占位，未升级用户数据库或发布。 |
 | [v1.19.0-feature](v1.19.0-feature/version.md) | 已实现并完成真机压测 | 投屏启动加速与会话并发优化：`cleanup=false` 保留设备端 Jar、按设备缓存 SDK 与 Jar 状态、移除 1500ms 硬编码等待与冗余校验、按 serial 单飞建连并延长保活至 60s。真机冷启动首帧由 2.66s 降至 0.53s~0.89s（提速 3.0x~3.9x）。 |
 | [v1.19.1-fix](v1.19.1-fix/version.md) | 五平台编译成功；发布被运行测试拦截 | Windows 进程树清理测试通过；原生测试发现中文输出编码与调度测试文件追加问题，转 `v1.19.2-fix` 处理。 |
-| [v1.19.2-fix](v1.19.2-fix/version.md) | 已修复并发布 | 2026-10-12 [GitHub Actions](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/38155571572) 的五平台编译、Windows 原生测试、Release 和 Docker 全部成功；[Release](https://github.com/liuzhuogood/MyWebScrcpy/releases/tag/v1.19.2) 已发布五个程序文件。修复提交 `b6d2077`，保留前序标签。 |
+| [v1.19.2-fix](v1.19.2-fix/version.md) | 已修复并发布 | 2026-10-12 [GitHub Actions](https://github.com/liuzhuogood/Farm/actions/runs/38155571572) 的五平台编译、Windows 原生测试、Release 和 Docker 全部成功；[Release](https://github.com/liuzhuogood/Farm/releases/tag/v1.19.2) 已发布五个程序文件。修复提交 `b6d2077`，保留前序标签。 |
 | [v1.19.5-feature](v1.19.5-feature/version.md) | 已实现；纳入 v1.20.1 | 首页系统配置、三主题、Pi/ADB 独立安装与来源配置；scrcpy-server 继续内嵌。本次正式版本为 v1.20.1。 |
 
 | [v1.20.0-feature](v1.20.0-feature/version.md) | 进行中 | Tauri 桌面窗口、原生菜单、托盘、GUI/服务模式与独立依赖管理；三平台验证分别记录。 |
@@ -60,11 +60,11 @@
 | [v1.25.1-fix](v1.25.1-fix/version.md) | 已发布 v1.25.1 | 修复 Windows CI 下 OCR 测试夹具，全平台回归测试、Release 资产、Docker 镜像与 SDK 均成功发布。 |
 | [v1.25.2-fix](v1.25.2-fix/version.md) | 已发布 v1.25.2 | 原生投屏小窗无边框与顶栏恢复、Indra OCR 接入及运行环境统一管理。 |
 | [v1.26.0-feature](v1.26.0-feature/version.md) | 已发布 v1.26.0 | HID 硬件模拟通道、点击注入模式、Python 环境平滑切换与并发保护、AI 集成与自动化技能市场规划原型。 |
-| [v1.26.1-fix](v1.26.1-fix/version.md) | 已发布 v1.26.1 | 修复首页添加网络设备的反馈与即时呈现；同版包含 OCR 文字排版接口与快手极速版短视频任务技能。2026-10-17 [GitHub Actions](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/39015414870) 的五个平台构建、Windows 桌面任务、Release 与 Docker 全部成功；[Release](https://github.com/liuzhuogood/MyWebScrcpy/releases/tag/v1.26.1) 已发布 10 个资产。 |
+| [v1.26.1-fix](v1.26.1-fix/version.md) | 已发布 v1.26.1 | 修复首页添加网络设备的反馈与即时呈现；同版包含 OCR 文字排版接口与快手极速版短视频任务技能。2026-10-17 [GitHub Actions](https://github.com/liuzhuogood/Farm/actions/runs/39015414870) 的五个平台构建、Windows 桌面任务、Release 与 Docker 全部成功；[Release](https://github.com/liuzhuogood/Farm/releases/tag/v1.26.1) 已发布 10 个资产。 |
 | [v1.27.0-feature](v1.27.0-feature/version.md) | 已打标签；发布被 Windows 回归测试拦截，转 v1.27.1 | AI 集成接入指引与技能市场正式实现（后端 `skillsmarket`、前端页面与路由、技能包 ZIP 下载与多助手原子安装）。标签已推送但 `desktop (windows-latest)` 的 Go 回归失败，未生成 Release；助手客户端加载、真机业务与 Windows/Linux 原生运行未验收。 |
 | [v1.27.1-fix](v1.27.1-fix/version.md) | 已打标签；发布被 Windows 模板监听互锁拦截，转 v1.27.2 | 修复技能包 `request_client.py` 在 Windows 默认代码页（cp1252）下打印中文帮助抛 `UnicodeEncodeError` 的问题（该修复在 Windows 上已生效）；同一次任务里 `internal/template` 因既有 fsnotify 互锁测试超时，未生成 Release。 |
 | [v1.27.1-feature](v1.27.1-feature/version.md) | 界面验收通过；三项功能缺口待修复 | 任务目录手动扫描、总状态及决策、通用技能和应用规则精简；左右分栏、图片网格与页内原图预览已验证。按用户授权本地合入 main，沿用当前 1.27.2 版本；超时、ESC 动态 XML、AI 配置保存仍待修复，见验收记录。 |
-| [v1.27.2-fix](v1.27.2-fix/version.md) | 已发布 v1.27.2 | 修复 `DirWatcher.Close` 在 Windows 上先关 fsnotify、后等事件循环造成的互锁（关闭时目录事件在途会永久阻塞），并让 `removeWatch` 只处理登记过的目录；新增关闭场景回归测试。其余内容与 v1.27.0 相同。2026-10-17 [GitHub Actions](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/39018862813) 全部成功；[Release](https://github.com/liuzhuogood/MyWebScrcpy/releases/tag/v1.27.2) 已发布 10 个资产。 |
+| [v1.27.2-fix](v1.27.2-fix/version.md) | 已发布 v1.27.2 | 修复 `DirWatcher.Close` 在 Windows 上先关 fsnotify、后等事件循环造成的互锁（关闭时目录事件在途会永久阻塞），并让 `removeWatch` 只处理登记过的目录；新增关闭场景回归测试。其余内容与 v1.27.0 相同。2026-10-17 [GitHub Actions](https://github.com/liuzhuogood/Farm/actions/runs/39018862813) 全部成功；[Release](https://github.com/liuzhuogood/Farm/releases/tag/v1.27.2) 已发布 10 个资产。 |
 | [v1.28.0-feature](v1.28.0-feature/version.md) | 已合本地 main；待真机验收 | OCR 接口新增 stabilization_ms（0～5000ms），在指定窗口内多次识别并综合；保留 auto 串行逻辑，新增独立 parallel 模式，API、SDK 与引擎选择入口同步。 |
 | [v1.30.0-feature](v1.30.0-feature/version.md) | 待实施；原型已验证 | 投屏拖拽安装 APK；原型与公网预览已验证，已调整计划并更新四件套文档。 |
 | [v1.31.0-feature](v1.31.0-feature/version.md) | 已实现并通过验证 | 首页全新全息空间甲板（Holo Spatial Deck）设计重构，全宽展开，隐藏帧率，设备列表与纯蓝 #406BDB 投屏键，前台应用卡片；支持 0%~100% 主窗口无级全透明穿透，修复 macOS 浅色系统下黑暗模式泛白问题。 |
@@ -131,4 +131,4 @@
 
 **2026-10-09 范围调整**：用户将 v1.12 改为 Web 端重构，并指定分割线、图标统一与模板匹配不可用三项遗留问题。已同步四件套和本总览，原方案保留为延期记录。
 
-**2026-10-09 发布验收**：重构提交 `a7bb1e6` 与标签 `v1.12.0` 已推送，远端提交指向一致。[GitHub Actions](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/37914234053) 的五个平台构建、Release 和 Docker 任务全部成功；[v1.12.0 Release](https://github.com/liuzhuogood/MyWebScrcpy/releases/tag/v1.12.0) 已发布五个程序文件。三项遗留问题保持待处理。
+**2026-10-09 发布验收**：重构提交 `a7bb1e6` 与标签 `v1.12.0` 已推送，远端提交指向一致。[GitHub Actions](https://github.com/liuzhuogood/Farm/actions/runs/37914234053) 的五个平台构建、Release 和 Docker 任务全部成功；[v1.12.0 Release](https://github.com/liuzhuogood/Farm/releases/tag/v1.12.0) 已发布五个程序文件。三项遗留问题保持待处理。

@@ -22,9 +22,9 @@ package adbshell
 import (
 	"context"
 	"encoding/json"
+	"farm/internal/dependencies"
 	"fmt"
 	"log"
-	"mywebscrcpy/internal/dependencies"
 	"net/http"
 	"os"
 	"strconv"

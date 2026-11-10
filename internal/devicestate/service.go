@@ -16,12 +16,12 @@ import (
 	"sync"
 	"time"
 
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/ocr"
-	"mywebscrcpy/internal/template"
-	"mywebscrcpy/internal/uipage"
-	"mywebscrcpy/internal/vision"
-	"mywebscrcpy/internal/visionframes"
+	"farm/internal/dependencies"
+	"farm/internal/ocr"
+	"farm/internal/template"
+	"farm/internal/uipage"
+	"farm/internal/vision"
+	"farm/internal/visionframes"
 )
 
 const (

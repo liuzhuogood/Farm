@@ -1,7 +1,7 @@
 """SDK 的代理通道配置。
 
 SDK 默认不使用任何代理：既有系统代理与 `HTTP_PROXY`/`HTTPS_PROXY` 环境变量都不会被采用，
-这与历史行为一致。需要代理时显式传 `proxy=`，或设置环境变量 `MYWEBSCRCPY_PROXY`：
+这与历史行为一致。需要代理时显式传 `proxy=`，或设置环境变量 `FARM_PROXY`：
 
 - `None`（默认）：不使用代理，各通道显式屏蔽环境代理。
 - `"env"`：交给运行环境决定（HTTPX 读取环境变量，urllib 使用默认 ProxyHandler）。
@@ -16,7 +16,7 @@ import os
 import urllib.request
 from urllib.parse import unquote, urlsplit
 
-ENV_VAR = "MYWEBSCRCPY_PROXY"
+ENV_VAR = "FARM_PROXY"
 ENV_MODE = "env"
 
 

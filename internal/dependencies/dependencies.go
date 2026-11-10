@@ -28,13 +28,13 @@ func PythonPath() (string, error) {
 	if active != nil {
 		return active.resolvePython(active.Settings().Python)
 	}
-	return configuredPath("MYWEBSCRCPY_PYTHON", "python3")
+	return configuredPath("FARM_PYTHON", "python3")
 }
 func ADBPath() (string, error) {
 	if active != nil {
 		return active.resolveADB(active.Settings().ADB)
 	}
-	if path := chosenPath("MYWEBSCRCPY_ADB", Current().ADB); path != "" {
+	if path := chosenPath("FARM_ADB", Current().ADB); path != "" {
 		return checkExecutable(path)
 	}
 	// Preserve the project's confirmed ANDROID_HOME / PATH lookup order.
@@ -47,7 +47,7 @@ func ADBPath() (string, error) {
 }
 func configuredPath(key, command string) (string, error) {
 	configured := ""
-	if key == "MYWEBSCRCPY_PYTHON" {
+	if key == "FARM_PYTHON" {
 		configured = Current().Python
 	}
 	value := chosenPath(key, configured)

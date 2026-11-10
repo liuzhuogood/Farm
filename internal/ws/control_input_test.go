@@ -10,12 +10,12 @@ import (
 	"net/http/httptest"
 	"strings"
 
+	"farm/internal/action"
 	"github.com/gorilla/websocket"
-	"mywebscrcpy/internal/action"
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 func TestControlInputCleanupKeepsNewOwner(t *testing.T) {

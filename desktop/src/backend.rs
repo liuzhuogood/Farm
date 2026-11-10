@@ -31,9 +31,9 @@ pub fn executable() -> Result<PathBuf, String> {
     {
         let exe = std::env::current_exe().map_err(|e| e.to_string())?;
         let name = if cfg!(windows) {
-            "mywebscrcpy.exe"
+            "farm.exe"
         } else {
-            "mywebscrcpy"
+            "farm"
         };
         let bundled = exe.parent().ok_or("无法定位 App 目录")?.join(name);
         if bundled.is_file() {
@@ -42,7 +42,7 @@ pub fn executable() -> Result<PathBuf, String> {
         // cargo run/check uses the target-specific, explicitly configured sidecar.
         let suffix = if cfg!(windows) { ".exe" } else { "" };
         let development = Path::new(env!("CARGO_MANIFEST_DIR")).join(format!(
-            "binaries/mywebscrcpy-{}{suffix}",
+            "binaries/farm-{}{suffix}",
             env!("DESKTOP_TARGET")
         ));
         if cfg!(debug_assertions) && development.is_file() {
@@ -67,7 +67,7 @@ pub fn command(path: &Path) -> Command {
 
 fn resolve_port(data: &Path) -> u16 {
     const DEFAULT_PORT: u16 = 1989;
-    if let Ok(val) = std::env::var("MYWEBSCRCPY_DESKTOP_PORT") {
+    if let Ok(val) = std::env::var("FARM_DESKTOP_PORT") {
         if let Ok(port) = val.trim().parse::<u16>() {
             if port > 0 {
                 return port;
@@ -112,9 +112,9 @@ impl Backend {
             .map_err(|e| format!("打开日志失败: {e}"))?;
         let error_log = log.try_clone().map_err(|e| e.to_string())?;
         let mut service_command = command(&executable()?);
-        service_command.env_remove("MYWEBSCRCPY_UPDATE_RECEIPT");
+        service_command.env_remove("FARM_UPDATE_RECEIPT");
         if let Some(receipt) = crate::update_backup::pending_receipt(data)? {
-            service_command.env("MYWEBSCRCPY_UPDATE_RECEIPT", receipt);
+            service_command.env("FARM_UPDATE_RECEIPT", receipt);
         }
         let port = resolve_port(data);
         let listen_addr = format!("127.0.0.1:{port}");
@@ -128,7 +128,7 @@ impl Backend {
             .env_remove("PORT")
             .env_remove("SCRIPTS_DIR")
             .env_remove("TEMPLATES_DIR")
-            .env("MYWEBSCRCPY_DESKTOP_VERSION", env!("CARGO_PKG_VERSION"))
+            .env("FARM_DESKTOP_VERSION", env!("CARGO_PKG_VERSION"))
             .stdin(Stdio::piped())
             .stdout(Stdio::from(log))
             .stderr(Stdio::from(error_log))
@@ -276,12 +276,12 @@ pub fn fix_macos_env() {
         "-l",
         "-i",
         "-c",
-        "printf '__MYWEBSCRCPY_ENV_START__\\n'; env -0; printf '__MYWEBSCRCPY_ENV_END__\\n'",
+        "printf '__FARM_ENV_START__\\n'; env -0; printf '__FARM_ENV_END__\\n'",
     ]);
     if let Ok(output) = command.output() {
         let stdout = output.stdout;
-        let start_tag = b"__MYWEBSCRCPY_ENV_START__\n";
-        let end_tag = b"__MYWEBSCRCPY_ENV_END__\n";
+        let start_tag = b"__FARM_ENV_START__\n";
+        let end_tag = b"__FARM_ENV_END__\n";
         if let Some(start_pos) = stdout.windows(start_tag.len()).position(|w| w == start_tag) {
             let payload = &stdout[start_pos + start_tag.len()..];
             let end_pos = payload

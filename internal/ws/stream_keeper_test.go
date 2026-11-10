@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/visionframes"
+	"farm/internal/visionframes"
 )
 
 func TestStreamKeeperLifecycle(t *testing.T) {

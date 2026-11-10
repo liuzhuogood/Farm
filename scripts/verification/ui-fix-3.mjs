@@ -1,10 +1,10 @@
 // Run with ego-browser nodejs < scripts/verification/ui-fix-3.mjs.
 // Uses the task-owned page and isolated Vite/Go ports, never the user's app.
-const task = await taskSpace('MyWebScrcpy 修复恢复验证')
+const task = await taskSpace('Farm 修复恢复验证')
 const page = task.page('p1')
 const assert = (await import('node:assert/strict')).default
 const fs = await import('node:fs/promises')
-const output = '/Users/liuzhuo/code/MyWebScrcpy/.cache/verification/fix-3'
+const output = '/Users/liuzhuo/code/Farm/.cache/verification/fix-3'
 await page.goto('http://127.0.0.1:5190/')
 await page.evaluate(async () => {
   const { useDeviceStore } = await import('/src/stores/devices.ts')

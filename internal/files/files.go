@@ -2,10 +2,10 @@ package files
 
 import (
 	"errors"
+	"farm/internal/dependencies"
 	"fmt"
 	"io"
 	"mime"
-	"mywebscrcpy/internal/dependencies"
 	"os"
 	"path"
 	"sort"
@@ -17,7 +17,7 @@ import (
 
 const (
 	androidRoot       = "/storage/emulated/0"
-	trashDirName      = ".mywebscrcpy-trash"
+	trashDirName      = ".farm-trash"
 	defaultPageSize   = 50
 	maxPageSize       = 100
 	defaultUploadSize = int64(256 * 1024 * 1024)
@@ -329,7 +329,7 @@ func (m *Manager) Upload(serial, parent, name, conflict string, src io.Reader) (
 	if err != nil {
 		return FileItem{}, err
 	}
-	temp, err := os.CreateTemp("", "mywebscrcpy-upload-*")
+	temp, err := os.CreateTemp("", "farm-upload-*")
 	if err != nil {
 		return FileItem{}, err
 	}

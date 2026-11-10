@@ -1,4 +1,4 @@
-"""MyWebScrcpy SDK: vision dependencies are loaded only when needed."""
+"""Farm SDK: vision dependencies are loaded only when needed."""
 from .client import Client
 from .device import Device
 from .matcher import Matcher

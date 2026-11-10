@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
         <div>
           <div class="flex items-center gap-2">
             <h2 class="font-mono text-sm font-bold tracking-widest text-white">
-              MYWEBSCRCPY // FLEET COMMAND CENTER
+              FARM // FLEET COMMAND CENTER
             </h2>
             <span class="rounded bg-blue-900/60 px-1.5 py-0.5 font-mono text-[10px] text-blue-200 border border-blue-700/50">
               TACTICAL_OS v2.4

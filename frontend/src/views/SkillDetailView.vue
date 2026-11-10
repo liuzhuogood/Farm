@@ -604,7 +604,7 @@ onUnmounted(() => {
                   <!-- 宿主机说明提示 -->
                   <div class="rounded-lg bg-muted/40 p-2.5 text-[11px] text-muted-foreground leading-normal flex items-start gap-1.5">
                     <Folder class="h-3.5 w-3.5 shrink-0 mt-0.5 text-foreground" />
-                    <span>安装写入运行 MyWebScrcpy 服务的电脑，已存在且被用户修改的文件将受保护不被覆盖。</span>
+                    <span>安装写入运行 Farm 服务的电脑，已存在且被用户修改的文件将受保护不被覆盖。</span>
                   </div>
 
                   <!-- 最近安装反馈 -->

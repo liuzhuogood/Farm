@@ -1,6 +1,6 @@
 # paddleocr-server
 
-MyWebScrcpy 的本地 PaddleOCR sidecar 服务。
+Farm 的本地 PaddleOCR sidecar 服务。
 
 ## 功能与返回契约
 
@@ -12,7 +12,7 @@ MyWebScrcpy 的本地 PaddleOCR sidecar 服务。
 
 ## 安装与启动
 
-根据 MyWebScrcpy 运行配置所选的 Python 解释器（默认在 `dependencies/python/bin/python3.12` 或系统 Python），使用该解释器安装依赖：
+根据 Farm 运行配置所选的 Python 解释器（默认在 `dependencies/python/bin/python3.12` 或系统 Python），使用该解释器安装依赖：
 
 ```bash
 # 使用所选 Python 解释器安装依赖

@@ -4,7 +4,7 @@
 
 | 环境 | 文件 | 用途 | 负责人 |
 | --- | --- | --- | --- |
-| 生产环境 | [prod.md](./prod.md) | 对外提供 MyWebScrcpy 投屏服务 | liuzhuo |
+| 生产环境 | [prod.md](./prod.md) | 对外提供 Farm 投屏服务 | liuzhuo |
 
 ## 访问入口
 

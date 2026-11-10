@@ -8,10 +8,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"farm/internal/dependencies"
 	"fmt"
 	"io"
 	"log"
-	"mywebscrcpy/internal/dependencies"
 	"net/http"
 	"os"
 	"os/exec"
@@ -183,7 +183,7 @@ func (m *Manager) Start(ctx context.Context) error {
 		}
 		return m.failStart(errors.New(msg))
 	}
-	directory, err := os.MkdirTemp("", "mywebscrcpy-matching-*")
+	directory, err := os.MkdirTemp("", "farm-matching-*")
 	if err != nil {
 		return m.failStart(err)
 	}
@@ -207,7 +207,7 @@ func (m *Manager) Start(ctx context.Context) error {
 	}
 	cmd := exec.Command(env.Path, "-B", "-u", script)
 	cmd.Dir = directory
-	cmd.Env = append(dependencies.PythonEnvironment(), "MYWEBSCRCPY_MATCHING_URL="+url, "MYWEBSCRCPY_MATCHING_TOKEN="+hex.EncodeToString(entropy))
+	cmd.Env = append(dependencies.PythonEnvironment(), "FARM_MATCHING_URL="+url, "FARM_MATCHING_TOKEN="+hex.EncodeToString(entropy))
 	input, err := cmd.StdinPipe()
 	if err != nil {
 		cancel()

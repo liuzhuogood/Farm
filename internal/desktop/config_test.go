@@ -75,7 +75,7 @@ func TestResolvePort(t *testing.T) {
 	}
 	defer os.Chdir(origDir)
 
-	os.Unsetenv("MYWEBSCRCPY_DESKTOP_PORT")
+	os.Unsetenv("FARM_DESKTOP_PORT")
 	os.Unsetenv("PORT")
 
 	// 1. 无配置无环境 -> 1989
@@ -95,10 +95,10 @@ func TestResolvePort(t *testing.T) {
 		t.Fatalf("期望环境变量 PORT 4000，实际 %d", p)
 	}
 
-	// 4. 环境变量 MYWEBSCRCPY_DESKTOP_PORT -> 5000 (优先级高于 PORT)
-	t.Setenv("MYWEBSCRCPY_DESKTOP_PORT", "5000")
+	// 4. 环境变量 FARM_DESKTOP_PORT -> 5000 (优先级高于 PORT)
+	t.Setenv("FARM_DESKTOP_PORT", "5000")
 	if p := ResolvePort(""); p != 5000 {
-		t.Fatalf("期望环境变量 MYWEBSCRCPY_DESKTOP_PORT 5000，实际 %d", p)
+		t.Fatalf("期望环境变量 FARM_DESKTOP_PORT 5000，实际 %d", p)
 	}
 
 	// 5. 显式参数 -> 6000

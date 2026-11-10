@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultGitHubRepo = "liuzhuogood/MyWebScrcpy"
+	defaultGitHubRepo = "liuzhuogood/Farm"
 	githubAPIBase     = "https://api.github.com/repos"
 )
 
@@ -95,7 +95,7 @@ func (c *Checker) CheckUpdate() (*CheckResult, error) {
 		return nil, fmt.Errorf("create request failed: %w", err)
 	}
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
-	req.Header.Set("User-Agent", "MyWebScrcpy-Updater")
+	req.Header.Set("User-Agent", "Farm-Updater")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -159,7 +159,7 @@ func MatchAsset(assets []ReleaseAsset, goos, goarch string) *ReleaseAsset {
 	}
 	// Prefer the CLI distribution. The exact historical name remains supported
 	// for releases published before CLI and GUI assets were separated.
-	for _, name := range []string{"mywebscrcpy-" + cliSuffix, "mywebscrcpy-" + expectedSuffix} {
+	for _, name := range []string{"farm-" + cliSuffix, "farm-" + expectedSuffix} {
 		for _, a := range assets {
 			if a.Name == name {
 				return &a

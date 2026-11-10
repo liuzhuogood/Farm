@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"farm/internal/action"
+	"farm/internal/scrcpy"
 	"github.com/gorilla/websocket"
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/scrcpy"
 )
 
 func publishVideoTest(ms *managedSession, kind scrcpy.FrameKind, payload string) {

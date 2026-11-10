@@ -14,23 +14,23 @@ import (
 	"strings"
 	"time"
 
-	"mywebscrcpy/internal/adbshell"
-	"mywebscrcpy/internal/apidocs"
-	"mywebscrcpy/internal/apps"
-	"mywebscrcpy/internal/db"
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/desktop"
-	"mywebscrcpy/internal/device"
-	"mywebscrcpy/internal/devicestate"
-	"mywebscrcpy/internal/files"
-	"mywebscrcpy/internal/inputconfig"
-	"mywebscrcpy/internal/matchingservice"
-	"mywebscrcpy/internal/operationlog"
-	"mywebscrcpy/internal/skillsmarket"
-	"mywebscrcpy/internal/uipage"
-	"mywebscrcpy/internal/uixml"
-	"mywebscrcpy/internal/updater"
-	"mywebscrcpy/internal/ws"
+	"farm/internal/adbshell"
+	"farm/internal/apidocs"
+	"farm/internal/apps"
+	"farm/internal/db"
+	"farm/internal/dependencies"
+	"farm/internal/desktop"
+	"farm/internal/device"
+	"farm/internal/devicestate"
+	"farm/internal/files"
+	"farm/internal/inputconfig"
+	"farm/internal/matchingservice"
+	"farm/internal/operationlog"
+	"farm/internal/skillsmarket"
+	"farm/internal/uipage"
+	"farm/internal/uixml"
+	"farm/internal/updater"
+	"farm/internal/ws"
 )
 
 //go:embed VERSION
@@ -102,10 +102,10 @@ func main() {
 	defer os.Remove(jarPath)
 
 	// 初始化 SQLite 数据库
-	dbPath := filepath.Join("data", "mywebscrcpy.db")
+	dbPath := filepath.Join("data", "farm.db")
 	database, err := db.Open(dbPath)
 	if err != nil {
-		if os.Getenv("MYWEBSCRCPY_UPDATE_RECEIPT") != "" {
+		if os.Getenv("FARM_UPDATE_RECEIPT") != "" {
 			log.Fatalf("[Updater] 新版数据库初始化失败: %v", err)
 		}
 		log.Printf("警告: 初始化 SQLite 数据库失败: %v，将在无持久化模式下运行", err)

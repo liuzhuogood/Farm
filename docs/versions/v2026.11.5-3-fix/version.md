@@ -124,7 +124,7 @@ sequenceDiagram
 
 用户随后明确授权“替换运行应用，然后提交推送”。已通过项目 `scripts/start-desktop.sh` 重新构建并替换当前工作区拥有的旧桌面实例；新GUI PID为48943、配套服务PID为48967，继续使用回环1989端口及既有数据目录。HTTP返回的首页与最终生产构建逐字节一致；原生窗口已截图确认加载新卡片、全量编号空位、锁定标记与简化后的地址信息。
 
-替换对象是工作区 `desktop/target/release/bundle/macos/MyWebScrcpy.app`，不是另一个 `/Applications/MyWebScrcpy.app`。仍保留v2026.11.5-2正式版本标识；此次没有打tag、创建Release或进行Apple公证。
+替换对象是工作区 `desktop/target/release/bundle/macos/Farm.app`，不是另一个 `/Applications/Farm.app`。仍保留v2026.11.5-2正式版本标识；此次没有打tag、创建Release或进行Apple公证。
 
 提交前发现修复分支已有提交 `4c0a6f7`。用户随后明确要求该提交也一并合入，因此保留该原始提交及全部内容，在现有 `codex/v2026.11.5-3-fix` 分支补充本机替换记录后一起推送，不改写其历史。提交/推送的最终哈希与远端状态以Git记录和交付回复为准。
 
@@ -165,5 +165,5 @@ flowchart LR
 - 更新前重新采样四次小米桌面切换：291–439ms；更新后同画质四次为 283–440ms，均包含手机动画。实际鼠标左右滑屏、末端坐标与抬手执行通过，并用前后 XML 确认第3屏→第4屏→第3屏。模板两个仍启用，匹配工作正常，流统计 dropped_frames=0、动作 queue_length=0。
 - 本轮更新前后均未再次复现先前秒级慢样本，不能宣称稳定提速比例或偶发卡顿已全部消除。真实匹配进程仍约占 78–93% 单核 CPU；三个视频包写入慢样本为 104/107/138ms，网络与发送链路仍可能参与等待。
 - 已将 Linux 程序及当前源码 SDK wheel 同步至 `10.0.0.6:8080`，服务 active，匹配和 OCR 正常恢复。程序 SHA-256 为 `9f0bdbff534c701c001e101558a22e9bfd04c7e6ede4a3d902a9d60e2a251aa0`，生产首页与构建一致，三个 SDK 源文件哈希与源码一致。
-- 旧程序、SDK 和一致性 SQLite 备份位于 `/opt/mywebscrcpy/backups/perf-20261107124333/`，数据库 integrity_check=ok。重启后已恢复三条既有网络 ADB 连接；临时浏览器、代理与夹具服务已关闭，本机原有前端保留。
+- 旧程序、SDK 和一致性 SQLite 备份位于 `/opt/farm/backups/perf-20261107124333/`，数据库 integrity_check=ok。重启后已恢复三条既有网络 ADB 连接；临时浏览器、代理与夹具服务已关闭，本机原有前端保留。
 - 本轮未复验多物理手机群控、原生 WebView 或全部 ADB/HID 真机行为；这些路径有对应自动化回归。未修改用户画质、全局代理或正式版本号，未创建 Release/tag 或上传 PyPI；Git 提交推送结果以本轮交付和分支记录为准。

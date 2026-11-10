@@ -1,6 +1,6 @@
-# MyWebScrcpy
+# Farm
 
-An open-source Android device mirroring and control tool built with Go and WebCodecs. It provides live screen viewing, touch and keyboard input, and shared-storage management through a web browser. No dedicated app is required on the client side; connect the Android device to the host running MyWebScrcpy via ADB to get started.
+An open-source Android device mirroring and control tool built with Go and WebCodecs. It provides live screen viewing, touch and keyboard input, and shared-storage management through a web browser. No dedicated app is required on the client side; connect the Android device to the host running Farm via ADB to get started.
 
 An optional desktop client adds independent mirroring windows with **always-on-top, adjustable opacity, and mouse click-through**, so you can keep device screens visible while working in other apps.
 
@@ -81,14 +81,14 @@ The Go backend handles:
 
 ```bash
 # Clone
-git clone https://github.com/liuzhuogood/MyWebScrcpy.git
-cd MyWebScrcpy
+git clone https://github.com/liuzhuogood/Farm.git
+cd Farm
 
 # Build (Node.js 24 and pnpm 11.7.0 required)
 bash scripts/build.sh
 
 # Run
-./mywebscrcpy
+./farm
 ```
 
 Open `http://localhost:8080` in your browser, click a device to start mirroring.
@@ -102,7 +102,7 @@ Open the file manager from the player's “More” menu. It operates on the sele
 
 ### Desktop Client
 
-Download desktop packages from [GitHub Releases](https://github.com/liuzhuogood/MyWebScrcpy/releases). See the [desktop guide](desktop/README.md) for build and launch instructions.
+Download desktop packages from [GitHub Releases](https://github.com/liuzhuogood/Farm/releases). See the [desktop guide](desktop/README.md) for build and launch instructions.
 
 | Feature | Main window | Independent mirroring window |
 | --- | --- | --- |
@@ -140,23 +140,23 @@ Recording supports the default H.264 shared stream only. Incomplete files are ne
 
 ```bash
 # Pull the image
-docker pull liuzhuogood/mywebscrcpy:latest
+docker pull liuzhuogood/farm:latest
 
 # Run with ADB devices mounted
 docker run -d \
-  --name mywebscrcpy \
+  --name farm \
   --privileged \
   -p 8080:8080 \
   -v /dev/bus/usb:/dev/bus/usb \
-  liuzhuogood/mywebscrcpy:latest
+  liuzhuogood/farm:latest
 
 # Or use host networking for network ADB discovery
 docker run -d \
-  --name mywebscrcpy \
+  --name farm \
   --privileged \
   --network host \
   -v /dev/bus/usb:/dev/bus/usb \
-  liuzhuogood/mywebscrcpy:latest
+  liuzhuogood/farm:latest
 ```
 
 Open `https://IP:8080` in your browser (HTTPS is enabled by default), then click a device to start mirroring.
@@ -176,7 +176,7 @@ Open `https://IP:8080` in your browser (HTTPS is enabled by default), then click
 | `TLS_CERT` | Custom SSL certificate path | - |
 | `TLS_KEY` | Custom SSL private key path | - |
 | `FILES_MAX_UPLOAD_BYTES` | Maximum size per uploaded file (bytes) | `268435456` |
-| `RECORDINGS_DIR` | MP4 recording directory | `mywebscrcpy/recordings` under the user cache directory |
+| `RECORDINGS_DIR` | MP4 recording directory | `farm/recordings` under the user cache directory |
 | `RECORDINGS_MAX_BYTES` | Total recording-directory quota (bytes) | `10737418240` |
 | `RECORDINGS_RETENTION_HOURS` | Completed recording retention (hours) | `168` |
 | `ADB_MAX_TIMEOUT_MS` | Maximum ADB command timeout (milliseconds) | `600000` |
@@ -191,7 +191,7 @@ WebCodecs requires a secure context (HTTPS or localhost). When accessing the ser
 **Option 1: Use the built-in certificate**
 
 ```bash
-./mywebscrcpy -https
+./farm -https
 ```
 
 Open `https://IP:8080`. The browser will warn that the certificate is untrusted; choose **Advanced** → **Continue** to proceed.
@@ -201,7 +201,7 @@ Open `https://IP:8080`. The browser will warn that the certificate is untrusted;
 ```bash
 export TLS_CERT=/path/to/cert.pem
 export TLS_KEY=/path/to/key.pem
-./mywebscrcpy
+./farm
 ```
 
 **Option 3: Use Nginx as a reverse proxy (recommended for production)**
@@ -244,7 +244,7 @@ server {
 ## Project Structure
 
 ```
-MyWebScrcpy/
+Farm/
 ├── main.go                    # Entry point, HTTP server
 ├── assets/
 │   └── scrcpy-server          # scrcpy server jar (embedded)

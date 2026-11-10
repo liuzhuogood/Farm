@@ -3,12 +3,12 @@
   "kind": "local compiled application, not runtime snapshot",
   "files": [
     {
-      "path": "/Users/liuzhuo/code/MyWebScrcpy/desktop/target/release/bundle/macos/MyWebScrcpy.app/Contents/MacOS/mywebscrcpy",
+      "path": "/Users/liuzhuo/code/Farm/desktop/target/release/bundle/macos/Farm.app/Contents/MacOS/farm",
       "bytes": 15705362,
       "sha256": "8ea34136ddbf8e7a79f30c76536aedc1e4ff51c7756074348cafd0eaa29a93a5"
     },
     {
-      "path": "/Users/liuzhuo/code/MyWebScrcpy/desktop/target/release/bundle/macos/MyWebScrcpy.app/Contents/MacOS/mywebscrcpy-gui",
+      "path": "/Users/liuzhuo/code/Farm/desktop/target/release/bundle/macos/Farm.app/Contents/MacOS/farm-gui",
       "bytes": 9973184,
       "sha256": "6eb3923675505bfc39052e80f7e4d7f2ba12b4260cae3bffa83eac388956be9f"
     }

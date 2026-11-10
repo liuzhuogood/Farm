@@ -1,6 +1,6 @@
 # 快手极速版：进入去赚钱
 
-`kuaishou_earn.py` 使用 `mywebscrcpy.Client`，所有设备命令通过 `device.adb()` 执行，不需要本机另行配置 ADB。目标包名和入口来自实机查询：`com.kuaishou.nebula/com.yxcorp.gifshow.HomeActivity`。
+`kuaishou_earn.py` 使用 `farm.Client`，所有设备命令通过 `device.adb()` 执行，不需要本机另行配置 ADB。目标包名和入口来自实机查询：`com.kuaishou.nebula/com.yxcorp.gifshow.HomeActivity`。
 
 ```bash
 packages/python-sdk/.venv/bin/python scripts/automation/kuaishou_earn.py \

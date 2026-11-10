@@ -21,7 +21,7 @@ func TestFIFOQueryDoesNotBlockAndRejects(t *testing.T) {
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	fifoPath := filepath.Join(targetDir, ".mywebscrcpy-manifest.json")
+	fifoPath := filepath.Join(targetDir, ".farm-manifest.json")
 	if err := syscall.Mkfifo(fifoPath, 0600); err != nil {
 		t.Skip("FIFO creation not supported on this environment")
 	}

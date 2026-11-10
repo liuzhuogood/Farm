@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"mywebscrcpy/internal/db"
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/device"
-	"mywebscrcpy/internal/idlescreen"
+	"farm/internal/db"
+	"farm/internal/dependencies"
+	"farm/internal/device"
+	"farm/internal/idlescreen"
 )
 
 func configureIdleScreen(database *db.DB, dm *device.Manager, adbPath string) *idlescreen.Manager {

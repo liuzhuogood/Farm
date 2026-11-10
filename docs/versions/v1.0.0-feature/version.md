@@ -10,7 +10,7 @@
 
 ### 版本概述
 
-MyWebScrcpy v1.0.0 是首个正式发布版本，提供了完整的基于浏览器的 Android 屏幕镜像和远程控制功能。该版本实现了零客户端安装的核心目标，用户只需打开浏览器即可镜像和控制任何 ADB 连接的 Android 设备。
+Farm v1.0.0 是首个正式发布版本，提供了完整的基于浏览器的 Android 屏幕镜像和远程控制功能。该版本实现了零客户端安装的核心目标，用户只需打开浏览器即可镜像和控制任何 ADB 连接的 Android 设备。
 
 ### 主要功能
 
@@ -104,12 +104,12 @@ MyWebScrcpy v1.0.0 是首个正式发布版本，提供了完整的基于浏览�
 **单二进制部署**：
 ```bash
 # 构建
-go build -o mywebscrcpy .
+go build -o farm .
 
 # 运行
-./mywebscrcpy
+./farm
 # 或指定端口
-PORT=9090 ./mywebscrcpy
+PORT=9090 ./farm
 ```
 
 **访问地址**：

@@ -58,7 +58,7 @@ WebCodecs、AAC/H264、画中画和硬件加速因系统 WebView 不同需三平
 
 ## 原生验证与实际产物
 
-macOS arm64 的普通 App 位于 `desktop/target/release/bundle/macos/MyWebScrcpy.app`，便携包位于 `desktop/target/portable/darwin-arm64/`。产物已忽略，不作为运行数据快照。
+macOS arm64 的普通 App 位于 `desktop/target/release/bundle/macos/Farm.app`，便携包位于 `desktop/target/portable/darwin-arm64/`。产物已忽略，不作为运行数据快照。
 
 原生验证报告：[WebView](verification/native-webview.json)、[窗口生命周期](verification/native-lifecycle.json)。验证构建通过菜单处理器打开依赖管理，读取 WKWebView 自身的 DOM，并确认关闭隐藏与恢复。普通交付构建不包含验证 hook。
 

@@ -9,7 +9,7 @@ pub fn start(app: &AppHandle) {
         let main = app.get_webview_window("main").unwrap();
         let script = format!(
             "window.__verifyHotkey = {};\n{}",
-            std::env::var_os("MYWEBSCRCPY_VERIFY_HOTKEY").is_some(),
+            std::env::var_os("FARM_VERIFY_HOTKEY").is_some(),
             include_str!("verify_players.js")
         );
         if let Err(error) = main.eval(script) {
@@ -17,7 +17,7 @@ pub fn start(app: &AppHandle) {
             app.exit(1);
             return;
         }
-        let report = std::env::var("MYWEBSCRCPY_NATIVE_REPORT").unwrap();
+        let report = std::env::var("FARM_NATIVE_REPORT").unwrap();
         let mut closed_player = false;
         let mut restored_menu = false;
         for _ in 0..600 {

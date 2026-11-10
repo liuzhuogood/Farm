@@ -8,7 +8,7 @@ import (
 	"log"
 	"strings"
 
-	"mywebscrcpy/internal/dependencies"
+	"farm/internal/dependencies"
 )
 
 // ServerConfig 是启动一个 scrcpy server 实例所需的参数。

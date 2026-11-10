@@ -301,7 +301,7 @@ func (m *Manager) resolveADB(s Selection) (string, error) {
 		return checkExecutable(filepath.Join(m.root, "adb", exeName("adb")))
 	}
 	// Preserve explicit environment and ANDROID_HOME behavior from the previous release.
-	if p := chosenPath("MYWEBSCRCPY_ADB", s.Path); p != "" {
+	if p := chosenPath("FARM_ADB", s.Path); p != "" {
 		return checkExecutable(p)
 	}
 	if home := os.Getenv("ANDROID_HOME"); home != "" {

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"mywebscrcpy/internal/action"
-	debuglog "mywebscrcpy/internal/debug"
+	"farm/internal/action"
+	debuglog "farm/internal/debug"
 )
 
 // input_config.go — 系统设置的默认点击/滑动注入模式接口。

@@ -50,7 +50,7 @@ pub fn open_device_window(
     let token_script = if let Ok(guard) = state.backend.lock() {
         if let Some(b) = guard.as_ref() {
             let t = serde_json::to_string(&b.ready.token).unwrap_or_default();
-            format!("Object.defineProperty(window,'__MYWEBSCRCPY_DESKTOP_TOKEN__',{{value:{}}});", t)
+            format!("Object.defineProperty(window,'__FARM_DESKTOP_TOKEN__',{{value:{}}});", t)
         } else {
             String::new()
         }

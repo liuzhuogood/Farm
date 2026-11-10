@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"farm/internal/action"
+	"farm/internal/scrcpy"
 	"github.com/Eyevinn/mp4ff/mp4"
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/scrcpy"
 )
 
 // replayMedia is a demuxed recording: H.264 only, PTS in microseconds.

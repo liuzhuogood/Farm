@@ -4,12 +4,12 @@ import path from 'node:path'
 import os from 'node:os'
 import assert from 'node:assert/strict'
 
-const directory = await mkdtemp(path.join(os.tmpdir(), 'mywebscrcpy-cli-test-'))
+const directory = await mkdtemp(path.join(os.tmpdir(), 'farm-cli-test-'))
 try {
   const suffix = process.platform === 'win32' ? '.exe' : ''
-  const executable = path.join(directory, 'mywebscrcpy-cli' + suffix)
+  const executable = path.join(directory, 'farm-cli' + suffix)
   await copyFile(path.resolve(process.argv[2]), executable)
-  await writeFile(path.join(directory, 'mywebscrcpy-gui' + suffix), 'unusable GUI shell')
+  await writeFile(path.join(directory, 'farm-gui' + suffix), 'unusable GUI shell')
   const service = spawnSync(executable, ['--print-mode'], { encoding: 'utf8' })
   assert.equal(service.status, 0, service.stderr)
   assert.equal(service.stdout, 'service\n')

@@ -1,7 +1,7 @@
 """Generate the one-keyframe red→blue H.264 source for the Go/browser fixture.
 
 python3 scripts/verification/static-video-fixture.py
-MYWEBSCRCPY_STATIC_FRAMES=<absolute output>/frames.json go test ./internal/ws \
+FARM_STATIC_FRAMES=<absolute output>/frames.json go test ./internal/ws \
     -run '^TestStaticVideoBrowserFixture$' -v -timeout 12m
 
 Use Vite on 5192 with backend proxy 21992, then run the two static-video

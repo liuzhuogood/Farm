@@ -68,9 +68,9 @@ jobs:
           from importlib.metadata import version
           from packaging.version import parse
           from pathlib import Path
-          import mywebscrcpy
+          import farm
           expected = Path('VERSION').read_text().strip().removeprefix('v')
-          assert parse(version('mywebscrcpy-sdk')) == parse(mywebscrcpy.__version__) == parse(expected)
+          assert parse(version('farm-sdk')) == parse(farm.__version__) == parse(expected)
           PY
       - name: Test source distribution in a clean environment
         run: |
@@ -88,7 +88,7 @@ jobs:
           from pathlib import Path
           from urllib.error import HTTPError
           from urllib.request import urlopen
-          url = f'https://pypi.org/pypi/mywebscrcpy-sdk/{os.environ["SDK_VERSION"]}/json'
+          url = f'https://pypi.org/pypi/farm-sdk/{os.environ["SDK_VERSION"]}/json'
           try:
               with urlopen(url, timeout=30) as response:
                   release = json.load(response)
@@ -141,8 +141,8 @@ jobs:
           SDK_VERSION: ${{ needs.build.outputs.version }}
         run: |
           for i in $(seq 1 12); do
-            echo "Attempt $i: waiting for PyPI CDN propagation and installing mywebscrcpy-sdk==$SDK_VERSION..."
-            if python -m pip install --no-cache-dir --index-url https://pypi.org/simple "mywebscrcpy-sdk==$SDK_VERSION"; then
+            echo "Attempt $i: waiting for PyPI CDN propagation and installing farm-sdk==$SDK_VERSION..."
+            if python -m pip install --no-cache-dir --index-url https://pypi.org/simple "farm-sdk==$SDK_VERSION"; then
               break
             fi
             sleep 10
@@ -152,8 +152,8 @@ jobs:
           import os
           from importlib.metadata import version
           from packaging.version import parse
-          import mywebscrcpy
-          assert parse(version('mywebscrcpy-sdk')) == parse(mywebscrcpy.__version__) == parse(os.environ['SDK_VERSION'])
-          from mywebscrcpy import Client, Device, CommandResult, PageInfo
-          print(f'Verified mywebscrcpy-sdk {mywebscrcpy.__version__} installed from PyPI')
+          import farm
+          assert parse(version('farm-sdk')) == parse(farm.__version__) == parse(os.environ['SDK_VERSION'])
+          from farm import Client, Device, CommandResult, PageInfo
+          print(f'Verified farm-sdk {farm.__version__} installed from PyPI')
           PY

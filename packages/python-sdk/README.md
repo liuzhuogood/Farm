@@ -1,13 +1,13 @@
-# MyWebScrcpy Python SDK
+# Farm Python SDK
 
-`mywebscrcpy-sdk`（版本与根目录 VERSION 一致），导入名 `mywebscrcpy`，支持 Python 3.10+。HTTP 使用 HTTPX，Vision 使用 websocket-client；视频在调用方进程通过 PyAV 解码、OpenCV 匹配，无需运行独立匹配工程。远程操作要求主服务和设备可达。
+`farm-sdk`（版本与根目录 VERSION 一致），导入名 `farm`，支持 Python 3.10+。HTTP 使用 HTTPX，Vision 使用 websocket-client；视频在调用方进程通过 PyAV 解码、OpenCV 匹配，无需运行独立匹配工程。远程操作要求主服务和设备可达。
 
 ## 安装
 
 从 PyPI 安装：
 
 ```bash
-python -m pip install --upgrade mywebscrcpy-sdk
+python -m pip install --upgrade farm-sdk
 ```
 
 也可从仓库根目录安装本地源码：
@@ -23,7 +23,7 @@ python -m pip install ./packages/python-sdk
 ```bash
 python -m pip install build
 python -m build packages/python-sdk
-python -m pip install --force-reinstall 'packages/python-sdk/dist/mywebscrcpy_sdk-1.28.0-py3-none-any.whl[vision]'
+python -m pip install --force-reinstall 'packages/python-sdk/dist/farm_sdk-2026.11.8-py3-none-any.whl[vision]'
 ```
 
 安装后脚本可以放在其他目录运行。外部脚本和全局匹配服务使用其 Python 环境中安装的 SDK。系统配置的 Python 卡片通过 pip 安装同版本 SDK 及识图依赖；服务仍需手动启动。
@@ -31,7 +31,7 @@ python -m pip install --force-reinstall 'packages/python-sdk/dist/mywebscrcpy_sd
 ## 匹配与操作
 
 ```python
-from mywebscrcpy import Client
+from farm import Client
 
 with Client('http://HOST:PORT') as client:
     templates = client.templates.list(serial='DEVICE_SERIAL')
@@ -97,7 +97,7 @@ Client、Device、watch 使用 `with` 或显式 `close()`，可重复关闭。�
 Client('https://HOST:PORT', proxy='http://127.0.0.1:7890')
 ```
 
-也可用环境变量 `MYWEBSCRCPY_PROXY` 指定（取值还支持 `env`，表示交给运行环境决定）。该设置统一作用于 HTTP 请求、Vision WebSocket 与 `device.ocr` 的图片上传；不配置时代理一律不生效，行为与旧版一致。典型场景：macOS 按代码签名授予本地网络访问权，adhoc 签名的 Python 直连内网报 `Errno 65`，把内网流量交给本机代理进程即可恢复。
+也可用环境变量 `FARM_PROXY` 指定（取值还支持 `env`，表示交给运行环境决定）。该设置统一作用于 HTTP 请求、Vision WebSocket 与 `device.ocr` 的图片上传；不配置时代理一律不生效，行为与旧版一致。典型场景：macOS 按代码签名授予本地网络访问权，adhoc 签名的 Python 直连内网报 `Errno 65`，把内网流量交给本机代理进程即可恢复。
 
 ## 示例与验证
 
@@ -123,7 +123,7 @@ GitHub Actions 的 `Publish Python SDK` 工作流在主分支的版本、SDK 或
 
 ## OCR 引擎
 
-`device.ocr()` 自动按 Indra OCR、macOCR、PaddleOCR 顺序尝试；服务识别成功但没有文字时不会降级。使用前在 MyWebScrcpy 系统配置中启动本地 Indra OCR。显式指定引擎时只调用该服务。
+`device.ocr()` 自动按 Indra OCR、macOCR、PaddleOCR 顺序尝试；服务识别成功但没有文字时不会降级。使用前在 Farm 系统配置中启动本地 Indra OCR。显式指定引擎时只调用该服务。
 
 ```python
 result = device.ocr(engine="indraocr", mark=True)

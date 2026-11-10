@@ -4,7 +4,7 @@
 
 ## 1. 远端缺失，无法 push（待用户）
 
-- 现状：`MyWebScrcpyNew` 仅 `git init` + 本地提交（`0cc5a85` 起），从未配置 origin。
+- 现状：`FarmNew` 仅 `git init` + 本地提交（`0cc5a85` 起），从未配置 origin。
 - 解法二选一：用户给远端仓库地址（`git remote add + fetch + push`）；或授权用 `gh` 新建 GitHub 仓库再推。
 - 影响：v0.3.0–v0.6.0 四批增量滞留本地。
 

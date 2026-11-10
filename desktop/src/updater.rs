@@ -38,12 +38,12 @@ pub struct Progress {
 fn builder(app: &AppHandle) -> Result<tauri_plugin_updater::Updater, String> {
     #[cfg(windows)]
     if std::env::current_exe().map_err(|e| e.to_string())?.file_name()
-        .is_some_and(|name| name == "mywebscrcpy-windows-gui-amd64.exe") {
+        .is_some_and(|name| name == "farm-windows-gui-amd64.exe") {
         // NSIS updates the installed app; restarting a portable executable would
         // reopen the old file. Portable downloads use the complete installer.
         return Err("此安装方式请下载完整安装包更新".into());
     }
-    let key = option_env!("MYWEBSCRCPY_UPDATER_PUBLIC_KEY")
+    let key = option_env!("FARM_UPDATER_PUBLIC_KEY")
         .filter(|value| !value.is_empty())
         .ok_or("此安装方式请下载完整安装包更新")?;
     #[cfg(target_os = "linux")]
@@ -51,7 +51,7 @@ fn builder(app: &AppHandle) -> Result<tauri_plugin_updater::Updater, String> {
         return Err("此安装方式请通过完整安装包更新".into());
     }
     let endpoint = tauri::Url::parse(
-        "https://github.com/liuzhuogood/MyWebScrcpy/releases/latest/download/desktop-latest.json",
+        "https://github.com/liuzhuogood/Farm/releases/latest/download/desktop-latest.json",
     )
     .map_err(|e| e.to_string())?;
     app.updater_builder()

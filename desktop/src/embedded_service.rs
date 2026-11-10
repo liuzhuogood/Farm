@@ -9,14 +9,14 @@ use std::{
 pub fn executable() -> Result<PathBuf, String> {
     const PAYLOAD: &[u8] = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/binaries/mywebscrcpy-",
+        "/binaries/farm-",
         env!("DESKTOP_TARGET"),
         ".exe"
     ));
     let root = std::env::var_os("LOCALAPPDATA").ok_or("无法定位本机应用缓存目录")?;
     materialize(
         &PathBuf::from(root)
-            .join("com.mywebscrcpy.desktop")
+            .join("com.farm.desktop")
             .join("runtime"),
         PAYLOAD,
     )
@@ -35,7 +35,7 @@ fn materialize(root: &Path, payload: &[u8]) -> Result<PathBuf, String> {
         .open(directory.join("extract.lock"))
         .map_err(|e| format!("打开服务缓存锁失败: {e}"))?;
     lock.lock().map_err(|e| format!("锁定服务缓存失败: {e}"))?;
-    let destination = directory.join("mywebscrcpy.exe");
+    let destination = directory.join("farm.exe");
     match fs::read(&destination) {
         Ok(bytes) if bytes == payload => return Ok(destination),
         Ok(_) => fs::remove_file(&destination).map_err(|e| format!("修复服务缓存失败: {e}"))?,

@@ -7,12 +7,12 @@
 
 ### 2.1 模块结构
 - `internal/updater/checker.go`:
-  - 检查 GitHub Releases API (`https://api.github.com/repos/liuzhuogood/MyWebScrcpy/releases/latest`)。
+  - 检查 GitHub Releases API (`https://api.github.com/repos/liuzhuogood/Farm/releases/latest`)。
   - 读取当前内置版本号（嵌入的 `VERSION` 文件或全局变量）。
   - 对比 SemVer 版本，返回是否有更新 `has_update`、最新版本号 `latest_version`、更新说明 `release_notes`、发布时间 `published_at`、目标系统适配的文件名及直链等。
   - 支持可选 GitHub 镜像加速（如用户所处网络限制，自动或备用代理）。
 - `internal/updater/downloader.go`:
-  - 基于当前 `runtime.GOOS` / `runtime.GOARCH`，匹配目标二进制资产名称（如 `mywebscrcpy-darwin-arm64`）。
+  - 基于当前 `runtime.GOOS` / `runtime.GOARCH`，匹配目标二进制资产名称（如 `farm-darwin-arm64`）。
   - 下载文件并计算实时下载进度、字节数与速率（KB/s）。
   - 校验 GitHub Release 中的 SHA256（Release assets 中带有 digest 或 sha256 校验码）。
 - `internal/updater/applier.go`:
@@ -53,7 +53,7 @@ Response:
   "has_update": true,
   "release_notes": "# 更新说明...",
   "published_at": "2026-10-10T10:00:00Z",
-  "asset_name": "mywebscrcpy-darwin-arm64",
+  "asset_name": "farm-darwin-arm64",
   "asset_size": 10499858
 }
 ```

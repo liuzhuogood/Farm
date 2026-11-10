@@ -2,10 +2,10 @@
 
 ## 环境概览
 
-- 用途：对外提供 MyWebScrcpy 浏览器端 Android 投屏服务。
+- 用途：对外提供 Farm 浏览器端 Android 投屏服务。
 - 访问入口：`https://10.0.0.6:8080`（默认启用 HTTPS，浏览器打开即用）。
 - 负责人：liuzhuo。
-- 部署形态：直接运行二进制 `mywebscrcpy-linux-amd64`，由 systemd 托管，未使用 Docker。
+- 部署形态：直接运行二进制 `farm-linux-amd64`，由 systemd 托管，未使用 Docker。
 
 ## 服务器 / 主机
 
@@ -24,12 +24,12 @@
 
 - 系统账号：`liuzhuo`（SSH 免密登录），服务进程以 `liuzhuo` 运行。
 - 二进制部署：
-  - 运行路径：`/opt/mywebscrcpy/mywebscrcpy-linux-amd64`
+  - 运行路径：`/opt/farm/farm-linux-amd64`
   - 启动参数：`-https`（启用内置 HTTPS 证书）
-  - 工作目录：`/opt/mywebscrcpy/`
-- systemd 服务：`mywebscrcpy.service`（`loaded active running`，开机自启）
-  - 进程示例：`root 82263 1 0 15:41 ? 00:00:10 /opt/mywebscrcpy/mywebscrcpy-linux-amd64 -https`
-- 数据库：SQLite，当前路径 `/opt/mywebscrcpy/data/mywebscrcpy.db`（2026-11-07 现场核对）。
+  - 工作目录：`/opt/farm/`
+- systemd 服务：`farm.service`（`loaded active running`，开机自启）
+  - 进程示例：`root 82263 1 0 15:41 ? 00:00:10 /opt/farm/farm-linux-amd64 -https`
+- 数据库：SQLite，当前路径 `/opt/farm/data/farm.db`（2026-11-07 现场核对）。
 - 缓存：暂无。
 - 消息队列：暂无。
 
@@ -37,13 +37,13 @@
 
 ```bash
 # 查看状态
-systemctl status mywebscrcpy.service
+systemctl status farm.service
 # 重启 / 停止 / 启动
-sudo systemctl restart mywebscrcpy.service
-sudo systemctl stop mywebscrcpy.service
-sudo systemctl start mywebscrcpy.service
+sudo systemctl restart farm.service
+sudo systemctl stop farm.service
+sudo systemctl start farm.service
 # 查看日志
-journalctl -u mywebscrcpy.service -f
+journalctl -u farm.service -f
 ```
 
 ## 第三方服务
@@ -60,11 +60,11 @@ journalctl -u mywebscrcpy.service -f
 
 - ADB：已安装 `Android Debug Bridge version 1.0.41`。
 - Docker：未安装（当前为二进制直跑部署）。
-- 环境变量：通过 systemd drop-in `/etc/systemd/system/mywebscrcpy.service.d/run-as-liuzhuo.conf` 注入。
+- 环境变量：通过 systemd drop-in `/etc/systemd/system/farm.service.d/run-as-liuzhuo.conf` 注入。
 - 文件管理对象：当前连接手机的 `/storage/emulated/0` 共享存储，由 ADB 执行文件操作；服务器不再维护用户文件根目录。
 - 单文件上传上限：未显式设置，使用程序默认值 `268435456` 字节。
 - HTTPS 证书：使用项目内置自签证书（`-https`）。
-- 备用二进制：`/home/liuzhuo/mywebscrcpy-new`（待替换 / 升级用）。
+- 备用二进制：`/home/liuzhuo/farm-new`（待替换 / 升级用）。
 
 ## 部署方式
 
@@ -80,5 +80,5 @@ journalctl -u mywebscrcpy.service -f
 - 2026-08-20：部署 `v1.3.0`；服务因 systemd 未设置相对路径根目录首次重启失败，随后修正运行配置并恢复 `active`。HTTPS 首页和投屏链路健康检查通过。
 - 2026-08-20：部署 `v1.3.1`；修正手机共享存储路径和 Android toybox 元数据解析，服务恢复 `active`，生产文件管理冒烟验证通过。
 
-- 2026-11-07：按用户要求部署首页交互与群控修复，源码版本标识 `v2026.11.5-2`，程序 SHA-256 `a6489bc2d8afeb2c270e02a33537d7e530886999597aefcc64966730e80470e3`。服务 `active`，生产 JS 资源与本地构建一致；三台独立手机 Web 群控点击、横向滑屏及按键同步通过，关闭群控停止派发通过。SQLite 备份 `data/mywebscrcpy.db.bak.home-controls-20261107102315`，原程序备份 `mywebscrcpy-linux-amd64.bak.20261107102335`；部署时的代码尚未提交或推送。
+- 2026-11-07：按用户要求部署首页交互与群控修复，源码版本标识 `v2026.11.5-2`，程序 SHA-256 `a6489bc2d8afeb2c270e02a33537d7e530886999597aefcc64966730e80470e3`。服务 `active`，生产 JS 资源与本地构建一致；三台独立手机 Web 群控点击、横向滑屏及按键同步通过，关闭群控停止派发通过。SQLite 备份 `data/farm.db.bak.home-controls-20261107102315`，原程序备份 `farm-linux-amd64.bak.20261107102335`；部署时的代码尚未提交或推送。
 - 2026-11-07：部署投屏延迟优化，版本标识仍为 `v2026.11.5-2`，程序 SHA-256 `9f0bdbff534c701c001e101558a22e9bfd04c7e6ede4a3d902a9d60e2a251aa0`。匹配 SDK 由当前源码 wheel 显式重装至原隔离环境（同包版本 `2026.11.5.post2`，不代表 PyPI 已更新），三个改动模块与源码哈希一致。匹配/OCR 正常恢复，三条既有网络 ADB 连接已恢复；小米网络入口实际点击与双向滑屏通过，点击样本 283–440ms，不宣称偶发秒级延迟已完全消除。程序、SDK 和 SQLite 备份位于 `backups/perf-20261107124333/`，数据库完整性通过。详见 `docs/versions/v2026.11.5-3-fix/stream-latency-verification.json`。

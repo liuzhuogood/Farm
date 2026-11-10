@@ -13,11 +13,11 @@ import numpy as np
 from websockets.sync.server import serve
 from websockets.exceptions import ConnectionClosed
 
-from mywebscrcpy import (ActionError, ActionTimeout, Client, FrameTimeout, MatchTimeout,
+from farm import (ActionError, ActionTimeout, Client, FrameTimeout, MatchTimeout,
                          Matcher, ProtocolError, SDKError, TemplateDisabled, UnsupportedTemplateMethod)
-from mywebscrcpy import ConnectionError as SDKConnectionError
-from mywebscrcpy.decoder import configuration
-from mywebscrcpy.templates import template_from_wire
+from farm import ConnectionError as SDKConnectionError
+from farm.decoder import configuration
+from farm.templates import template_from_wire
 
 
 def assets():
@@ -127,7 +127,7 @@ class VisionTests(unittest.TestCase):
         response = {"ocr_result": "继续", "ocr_boxes": [
             dict(text="继续", confidence=.8, x=10, y=10, w=30, h=10)]}
         with fixture.client() as client, client.device('phone') as device, \
-                patch('mywebscrcpy.ocr.upload_image', return_value=response) as upload:
+                patch('farm.ocr.upload_image', return_value=response) as upload:
             result = device.ocr(engine='parallel', stabilization_ms=350, timeout=2, mark=True)
             self.assertTrue(result.matched)
             self.assertEqual(result.boxes[0].text, '继续')
@@ -142,7 +142,7 @@ class VisionTests(unittest.TestCase):
     def test_stabilized_ocr_rejects_real_replayed_snapshot(self):
         fixture = self.fixture(static=True, replayed=True, snapshot=True)
         with fixture.client() as client, client.device('phone') as device, \
-                patch('mywebscrcpy.ocr.upload_image') as upload:
+                patch('farm.ocr.upload_image') as upload:
             with self.assertRaises(FrameTimeout):
                 device.ocr(stabilization_ms=150, timeout=.5)
             upload.assert_not_called()
@@ -207,7 +207,7 @@ class VisionTests(unittest.TestCase):
                 self.assertEqual(len(fixture.actions),1)
 
     def test_send_lock_does_not_extend_action_deadline(self):
-        from mywebscrcpy.contracts import Deadline
+        from farm.contracts import Deadline
         fixture = self.fixture()
         with fixture.client() as client, client.device('phone') as device:
             session = device._session(Deadline(2))
@@ -220,7 +220,7 @@ class VisionTests(unittest.TestCase):
     def test_single_receiver_routes_out_of_order_action_results(self):
         fixture = self.fixture(reverse=True)
         with fixture.client() as client, client.device('phone') as device:
-            device._session(__import__('mywebscrcpy.contracts',fromlist=['Deadline']).Deadline(2))
+            device._session(__import__('farm.contracts',fromlist=['Deadline']).Deadline(2))
             results, errors = [], []
             def invoke(code):
                 try: results.append(device.key(code, timeout=2))

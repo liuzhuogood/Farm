@@ -7,7 +7,7 @@ import { once } from 'node:events'
 
 const executable = path.resolve(process.argv[2])
 assert.deepEqual(await readdir(path.dirname(executable)), [path.basename(executable)], 'GUI 测试目录只能包含单个 exe')
-const directory = await mkdtemp(path.join(os.tmpdir(), 'mywebscrcpy-standalone-test-'))
+const directory = await mkdtemp(path.join(os.tmpdir(), 'farm-standalone-test-'))
 const readyFile = path.join(directory, 'ready.json')
 const cache = path.join(directory, 'local-app-data')
 const child = spawn(executable, ['--no-gui', '--listen', '127.0.0.1:0', '--data-dir', directory, '--desktop-ready', readyFile], {
@@ -26,11 +26,11 @@ try {
   }
   assert(ready, '独立 GUI 内嵌服务未就绪')
   assert.notEqual(ready.pid, child.pid, '就绪服务必须由 GUI 启动')
-  const runtime = path.join(cache, 'com.mywebscrcpy.desktop', 'runtime')
+  const runtime = path.join(cache, 'com.farm.desktop', 'runtime')
   const hashes = await readdir(runtime)
   assert.equal(hashes.length, 1)
   assert.match(hashes[0], /^[a-f0-9]{64}$/)
-  assert((await readFile(path.join(runtime, hashes[0], 'mywebscrcpy.exe'))).length > 1000000)
+  assert((await readFile(path.join(runtime, hashes[0], 'farm.exe'))).length > 1000000)
   const headers = { Authorization: `Bearer ${ready.token}` }
   assert.equal((await fetch(ready.url + '/api/desktop/health', { headers })).status, 200)
   const exited = once(child, 'exit')

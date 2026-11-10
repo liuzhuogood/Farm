@@ -23,7 +23,7 @@ export interface AiTool {
 
 export type SkillCategory = 'all' | 'social' | 'short-video' | 'productivity'
 
-export type SkillId = 'mywebscrcpy-device-base' | 'mywebscrcpy-kuaishou-daily' | 'mywebscrcpy-wechat-helper'
+export type SkillId = 'farm-device-base' | 'farm-kuaishou-daily' | 'farm-wechat-helper'
 
 export interface SkillCapability {
   title: string

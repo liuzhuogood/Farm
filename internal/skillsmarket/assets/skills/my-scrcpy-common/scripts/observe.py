@@ -9,15 +9,15 @@ from request_client import ApiClient
 
 
 def resolve_base_url(arg_base: str | None) -> str:
-    url = arg_base or os.environ.get("MYWEBSCRCPY_BASE_URL") or os.environ.get("MYWEBSCRCPY_API_URL")
+    url = arg_base or os.environ.get("FARM_BASE_URL") or os.environ.get("FARM_API_URL")
     if not url:
-        raise ValueError("请指定服务地址 (通过 --base-url 或环境变量 MYWEBSCRCPY_BASE_URL / MYWEBSCRCPY_API_URL)")
+        raise ValueError("请指定服务地址 (通过 --base-url 或环境变量 FARM_BASE_URL / FARM_API_URL)")
     return url.rstrip("/")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", "--base-url", dest="base", default=None, help="服务地址 (或由环境变量 MYWEBSCRCPY_BASE_URL 指定)")
+    parser.add_argument("--base", "--base-url", dest="base", default=None, help="服务地址 (或由环境变量 FARM_BASE_URL 指定)")
     parser.add_argument("--serial", required=True, help="设备序列号")
     parser.add_argument("--template-ids", help="指定模板ID（逗号分隔）")
     parser.add_argument("--decision", action="store_true", help="调用 AI 视觉决策模型")

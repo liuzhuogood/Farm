@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"mywebscrcpy/internal/action"
+	"farm/internal/action"
 )
 
 const (

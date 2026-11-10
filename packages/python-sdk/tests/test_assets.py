@@ -10,11 +10,11 @@ from unittest.mock import patch
 import cv2
 import httpx
 
-from mywebscrcpy import Client, HTTPError, SDKError, TemplateDisabled, UnsupportedTemplateMethod
-from mywebscrcpy.contracts import Deadline
-from mywebscrcpy.dependencies import vision_dependencies
-from mywebscrcpy.errors import MissingDependency
-from mywebscrcpy.templates import TemplateCache, template_from_wire
+from farm import Client, HTTPError, SDKError, TemplateDisabled, UnsupportedTemplateMethod
+from farm.contracts import Deadline
+from farm.dependencies import vision_dependencies
+from farm.errors import MissingDependency
+from farm.templates import TemplateCache, template_from_wire
 from test_vision import assets, template_wire
 
 
@@ -74,5 +74,5 @@ class AssetsTests(unittest.TestCase):
             with self.assertRaises(HTTPError): cache.refresh(Deadline(1))
 
     def test_missing_vision_has_install_hint(self):
-        with patch('mywebscrcpy.dependencies.import_module',side_effect=ImportError('av')):
+        with patch('farm.dependencies.import_module',side_effect=ImportError('av')):
             with self.assertRaisesRegex(MissingDependency,r'\[vision\]'): vision_dependencies()

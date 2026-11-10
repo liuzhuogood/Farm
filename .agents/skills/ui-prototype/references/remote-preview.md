@@ -4,7 +4,7 @@
 
 | 参数 | 已确认值 |
 | --- | --- |
-| 项目根目录 | 包含 `frontend/package.json` 和 `prototypes/` 的 MyWebScrcpy 仓库 |
+| 项目根目录 | 包含 `frontend/package.json` 和 `prototypes/` 的 Farm 仓库 |
 | 开发预览命令 | 项目根目录运行 `pnpm --dir frontend proto` |
 | 本机预览地址 | `http://127.0.0.1:5174`，每次核对实际监听；复用已确认的本项目实例 |
 | SSH 目标 | `root@wskj.work`，使用已有免密认证 |

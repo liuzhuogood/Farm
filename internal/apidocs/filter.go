@@ -79,7 +79,7 @@ func FilterOpenAPISpec(fullSpec []byte, cfg Config) ([]byte, error) {
 		if cfg.Title != "" {
 			info["title"] = cfg.Title
 		} else {
-			info["title"] = "MyWebScrcpy 自动化 API 文档"
+			info["title"] = "Farm 自动化 API 文档"
 		}
 		if cfg.Description != "" {
 			info["description"] = cfg.Description

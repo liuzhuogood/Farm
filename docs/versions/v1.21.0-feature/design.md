@@ -1,6 +1,6 @@
 # v1.21.0-feature：Pi 技能生成 Python
 
-已实现第一阶段：Pi 生成独立 Python，使用统一、可安装的 `mywebscrcpy` SDK 基础能力。视频解码与模板匹配留在 [v1.22 设计](../v1.22.0-feature/design.md)。软件与受控接口验证不替代真机验收。
+已实现第一阶段：Pi 生成独立 Python，使用统一、可安装的 `farm` SDK 基础能力。视频解码与模板匹配留在 [v1.22 设计](../v1.22.0-feature/design.md)。软件与受控接口验证不替代真机验收。
 
 ## 目标与范围
 
@@ -8,7 +8,7 @@
 
 第一阶段支持明确参数的 ADB、按键、像素或比例点击、滑动、ASCII 文本、等待、条件与有限循环。基础动作通过 SDK 的 `device.adb` 调用真实 ADB HTTP API；比例坐标通过 `device.page_info` 的真实尺寸换算。模板匹配、Vision 专用动作、OCR 与中文输入尚未提供，Pi 必须返回缺少能力或信息的问题。
 
-用户曾提出 requests 直调，随后要求对齐 v1.22 可安装 SDK，并确认本次只做 SDK 基础能力。不保留另一套 `mywebscrcpy_runtime`，不同时维护两套连接封装。SDK 当前版本为 0.1.0，包名 `mywebscrcpy-sdk`，导入名 `mywebscrcpy`。
+用户曾提出 requests 直调，随后要求对齐 v1.22 可安装 SDK，并确认本次只做 SDK 基础能力。不保留另一套 `farm_runtime`，不同时维护两套连接封装。SDK 当前版本为 0.1.0，包名 `farm-sdk`，导入名 `farm`。
 
 ## 技能与 SDK
 
@@ -19,14 +19,14 @@
 └── assets/example.py
 packages/python-sdk/
 ├── pyproject.toml
-├── src/mywebscrcpy/
+├── src/farm/
 ├── examples/device_query.py
 └── tests/test_basic.py
 ```
 
 技能规定转换顺序、来源、支持范围、结构、异常与严格 JSON。SDK 使用 HTTPX，定义 Client、Device、CommandResult、PageInfo 和明确异常；基础导入不加载 OpenCV/PyAV。专用按键/点击等 Vision SDK 方法由 v1.22 后续补充，当前不假装实现。
 
-生成的代码使用 `from mywebscrcpy import Client`、唯一 main()、argparse 配置和标准启动入口。通过 with Client / client.device 管理资源。serial 是位置参数，--base-url 和 --token 可从 MYWEBSCRCPY_API_URL / MYWEBSCRCPY_API_TOKEN 获取默认值。无连接配置时明确报错，不硬编码设备、地址或凭据。
+生成的代码使用 `from farm import Client`、唯一 main()、argparse 配置和标准启动入口。通过 with Client / client.device 管理资源。serial 是位置参数，--base-url 和 --token 可从 FARM_API_URL / FARM_API_TOKEN 获取默认值。无连接配置时明确报错，不硬编码设备、地址或凭据。
 
 安装包后，脚本可复制到外部目录运行：
 
@@ -35,7 +35,7 @@ python -m pip install ./packages/python-sdk
 python script.py DEVICE_SERIAL --base-url http://HOST:PORT
 ```
 
-远程操作仍要求 MyWebScrcpy 服务与设备可达。应用任务释放同一份嵌入 SDK 源码，配置的 Python 环境仍需安装 HTTPX，不在后台静默执行 pip。SDK、示例和安装说明见 [SDK README](../../../packages/python-sdk/README.md)。
+远程操作仍要求 Farm 服务与设备可达。应用任务释放同一份嵌入 SDK 源码，配置的 Python 环境仍需安装 HTTPX，不在后台静默执行 pip。SDK、示例和安装说明见 [SDK README](../../../packages/python-sdk/README.md)。
 
 ## 真实接口与连接
 

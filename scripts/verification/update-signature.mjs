@@ -9,7 +9,7 @@ const signatures=files(bundle).filter(file=>file.endsWith('.sig'))
 assert.equal(signatures.length,1,'expected one signed updater artifact')
 const deps=path.resolve('desktop/target/release/deps'), entries=readdirSync(deps)
 const library=name=>path.join(deps,entries.find(file=>file.startsWith(`lib${name}-`)&&file.endsWith('.rlib')))
-const temp=mkdtempSync(path.join(os.tmpdir(),'mywebscrcpy-signature-test-'))
+const temp=mkdtempSync(path.join(os.tmpdir(),'farm-signature-test-'))
 const source=`use base64::{engine::general_purpose::STANDARD,Engine};
 fn main(){
  let args:Vec<String>=std::env::args().collect();

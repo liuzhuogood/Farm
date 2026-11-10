@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/action"
+	"farm/internal/scrcpy"
 )
 
 var browserControlSequence atomic.Uint64

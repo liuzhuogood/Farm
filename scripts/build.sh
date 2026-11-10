@@ -10,7 +10,7 @@ echo '[构建] 构建前端'
 pnpm --dir frontend build
 echo '[构建] 编译 Go 程序'
 if [[ $# -eq 0 ]]; then
-  go build -o mywebscrcpy .
+  go build -o farm .
 else
   go build "$@" .
 fi

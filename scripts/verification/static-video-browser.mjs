@@ -1,5 +1,5 @@
 // Run with ego-browser nodejs. Requires the opt-in Go WebSocket fixture and Vite5192.
-const task=await taskSpace('MyWebScrcpy 静止画面回退排查')
+const task=await taskSpace('Farm 静止画面回退排查')
 const page=task.page('p1')
 await page.goto('http://127.0.0.1:5192/')
 await page.evaluate(async()=>{

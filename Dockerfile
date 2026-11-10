@@ -1,7 +1,7 @@
 FROM debian:bookworm-slim
 
 LABEL maintainer="liuzhuogood"
-LABEL description="MyWebScrcpy - Browser-based Android screen mirroring"
+LABEL description="Farm - Browser-based Android screen mirroring"
 
 # 安装 ADB 与基础工具
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -12,10 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # 创建工作目录
 WORKDIR /app
-ENV MYWEBSCRCPY_RUNTIME=docker
+ENV FARM_RUNTIME=docker
 
 # 复制二进制文件
-COPY mywebscrcpy-linux-amd64-cli /app/mywebscrcpy
+COPY farm-linux-amd64-cli /app/farm
 
 # 创建数据目录
 RUN mkdir -p /data
@@ -28,5 +28,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f --insecure https://localhost:8080/api/version/health || exit 1
 
 # 启动命令
-ENTRYPOINT ["/app/mywebscrcpy"]
+ENTRYPOINT ["/app/farm"]
 CMD ["-https"]

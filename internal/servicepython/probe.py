@@ -10,7 +10,7 @@ try:
 
     requirements = json.loads(sys.argv[1])
     if sys.argv[2] == "matching":
-        sdk_requirements = requires("mywebscrcpy-sdk")
+        sdk_requirements = requires("farm-sdk")
         if sdk_requirements is None:
             raise RuntimeError("SDK 缺少依赖声明")
         requirements.extend(sdk_requirements)
@@ -22,7 +22,7 @@ try:
         if installed not in requirement.specifier:
             errors.append(f"{requirement.name} {installed} 不满足 {requirement.specifier}")
     modules = {
-        "matching": ["mywebscrcpy", "httpx", "websocket", "av", "cv2", "numpy"],
+        "matching": ["farm", "httpx", "websocket", "av", "cv2", "numpy"],
         "indraocr": ["indra_ocr", "onnxruntime", "cv2", "numpy", "fastapi", "uvicorn", "multipart"],
         "paddleocr": ["paddle", "paddleocr", "fastapi", "uvicorn", "multipart", "cv2", "numpy"],
     }[sys.argv[2]]
@@ -30,7 +30,7 @@ try:
         for name in modules:
             importlib.import_module(name)
         if sys.argv[2] == "matching":
-            from mywebscrcpy import Client, Device, Matcher, FrameTimeout
+            from farm import Client, Device, Matcher, FrameTimeout
         elif sys.argv[2] == "indraocr":
             from indra_ocr import OrtOCR, model_dir
             if not callable(OrtOCR) or not callable(model_dir):

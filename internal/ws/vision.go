@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
+	"farm/internal/action"
+	debuglog "farm/internal/debug"
+	"farm/internal/scrcpy"
+	"farm/internal/vision"
 	"github.com/gorilla/websocket"
-	"mywebscrcpy/internal/action"
-	debuglog "mywebscrcpy/internal/debug"
-	"mywebscrcpy/internal/scrcpy"
-	"mywebscrcpy/internal/vision"
 )
 
 type matchingReadOnlyKey struct{}

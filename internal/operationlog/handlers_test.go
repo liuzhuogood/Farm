@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/db"
+	"farm/internal/db"
 )
 
 func testService(t *testing.T) (*Service, *http.ServeMux, string) {

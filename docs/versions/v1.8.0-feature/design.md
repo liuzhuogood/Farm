@@ -2,7 +2,7 @@
 
 ## 1. 背景与现状
 
-MyWebScrcpy 目前已具备强大的底层视频旁路能力与前端标注体系：
+Farm 目前已具备强大的底层视频旁路能力与前端标注体系：
 1. **现有 Vision 通道**：通过 `/api/vision/stream` 提供二进制 H.264 视频帧旁路推送，并接收上行 `detection.result`；通过 `/api/vision/results` 广播给浏览器。
 2. **现有前端标注体系**：`player.html` 的 `detection-overlay` Canvas 已有完整的绿框、标签及置信度渲染逻辑，并支持 `btn-toggle-green-boxes` 显隐控制。
 3. **现有区域截图体系**：播放器具备精细的 Canvas 区域截图选框（放大镜、BBOX、下载/复制功能）。
@@ -48,7 +48,7 @@ flowchart TB
         UI_TplModal["模板管理/保存面板 (Template Dialog)"]
     end
 
-    subgraph GoBackend["Go 服务端 (MyWebScrcpy Core)"]
+    subgraph GoBackend["Go 服务端 (Farm Core)"]
         TplManager["模板管理模块 (internal/template)"]
         WS_Hub["Vision Hub (internal/ws / hub)"]
         WS_Stream["/api/vision/stream (帧推送通道)"]

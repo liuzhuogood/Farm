@@ -8,17 +8,17 @@ import assert from 'node:assert/strict'
 const [binary, source, target, reportPath] = process.argv.slice(2)
 assert.ok(binary && source && target, 'Usage: node scripts/verification/group-control.mjs <native-verify GUI> <source serial> <target serial> [report path]')
 assert.notEqual(source, target, 'Source and target must be distinct online devices')
-const directory = await mkdtemp(path.join(os.tmpdir(), 'mywebscrcpy-group-'))
+const directory = await mkdtemp(path.join(os.tmpdir(), 'farm-group-'))
 const report = reportPath ? path.resolve(reportPath) : path.join(directory, 'report.json')
 await rm(report, { force: true })
 const child = spawn(path.resolve(binary), [], {
   env: {
     ...process.env,
-    MYWEBSCRCPY_NATIVE_REPORT: report,
-    MYWEBSCRCPY_VERIFY_GROUP_CONTROL: '1',
-    MYWEBSCRCPY_VERIFY_GROUP_SOURCE: source,
-    MYWEBSCRCPY_VERIFY_GROUP_TARGET: target,
-    MYWEBSCRCPY_DESKTOP_PORT: '21989',
+    FARM_NATIVE_REPORT: report,
+    FARM_VERIFY_GROUP_CONTROL: '1',
+    FARM_VERIFY_GROUP_SOURCE: source,
+    FARM_VERIFY_GROUP_TARGET: target,
+    FARM_DESKTOP_PORT: '21989',
   },
   stdio: ['ignore', 'ignore', 'pipe'],
 })

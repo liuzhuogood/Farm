@@ -8,7 +8,7 @@ import (
 
 // ManagedADB is an explicit constructor target. Tests and callers passing a
 // concrete executable continue to use that executable without host configuration.
-const ManagedADB = "@mywebscrcpy/adb"
+const ManagedADB = "@farm/adb"
 
 type Cmd struct {
 	*exec.Cmd

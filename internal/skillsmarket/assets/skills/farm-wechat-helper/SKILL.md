@@ -1,5 +1,5 @@
 ---
-name: mywebscrcpy-wechat-helper
+name: farm-wechat-helper
 description: 微信联系人与会话检索、未读消息读取与上下文草拟回复辅助。仅读取与草拟，绝不自动外发任何消息。
 ---
 
@@ -15,7 +15,7 @@ description: 微信联系人与会话检索、未读消息读取与上下文草�
 
 每次设备动作前先进行只读采集：`page-info → XML → page-info`。按当前 Schema 核对前后包名、Activity 与页面状态；不稳定则有界重采（最多 3 次），仍不稳定则停止。XML 中的节点必须唯一、启用、可操作，且 bounds 位于当前可视区域。动作后重新采集页面并核对预期业务结果，不能把 HTTP 200 当作动作成功。
 
-1. 服务地址与凭据：必须从环境变量 `MYWEBSCRCPY_API_URL` 或用户指令中读取已确认的服务地址。若缺失则立即停止确认，严禁回退到 `http://127.0.0.1:8080` 或任何默认端口。目标设备 `SERIAL` 必须通过 `/api/devices` 明确查询确认，缺失则停止确认。
+1. 服务地址与凭据：必须从环境变量 `FARM_API_URL` 或用户指令中读取已确认的服务地址。若缺失则立即停止确认，严禁回退到 `http://127.0.0.1:8080` 或任何默认端口。目标设备 `SERIAL` 必须通过 `/api/devices` 明确查询确认，缺失则停止确认。
 2. 必须先读取当前服务 `/api/openapi.json` 确认接口契约与可用路由，不猜测字段。
 3. 闭环验证流程（page-info -> XML -> 操作 -> page-info）：每次交互前后必须验证前台状态与页面跳转。
 4. 仅读与草拟约束：本技能所有输出仅为建议草稿，在 AI 助手交互界面呈现供用户审阅。
@@ -23,7 +23,7 @@ description: 微信联系人与会话检索、未读消息读取与上下文草�
 ## 脚本调用与标准流程
 
 在任意工作目录下调用前，先确定脚本路径与目标设备。
-助手在执行命令前，必须将 `<CONFIRMED_ABSOLUTE_SKILL_DIR>` 替换为实际刚读取的 `SKILL.md` 所在目录的绝对路径（例如 `/Users/.../.agents/skills/mywebscrcpy-wechat-helper`）。
+助手在执行命令前，必须将 `<CONFIRMED_ABSOLUTE_SKILL_DIR>` 替换为实际刚读取的 `SKILL.md` 所在目录的绝对路径（例如 `/Users/.../.agents/skills/farm-wechat-helper`）。
 严禁使用 `BASH_SOURCE` 或 `$0` 进行自动推导（在交互式终端粘贴或临时脚本执行时会指向错误目录）。
 
 ```bash
@@ -32,11 +32,11 @@ SKILL_DIR="<CONFIRMED_ABSOLUTE_SKILL_DIR>"
 CLIENT_PY="${SKILL_DIR}/scripts/request_client.py"
 
 # 服务地址检查（缺失时必须停止并向用户确认，禁止使用任何 8080 默认或硬编码）
-if [ -z "${MYWEBSCRCPY_API_URL:-}" ]; then
-  echo "错误: 未配置 MYWEBSCRCPY_API_URL。请先确认服务地址并导出环境变量，禁止预设任何默认地址。" >&2
+if [ -z "${FARM_API_URL:-}" ]; then
+  echo "错误: 未配置 FARM_API_URL。请先确认服务地址并导出环境变量，禁止预设任何默认地址。" >&2
   exit 1
 fi
-API_URL="${MYWEBSCRCPY_API_URL}"
+API_URL="${FARM_API_URL}"
 ```
 
 ### 0. 契约确认与设备可用性检查

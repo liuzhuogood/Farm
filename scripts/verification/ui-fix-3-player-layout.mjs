@@ -1,9 +1,9 @@
 // Uses only the test-* synthetic WebSocket/HTTP fixtures from ui-fix-3.mjs.
-const task = await taskSpace('MyWebScrcpy 修复恢复验证')
+const task = await taskSpace('Farm 修复恢复验证')
 const page = task.page('p1')
 const assert = (await import('node:assert/strict')).default
 const fs = await import('node:fs/promises')
-const output = '/Users/liuzhuo/code/MyWebScrcpy/.cache/verification/fix-3'
+const output = '/Users/liuzhuo/code/Farm/.cache/verification/fix-3'
 await page.waitForFunction(() => document.querySelector('canvas[aria-label="设备投屏画面"]')?.width === 1080)
 const before = await page.evaluate(() => document.querySelector('canvas[aria-label="设备投屏画面"]').getBoundingClientRect().toJSON())
 await page.hover('button[aria-label="展开工具条"]')

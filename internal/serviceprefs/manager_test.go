@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/db"
+	"farm/internal/db"
 )
 
 func TestRememberSurvivesRestartAndRestoresOnlyEnabledService(t *testing.T) {

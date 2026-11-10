@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"mywebscrcpy/internal/adbcommand"
+	"farm/internal/adbcommand"
 )
 
 func (h *Hub) RegisterADBCommandRoutes(mux *http.ServeMux) {

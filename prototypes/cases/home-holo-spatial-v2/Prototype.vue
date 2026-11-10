@@ -85,7 +85,7 @@ function handleOpenAdd() {
       resolution: '1600 × 2560',
       androidVersion: 'Android 14',
       currentApp: '控制台主页',
-      currentPackage: 'com.mywebscrcpy.desktop',
+      currentPackage: 'com.farm.desktop',
       ip: ip.split(':')[0],
       aspectRatio: '16:10',
     },

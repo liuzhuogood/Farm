@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 const script = fileURLToPath(import.meta.url)
 const root = path.dirname(path.dirname(script))
-const stateDir = path.resolve(process.env.MYWEBSCRCPY_SERVICE_DIR ?? path.join(root, '.cache/services'))
+const stateDir = path.resolve(process.env.FARM_SERVICE_DIR ?? path.join(root, '.cache/services'))
 const names = ['backend', 'frontend']
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const recordPath = name => path.join(stateDir, `${name}.json`)
@@ -76,11 +76,11 @@ function port(value, fallback) {
 function configuration() {
   const previousBackend = readRecord('backend')
   const previousFrontend = readRecord('frontend')
-  const backend = port(process.env.MYWEBSCRCPY_BACKEND_PORT, previousBackend ? previousBackend.url.split(':')[2] : 8080)
-  const frontend = port(process.env.MYWEBSCRCPY_FRONTEND_PORT, previousFrontend ? previousFrontend.url.split(':')[2] : 5173)
+  const backend = port(process.env.FARM_BACKEND_PORT, previousBackend ? previousBackend.url.split(':')[2] : 8080)
+  const frontend = port(process.env.FARM_FRONTEND_PORT, previousFrontend ? previousFrontend.url.split(':')[2] : 5173)
   if (backend === frontend) throw new Error('前端与后端端口不能相同')
   return {
-    backend: { port: backend, url: `http://127.0.0.1:${backend}`, dataDir: path.resolve(process.env.MYWEBSCRCPY_SERVICE_DATA_DIR ?? previousBackend?.dataDir ?? root) },
+    backend: { port: backend, url: `http://127.0.0.1:${backend}`, dataDir: path.resolve(process.env.FARM_SERVICE_DATA_DIR ?? previousBackend?.dataDir ?? root) },
     frontend: { port: frontend, url: `http://127.0.0.1:${frontend}` },
   }
 }
@@ -97,7 +97,7 @@ async function healthy(name, url) {
   try {
     const response = await fetch(url + (name === 'backend' ? '/api/openapi.json' : '/'), { signal: AbortSignal.timeout(1500) })
     if (!response.ok) return false
-    if (name === 'backend') return (await response.json()).info.title === 'MyWebScrcpy API'
+    if (name === 'backend') return (await response.json()).info.title === 'Farm API'
     return (await response.text()).includes('/src/main.ts')
   } catch { return false }
 }
@@ -125,7 +125,7 @@ async function startOne(name, config) {
       await requireFrontendDependencies()
       await run('pnpm', ['--dir', 'frontend', 'build'])
     }
-    command = path.join(stateDir, 'mywebscrcpy')
+    command = path.join(stateDir, 'farm')
     console.log('[构建] Go 后端')
     await run('go', ['build', '-o', command, '.'])
     args = ['--no-gui', '--listen', `127.0.0.1:${config.backend.port}`, '--data-dir', config.backend.dataDir]
@@ -140,7 +140,7 @@ async function startOne(name, config) {
   // and Vite. It remains alive until descendants exit or the stop timeout fires.
   const child = spawn(process.execPath, [script, '__run', JSON.stringify({ name, command, args })], {
     cwd: root, detached: true, stdio: ['ignore', log, log],
-    env: { ...process.env, TLS_CERT: '', TLS_KEY: '', MYWEBSCRCPY_BACKEND_URL: config.backend.url },
+    env: { ...process.env, TLS_CERT: '', TLS_KEY: '', FARM_BACKEND_URL: config.backend.url },
   })
   closeSync(log)
   await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject) })

@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"time"
 
-	debuglog "mywebscrcpy/internal/debug"
-	"mywebscrcpy/internal/scrcpy"
+	debuglog "farm/internal/debug"
+	"farm/internal/scrcpy"
 )
 
 // Caller holds ms.mu. Only browser subscriptions can restart from a newer GOP;

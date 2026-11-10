@@ -123,7 +123,7 @@ async function handleCloseSmallWindow() {
 const desktopConfig = useDesktopConfig()
 const isGui = computed(() => {
   return desktopConfig.isDesktop.value || Boolean(
-    (window as any).__MYWEBSCRCPY_DESKTOP_TOKEN__ ||
+    (window as any).__FARM_DESKTOP_TOKEN__ ||
     (window as any).__TAURI_INTERNALS__ ||
     (window as any).__TAURI__
   )

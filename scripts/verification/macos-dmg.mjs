@@ -20,7 +20,7 @@ function files(directory) {
 const images = files(bundle).filter(file => file.endsWith('.dmg'))
 assert.equal(images.length, 1, '每个架构必须恰好生成一个 DMG')
 run('hdiutil', ['verify', images[0]])
-const mount = mkdtempSync(path.join(os.tmpdir(), 'mywebscrcpy-dmg-'))
+const mount = mkdtempSync(path.join(os.tmpdir(), 'farm-dmg-'))
 let mounted = false
 try {
   run('hdiutil', ['attach', '-readonly', '-nobrowse', '-mountpoint', mount, images[0]])
@@ -32,17 +32,17 @@ try {
   const version = run('plutil', ['-extract', 'CFBundleShortVersionString', 'raw', '-o', '-', plist])
   assert.equal(version, tag.slice(1), 'App 版本必须与发布标签一致')
   const executable = run('plutil', ['-extract', 'CFBundleExecutable', 'raw', '-o', '-', plist])
-  for (const name of [executable, 'mywebscrcpy']) {
+  for (const name of [executable, 'farm']) {
     assert.equal(run('lipo', ['-archs', path.join(app, 'Contents', 'MacOS', name)]), arch === 'amd64' ? 'x86_64' : 'arm64', `${name} 架构错误`)
   }
   run('codesign', ['--verify', '--deep', '--strict', app])
-  console.log(run(process.execPath, [path.resolve('scripts/verification/desktop-service.mjs'), path.join(app, 'Contents', 'MacOS', 'mywebscrcpy')]))
+  console.log(run(process.execPath, [path.resolve('scripts/verification/desktop-service.mjs'), path.join(app, 'Contents', 'MacOS', 'farm')]))
   console.log(`PASS: ${tag} macOS ${arch} DMG、完整 App、GUI/服务架构和代码签名校验`)
 } finally {
   if (mounted) run('hdiutil', ['detach', mount])
   rmSync(mount, { recursive: true, force: true })
 }
 mkdirSync(output, { recursive: true })
-const destination = path.join(output, `mywebscrcpy-${tag}-macos-${arch}-gui.dmg`)
+const destination = path.join(output, `farm-${tag}-macos-${arch}-gui.dmg`)
 copyFileSync(images[0], destination)
 console.log(`GUI installer: ${destination}`)

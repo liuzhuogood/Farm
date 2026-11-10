@@ -1,12 +1,12 @@
 fn main() {
     let target = std::env::var("TARGET").unwrap();
     if target.contains("windows") {
-        println!("cargo:rerun-if-changed=binaries/mywebscrcpy-{target}.exe");
+        println!("cargo:rerun-if-changed=binaries/farm-{target}.exe");
     }
-    println!("cargo:rerun-if-env-changed=MYWEBSCRCPY_UPDATER_PUBLIC_KEY");
+    println!("cargo:rerun-if-env-changed=FARM_UPDATER_PUBLIC_KEY");
     println!("cargo:rerun-if-changed=updater.pub");
-    let key=std::env::var("MYWEBSCRCPY_UPDATER_PUBLIC_KEY").unwrap_or_else(|_| std::fs::read_to_string("updater.pub").expect("missing updater public key"));
-    println!("cargo:rustc-env=MYWEBSCRCPY_UPDATER_PUBLIC_KEY={}",key.trim());
+    let key=std::env::var("FARM_UPDATER_PUBLIC_KEY").unwrap_or_else(|_| std::fs::read_to_string("updater.pub").expect("missing updater public key"));
+    println!("cargo:rustc-env=FARM_UPDATER_PUBLIC_KEY={}",key.trim());
     println!(
         "cargo:rustc-env=DESKTOP_TARGET={}",
         std::env::var("TARGET").unwrap()

@@ -10,7 +10,7 @@ class OCRBusyError(RuntimeError):
 class OCRWorkerPool:
     def __init__(self):
         self._slots = threading.BoundedSemaphore(6)
-        self._executor = ThreadPoolExecutor(max_workers=6, thread_name_prefix="mywebscrcpy-ocr")
+        self._executor = ThreadPoolExecutor(max_workers=6, thread_name_prefix="farm-ocr")
 
     def submit(self, function, *args, **kwargs):
         # Admission counts both queued and running work, so the executor's

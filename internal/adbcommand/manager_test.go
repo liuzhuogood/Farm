@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/devicegate"
+	"farm/internal/devicegate"
 )
 
 func TestHelperADBProcess(t *testing.T) {

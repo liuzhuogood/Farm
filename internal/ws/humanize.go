@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 // humanize.go — 拟人化触摸注入。

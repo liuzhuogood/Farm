@@ -4,8 +4,8 @@ package adbcommand
 import (
 	"context"
 	"errors"
+	"farm/internal/dependencies"
 	"fmt"
-	"mywebscrcpy/internal/dependencies"
 	"os"
 	"os/exec"
 	"strconv"
@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"mywebscrcpy/internal/devicegate"
+	"farm/internal/devicegate"
 )
 
 const (

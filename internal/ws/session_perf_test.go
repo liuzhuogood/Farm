@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 // TestRealDeviceSessionStartupPerf measures real-device session startup and

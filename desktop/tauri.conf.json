@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "MyWebScrcpy",
+  "productName": "Farm",
   "version": "2026.11.8",
-  "identifier": "com.mywebscrcpy.desktop",
+  "identifier": "com.farm.desktop",
   "build": {
     "frontendDist": "ui"
   },
@@ -22,7 +22,7 @@
       "icons/icon.ico"
     ],
     "externalBin": [
-      "binaries/mywebscrcpy"
+      "binaries/farm"
     ],
     "category": "DeveloperTool",
     "shortDescription": "Android 设备投屏与自动化",

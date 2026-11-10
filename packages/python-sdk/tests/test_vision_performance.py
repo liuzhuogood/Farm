@@ -8,13 +8,13 @@ from unittest.mock import Mock, patch
 import av
 import numpy as np
 
-from mywebscrcpy.contracts import Deadline
-from mywebscrcpy.decoder import Decoder
-from mywebscrcpy.models import Frame
-from mywebscrcpy.vision import Vision
-from mywebscrcpy.watch import Watch
+from farm.contracts import Deadline
+from farm.decoder import Decoder
+from farm.models import Frame
+from farm.vision import Vision
+from farm.watch import Watch
 from test_vision import assets, template_wire
-from mywebscrcpy.templates import template_from_wire
+from farm.templates import template_from_wire
 
 
 class VisionPerformanceTests(unittest.TestCase):

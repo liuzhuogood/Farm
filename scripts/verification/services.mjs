@@ -10,7 +10,7 @@ import { promisify } from 'node:util'
 const execute = promisify(execFile)
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const script = path.join(root, 'scripts/services.mjs')
-const directory = await mkdtemp(path.join(os.tmpdir(), 'mywebscrcpy-services-'))
+const directory = await mkdtemp(path.join(os.tmpdir(), 'farm-services-'))
 const listen = server => new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
 const close = server => new Promise(resolve => server.close(resolve))
 const blocker = net.createServer()
@@ -22,11 +22,11 @@ const frontendPort = frontendReservation.address().port
 await close(frontendReservation)
 const env = {
   ...process.env,
-  MYWEBSCRCPY_SERVICE_DIR: path.join(directory, 'services'),
-  MYWEBSCRCPY_SERVICE_DATA_DIR: path.join(directory, 'data'),
-  MYWEBSCRCPY_ADB: path.join(directory, 'missing-adb'),
-  MYWEBSCRCPY_BACKEND_PORT: String(backendPort),
-  MYWEBSCRCPY_FRONTEND_PORT: String(frontendPort),
+  FARM_SERVICE_DIR: path.join(directory, 'services'),
+  FARM_SERVICE_DATA_DIR: path.join(directory, 'data'),
+  FARM_ADB: path.join(directory, 'missing-adb'),
+  FARM_BACKEND_PORT: String(backendPort),
+  FARM_FRONTEND_PORT: String(frontendPort),
 }
 async function command(action, target = 'all', expected = 0, selectedEnv = env) {
   try {
@@ -38,11 +38,11 @@ async function command(action, target = 'all', expected = 0, selectedEnv = env) 
     return error.stderr
   }
 }
-const record = name => readFile(path.join(env.MYWEBSCRCPY_SERVICE_DIR, `${name}.json`), 'utf8').then(JSON.parse)
+const record = name => readFile(path.join(env.FARM_SERVICE_DIR, `${name}.json`), 'utf8').then(JSON.parse)
 async function assertProxy() {
   const response = await fetch(`http://127.0.0.1:${frontendPort}/api/openapi.json`, { signal: AbortSignal.timeout(3000) })
   assert.equal(response.status, 200)
-  assert.equal((await response.json()).info.title, 'MyWebScrcpy API')
+  assert.equal((await response.json()).info.title, 'Farm API')
   const docs = await fetch(`http://127.0.0.1:${frontendPort}/api-docs.html`, { signal: AbortSignal.timeout(3000) })
   assert.equal(docs.status, 200)
 }
@@ -74,9 +74,9 @@ try {
   await command('start', 'frontend')
   const frontend = await record('frontend')
   const restartEnv = { ...env }
-  delete restartEnv.MYWEBSCRCPY_BACKEND_PORT
-  delete restartEnv.MYWEBSCRCPY_FRONTEND_PORT
-  delete restartEnv.MYWEBSCRCPY_SERVICE_DATA_DIR
+  delete restartEnv.FARM_BACKEND_PORT
+  delete restartEnv.FARM_FRONTEND_PORT
+  delete restartEnv.FARM_SERVICE_DATA_DIR
   await command('restart', 'backend', 0, restartEnv)
   assert.notEqual((await record('backend')).pid, originalBackend.pid)
   assert.equal((await record('backend')).dataDir, originalBackend.dataDir, 'restart changed the data directory')
@@ -90,7 +90,7 @@ try {
   await command('status', 'all', 1)
   // An unrelated process with a stale record must never receive a signal.
   const currentIdentity = execFileSync('ps', ['-p', String(process.pid), '-o', 'lstart=', '-o', 'pgid=', '-o', 'args='], { encoding: 'utf8', env: { ...process.env, LC_ALL: 'C' } }).trim()
-  await writeFile(path.join(env.MYWEBSCRCPY_SERVICE_DIR, 'backend.json'), JSON.stringify({ ...originalBackend, pid: process.pid, identity: currentIdentity + ' stale' }))
+  await writeFile(path.join(env.FARM_SERVICE_DIR, 'backend.json'), JSON.stringify({ ...originalBackend, pid: process.pid, identity: currentIdentity + ' stale' }))
   await command('stop', 'backend')
   passed = true
   console.log('PASS: real frontend/backend startup, proxy, repeated start, separate control, graceful restart, complete stop, occupied-port and stale-PID protection')

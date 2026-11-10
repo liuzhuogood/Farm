@@ -34,7 +34,7 @@ func TestParseStatLine(t *testing.T) {
 }
 
 func TestCleanRelRejectsServerAndTrashPaths(t *testing.T) {
-	for _, value := range []string{"../outside", "/etc/passwd", "\\windows", ".mywebscrcpy-trash/x", "a\x00b"} {
+	for _, value := range []string{"../outside", "/etc/passwd", "\\windows", ".farm-trash/x", "a\x00b"} {
 		if _, err := cleanRel(value); !errors.Is(err, ErrForbidden) {
 			t.Fatalf("cleanRel(%q) = %v, want ErrForbidden", value, err)
 		}
@@ -370,4 +370,3 @@ func TestDownloadPreview(t *testing.T) {
 		t.Fatalf("normal Content-Disposition = %q, want attachment", cdNorm)
 	}
 }
-

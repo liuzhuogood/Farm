@@ -1,4 +1,4 @@
-附属技能目录：/Users/liuzhuo/code/MyWebScrcpy/skills
+附属技能目录：/Users/liuzhuo/code/Farm/skills
 
 1. 执行快手极速版刷视频任务。你先解锁锁屏（利用adb）, 然后打开app
 2. 遵守 skills/my-scrcpy-use 的环境、页面观测、动作后复核和任务记录规范。

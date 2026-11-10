@@ -15,7 +15,7 @@ export function useMatchingService() {
   let requestRevision = 0
   async function request(operation: 'status' | 'check' | 'start' | 'stop') {
     const revision = ++requestRevision
-    const desktopToken = (window as Window & { __MYWEBSCRCPY_DESKTOP_TOKEN__?: string }).__MYWEBSCRCPY_DESKTOP_TOKEN__
+    const desktopToken = (window as Window & { __FARM_DESKTOP_TOKEN__?: string }).__FARM_DESKTOP_TOKEN__
     const response = await fetch(`/api/matching-service/${operation}`, { method: operation === 'status' ? 'GET' : 'POST', headers: desktopToken ? { Authorization: `Bearer ${desktopToken}` } : {}, signal: AbortSignal.timeout(operation === 'start' ? 17 * 60 * 1000 : 40000) })
     if (!response.ok) {
       if (response.headers.get('content-type')?.includes('application/json')) {

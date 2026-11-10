@@ -1,6 +1,6 @@
 package ws
 
-import "mywebscrcpy/internal/scrcpy"
+import "farm/internal/scrcpy"
 
 // Keep a bounded complete decoder chain, not an old key frame presented as the
 // current image. On overflow wait for the next key frame to rebuild the cache.

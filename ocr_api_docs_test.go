@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"mywebscrcpy/internal/ocr"
+	"farm/internal/ocr"
 )
 
 // Embed only the contract so this file can also run without a frontend build:

@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 const (
@@ -210,9 +210,9 @@ func recordingStorageDir() string {
 		return dir
 	}
 	if cacheDir, err := os.UserCacheDir(); err == nil && cacheDir != "" {
-		return filepath.Join(cacheDir, "mywebscrcpy", "recordings")
+		return filepath.Join(cacheDir, "farm", "recordings")
 	}
-	return filepath.Join(os.TempDir(), "mywebscrcpy-recordings")
+	return filepath.Join(os.TempDir(), "farm-recordings")
 }
 
 func envPositiveInt64(name string, fallback int64) int64 {

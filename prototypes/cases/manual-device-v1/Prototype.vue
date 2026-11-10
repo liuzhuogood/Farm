@@ -240,7 +240,7 @@ function displayName(dev: ProtoDevice): string {
           <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold">
             WS
           </div>
-          <span class="font-semibold tracking-tight">MyWebScrcpy</span>
+          <span class="font-semibold tracking-tight">Farm</span>
           <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">原型预览</span>
         </div>
         <div class="text-xs text-muted-foreground">

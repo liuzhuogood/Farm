@@ -1,4 +1,4 @@
-module mywebscrcpy
+module farm
 
 go 1.25.5
 

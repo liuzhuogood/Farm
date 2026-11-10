@@ -13,13 +13,13 @@
   const report = async value => {
     const response = await fetch('/api/desktop/native-verification', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + window.__MYWEBSCRCPY_DESKTOP_TOKEN__ },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + window.__FARM_DESKTOP_TOKEN__ },
       body: JSON.stringify({ group_control: value }),
     });
     assert(response.ok, 'native group-control report failed: ' + response.status);
   };
-  const control = new BroadcastChannel('mywebscrcpy.native-group-verification');
-  const production = new BroadcastChannel('mywebscrcpy.group-control.v1');
+  const control = new BroadcastChannel('farm.native-group-verification');
+  const production = new BroadcastChannel('farm.group-control.v1');
   const NativeSocket = window.WebSocket;
   const nativeSend = NativeSocket.prototype.send;
   const targetPackets = [];
@@ -81,7 +81,7 @@
     document.querySelector('[data-tab="view"]').click();
     await waitFor(() => [...document.querySelectorAll('button')].some(button => button.textContent.trim() === '卡片视图'), 'production card-view selector missing');
     [...document.querySelectorAll('button')].find(button => button.textContent.trim() === '卡片视图').click();
-    await waitFor(() => localStorage.getItem('mywebscrcpy.view_mode') === 'deck', 'card view was not selected through UI');
+    await waitFor(() => localStorage.getItem('farm.view_mode') === 'deck', 'card view was not selected through UI');
     result.cardViewSelectedThroughUi = true;
     await waitFor(() => document.querySelector('[data-tab="devices"]'), 'production device dock missing');
     document.querySelector('[data-tab="devices"]').click();

@@ -58,7 +58,7 @@ func (s *Service) stageUpgrade(check *CheckResult) error {
 		return fmt.Errorf("更新下载地址不属于已配置仓库的当前发布")
 	}
 	// Stage on the destination filesystem so installation does not cross volumes.
-	dir, err := os.MkdirTemp(filepath.Dir(s.applier.executablePath), ".mywebscrcpy-update-")
+	dir, err := os.MkdirTemp(filepath.Dir(s.applier.executablePath), ".farm-update-")
 	if err != nil {
 		return fmt.Errorf("安装目录不可写: %w", err)
 	}
@@ -275,7 +275,7 @@ func startApplication(plan updatePlan, verify bool) (*exec.Cmd, error) {
 	cmd := exec.Command(plan.Target, plan.Args...)
 	cmd.Dir = plan.Directory
 	for _, value := range os.Environ() {
-		if !strings.HasPrefix(value, "MYWEBSCRCPY_UPDATE_RECEIPT=") {
+		if !strings.HasPrefix(value, "FARM_UPDATE_RECEIPT=") {
 			cmd.Env = append(cmd.Env, value)
 		}
 	}
@@ -287,7 +287,7 @@ func startApplication(plan updatePlan, verify bool) (*exec.Cmd, error) {
 	defer f.Close()
 	cmd.Stdout, cmd.Stderr = f, f
 	if verify {
-		cmd.Env = append(cmd.Env, "MYWEBSCRCPY_UPDATE_RECEIPT="+plan.Receipt)
+		cmd.Env = append(cmd.Env, "FARM_UPDATE_RECEIPT="+plan.Receipt)
 	}
 	err = cmd.Start()
 	return cmd, err
@@ -297,7 +297,7 @@ type healthReceipt struct{ URL, Version string }
 
 // PublishHealth records the actual listener, and the worker also probes HTTP.
 func PublishHealth(listener net.Listener, secure bool, version string) error {
-	path := os.Getenv("MYWEBSCRCPY_UPDATE_RECEIPT")
+	path := os.Getenv("FARM_UPDATE_RECEIPT")
 	if path == "" {
 		return nil
 	}

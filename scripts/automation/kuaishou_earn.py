@@ -10,7 +10,7 @@ import tempfile
 import time
 import xml.etree.ElementTree as ET
 
-from mywebscrcpy import Client
+from farm import Client
 
 
 PACKAGE = "com.kuaishou.nebula"
@@ -140,14 +140,14 @@ def charging_cancel(root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("serial", help="已确认的 ADB serial")
-    parser.add_argument("--base-url", default=os.environ.get("MYWEBSCRCPY_API_URL", ""))
-    parser.add_argument("--token", default=os.environ.get("MYWEBSCRCPY_API_TOKEN", ""))
-    parser.add_argument("--token-header", default=os.environ.get("MYWEBSCRCPY_API_TOKEN_HEADER", ""))
-    parser.add_argument("--token-prefix", default=os.environ.get("MYWEBSCRCPY_API_TOKEN_PREFIX", ""))
+    parser.add_argument("--base-url", default=os.environ.get("FARM_API_URL", ""))
+    parser.add_argument("--token", default=os.environ.get("FARM_API_TOKEN", ""))
+    parser.add_argument("--token-header", default=os.environ.get("FARM_API_TOKEN_HEADER", ""))
+    parser.add_argument("--token-prefix", default=os.environ.get("FARM_API_TOKEN_PREFIX", ""))
     parser.add_argument("--artifacts", type=Path, help="本次新建的证据目录，必须尚不存在")
     options = parser.parse_args()
     if not options.base_url:
-        parser.error("请通过 --base-url 或 MYWEBSCRCPY_API_URL 指定服务")
+        parser.error("请通过 --base-url 或 FARM_API_URL 指定服务")
     headers = {}
     if options.token:
         if not options.token_header:
@@ -160,7 +160,7 @@ def main():
         directory = options.artifacts
         directory.mkdir(parents=True, exist_ok=False, mode=0o700)
     print("证据目录：" + str(directory.resolve()), flush=True)
-    remote_file = "/data/local/tmp/mywebscrcpy-kuaishou-" + str(time.time_ns()) + ".xml"
+    remote_file = "/data/local/tmp/farm-kuaishou-" + str(time.time_ns()) + ".xml"
 
     with Client(options.base_url, headers=headers) as client:
         with client.device(options.serial) as device:

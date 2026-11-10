@@ -195,14 +195,14 @@ function handleOpenInstall(skill: SkillItem) {
 
 function handleOpenInstallBase() {
   resetInstallDialogState()
-  const baseSkill = skills.value.find(s => s.id === 'mywebscrcpy-device-base')
+  const baseSkill = skills.value.find(s => s.id === 'farm-device-base')
   activeInstallSkill.value = baseSkill || null
   installDialogOpen.value = true
 }
 
 // 实际安装调用
 async function handleConfirmInstall(targetToolIds: AiToolId[]) {
-  const skillToInstall = activeInstallSkill.value || skills.value.find(s => s.id === 'mywebscrcpy-device-base')
+  const skillToInstall = activeInstallSkill.value || skills.value.find(s => s.id === 'farm-device-base')
   if (!skillToInstall || isInstalling.value)
     return
 
@@ -338,7 +338,7 @@ onUnmounted(() => {
       :skill="activeInstallSkill"
       :default-tool-id="selectedToolId"
       :available-tools="tools"
-      :installed-tools="activeInstallSkill ? (installedMap[activeInstallSkill.id] || []) : (installedMap['mywebscrcpy-device-base'] || [])"
+      :installed-tools="activeInstallSkill ? (installedMap[activeInstallSkill.id] || []) : (installedMap['farm-device-base'] || [])"
       :is-installing="isInstalling"
       :last-results="lastInstallResults"
       :general-error="installError"

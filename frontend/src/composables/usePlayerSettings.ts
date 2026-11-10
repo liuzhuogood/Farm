@@ -5,7 +5,7 @@ export type FloatingSize = 'compact' | 'normal' | 'large'
 /** 点击/滑动注入模式：sdk = scrcpy 注入（默认），adb = adb shell input，hid = UHID 虚拟触摸屏 */
 export type InjectMode = 'sdk' | 'adb' | 'hid'
 export type HomeViewMode = 'deck' | 'phone'
-export const HOME_VIEW_MODE_KEY = 'mywebscrcpy.view_mode'
+export const HOME_VIEW_MODE_KEY = 'farm.view_mode'
 export const HOME_PHONE_SCALE_KEY = 'home.phone_scale'
 export const HOME_QUALITY_KEY = 'home.quality'
 

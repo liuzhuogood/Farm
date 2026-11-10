@@ -25,7 +25,7 @@ func TestUpdateGateKeepsStatusAvailableAndBlocksBusiness(t *testing.T) {
 }
 func TestProbationRequiresSupervisorCommit(t *testing.T) {
 	receipt := filepath.Join(t.TempDir(), "receipt")
-	t.Setenv("MYWEBSCRCPY_UPDATE_RECEIPT", receipt)
+	t.Setenv("FARM_UPDATE_RECEIPT", receipt)
 	handler := updateMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))
 	check := func(expected int) {
 		response := httptest.NewRecorder()

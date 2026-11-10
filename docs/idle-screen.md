@@ -19,4 +19,4 @@ flowchart LR
 
 接口：`GET /api/system/idle-screen`，`PUT /api/system/idle-screen`；请求与响应均为 `{"enabled": false}`，保存失败不改变当前生效配置。接口文档见 `web/openapi.json`。
 
-范围：只跟踪经 MyWebScrcpy 发起的设备操作，不能追踪其他程序直接运行的 ADB 命令。手机自身的自动锁屏仍独立生效，本设置不保证屏幕至少亮 10 分钟，也不会为预览连接主动点亮手机。
+范围：只跟踪经 Farm 发起的设备操作，不能追踪其他程序直接运行的 ADB 命令。手机自身的自动锁屏仍独立生效，本设置不保证屏幕至少亮 10 分钟，也不会为预览连接主动点亮手机。

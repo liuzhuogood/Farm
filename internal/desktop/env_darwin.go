@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	envStartMarker = "__MYWEBSCRCPY_ENV_START__\n"
-	envEndMarker   = "__MYWEBSCRCPY_ENV_END__\n"
+	envStartMarker = "__FARM_ENV_START__\n"
+	envEndMarker   = "__FARM_ENV_END__\n"
 )
 
 // parseEnvOutput parses the raw stdout of a shell running `env -0` delimited by markers.

@@ -2,9 +2,9 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 import numpy as np
 
-from mywebscrcpy.device import Device
-from mywebscrcpy.errors import FrameTimeout, MatchTimeout
-from mywebscrcpy.ocr import OCRBox, OCRResult, crop_image, perform_ocr
+from farm.device import Device
+from farm.errors import FrameTimeout, MatchTimeout
+from farm.ocr import OCRBox, OCRResult, crop_image, perform_ocr
 
 
 class TestOCR(TestCase):
@@ -29,7 +29,7 @@ class TestOCR(TestCase):
             "ocr_boxes": [{"text": "识别文本", "confidence": 0.99, "x": 5, "y": 5, "w": 40, "h": 20}],
         }
 
-        with patch("mywebscrcpy.ocr.upload_image") as mock_upload:
+        with patch("farm.ocr.upload_image") as mock_upload:
             def side_effect(image, url, auth="", timeout=10.0, proxy=None):
                 if "8032" in url:
                     raise RuntimeError("Indra 离线")
@@ -86,20 +86,20 @@ class TestOCR(TestCase):
             device.wait_for_text("继续", interval=0)
 
     def test_perform_ocr_respects_paddle_timeout(self):
-        with patch("mywebscrcpy.ocr.upload_image", return_value={"ocr_result": ""}) as upload:
+        with patch("farm.ocr.upload_image", return_value={"ocr_result": ""}) as upload:
             perform_ocr(np.zeros((2, 2, 3), dtype=np.uint8), engine="paddleocr", timeout=1.25)
         self.assertEqual(upload.call_args.kwargs["timeout"], 1.25)
 
     def test_indra_auto_first_and_empty_result_is_success(self):
         response = {"ocr_result": "", "ocr_boxes": []}
-        with patch("mywebscrcpy.ocr.upload_image", return_value=response) as upload:
+        with patch("farm.ocr.upload_image", return_value=response) as upload:
             result, engine, errors = perform_ocr(None, indraocr_url="http://indra/upload")
         self.assertEqual((result, engine, errors), (response, "indraocr", []))
         self.assertEqual(upload.call_count, 1)
         self.assertEqual(upload.call_args.args[1], "http://indra/upload")
 
     def test_explicit_indra_does_not_fallback(self):
-        with patch("mywebscrcpy.ocr.upload_image", side_effect=RuntimeError("offline")) as upload:
+        with patch("farm.ocr.upload_image", side_effect=RuntimeError("offline")) as upload:
             with self.assertRaisesRegex(RuntimeError, "Indra OCR"):
                 perform_ocr(None, engine="indraocr")
         self.assertEqual(upload.call_count, 1)

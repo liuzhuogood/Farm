@@ -3,9 +3,9 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mywebscrcpy-sdk"
+name = "farm-sdk"
 version = "2026.11.8"
-description = "Python client for MyWebScrcpy device automation"
+description = "Python client for Farm device automation"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -21,10 +21,10 @@ test = ["websockets>=14,<18"]
 vision = ["av>=14,<20", "opencv-python-headless>=4.10,<5", "numpy>=1.26,<3"]
 
 [project.urls]
-Homepage = "https://github.com/liuzhuogood/MyWebScrcpy"
-Documentation = "https://github.com/liuzhuogood/MyWebScrcpy/blob/main/packages/python-sdk/README.md"
-Repository = "https://github.com/liuzhuogood/MyWebScrcpy"
-Issues = "https://github.com/liuzhuogood/MyWebScrcpy/issues"
+Homepage = "https://github.com/liuzhuogood/Farm"
+Documentation = "https://github.com/liuzhuogood/Farm/blob/main/packages/python-sdk/README.md"
+Repository = "https://github.com/liuzhuogood/Farm"
+Issues = "https://github.com/liuzhuogood/Farm/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

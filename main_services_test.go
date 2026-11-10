@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"mywebscrcpy/internal/ws"
+	"farm/internal/ws"
 )
 
 func TestConfigureAuxiliaryServicesRegistersMatchingRoutes(t *testing.T) {

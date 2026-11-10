@@ -21,8 +21,8 @@ function run(command, argv, options = {}) {
   if (result.status !== 0) throw new Error(`${command} 失败 (${result.status})`)
 }
 run(process.execPath, ['scripts/sync-version.mjs'])
-if (signed && (!process.env.MYWEBSCRCPY_UPDATER_PUBLIC_KEY || !process.env.TAURI_SIGNING_PRIVATE_KEY)) throw new Error('签名发布需要更新公钥和私钥')
-if (signed && process.env.MYWEBSCRCPY_UPDATER_PUBLIC_KEY.trim() !== readFileSync(path.join(desktop, 'updater.pub'), 'utf8').trim()) throw new Error('发布公钥与仓库公钥不一致')
+if (signed && (!process.env.FARM_UPDATER_PUBLIC_KEY || !process.env.TAURI_SIGNING_PRIVATE_KEY)) throw new Error('签名发布需要更新公钥和私钥')
+if (signed && process.env.FARM_UPDATER_PUBLIC_KEY.trim() !== readFileSync(path.join(desktop, 'updater.pub'), 'utf8').trim()) throw new Error('发布公钥与仓库公钥不一致')
 const host = spawnSync('rustc', ['--print', 'host-tuple'], { encoding: 'utf8' })
 if (host.status !== 0) throw new Error('无法检测 Rust 编译目标')
 const target = host.stdout.trim()
@@ -40,7 +40,7 @@ const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
 if (!skipFrontend) run(pnpm, ['--dir', 'frontend', 'build'], { shell: process.platform === 'win32' })
 const binaries = path.join(desktop, 'binaries')
 mkdirSync(binaries, { recursive: true })
-const service = path.join(binaries, `mywebscrcpy-${target}${executableSuffix}`)
+const service = path.join(binaries, `farm-${target}${executableSuffix}`)
 run('go', ['build', ...(verifyNative ? ['-tags=desktopverify'] : []), '-trimpath', '-ldflags=-s -w', '-o', service, '.'], {
   env: { ...process.env, GOOS: goos, GOARCH: goarch, CGO_ENABLED: '0' },
 })
@@ -63,15 +63,15 @@ if (signed) addConfig('signed', { bundle: { createUpdaterArtifacts: true } })
 if (goos === 'windows') addConfig('embedded-service', { bundle: { externalBin: [] } })
 if (verifyNative) {
   buildArgs.push('--features', 'native-verify')
-  addConfig('verify', { identifier: 'com.mywebscrcpy.desktop.verification' })
+  addConfig('verify', { identifier: 'com.farm.desktop.verification' })
 }
 // Linux desktop shortcuts invoke the Go entry point to choose GUI or service.
 if (goos === 'linux' && !noBundle) {
   addConfig('launcher', {
     bundle: {
-      linux: { deb: { files: { '/usr/bin/mywebscrcpy': service }, desktopTemplate: 'linux.desktop' },
-        rpm: { files: { '/usr/bin/mywebscrcpy': service }, desktopTemplate: 'linux.desktop' },
-        appimage: { files: { '/usr/bin/mywebscrcpy': service } } },
+      linux: { deb: { files: { '/usr/bin/farm': service }, desktopTemplate: 'linux.desktop' },
+        rpm: { files: { '/usr/bin/farm': service }, desktopTemplate: 'linux.desktop' },
+        appimage: { files: { '/usr/bin/farm': service } } },
     },
   })
 }
@@ -118,11 +118,11 @@ if (goos === 'darwin' && !noBundle) {
 // Also deliver a portable folder with a Go entry point independent of GUI libs.
 const portable = path.join(desktop, 'target', 'portable', `${goos}-${goarch}`)
 mkdirSync(portable, { recursive: true })
-copyFileSync(service, path.join(portable, `mywebscrcpy${executableSuffix}`))
-copyFileSync(path.join(desktop, 'target', 'release', `mywebscrcpy-gui${executableSuffix}`), path.join(portable, `mywebscrcpy-gui${executableSuffix}`))
+copyFileSync(service, path.join(portable, `farm${executableSuffix}`))
+copyFileSync(path.join(desktop, 'target', 'release', `farm-gui${executableSuffix}`), path.join(portable, `farm-gui${executableSuffix}`))
 if (goos !== 'windows') {
-  chmodSync(path.join(portable, 'mywebscrcpy'), 0o755)
-  chmodSync(path.join(portable, 'mywebscrcpy-gui'), 0o755)
+  chmodSync(path.join(portable, 'farm'), 0o755)
+  chmodSync(path.join(portable, 'farm-gui'), 0o755)
 }
 copyFileSync(path.join(desktop, 'README.md'), path.join(portable, 'README.md'))
 console.log(`桌面构建完成，便携入口：${portable}`)

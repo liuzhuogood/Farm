@@ -2,9 +2,9 @@
 
 ## 背景
 
-MyWebScrcpy 已能在播放器中显示设备原始分辨率画布，但缺少用于视觉定位、取色和 UI 自动化定位的检查工具。用户需要从当前投屏画面快速取得设备像素坐标和颜色，并用 Android UI XML 树定位元素、验证 XPath 和查看对应画布区域。
+Farm 已能在播放器中显示设备原始分辨率画布，但缺少用于视觉定位、取色和 UI 自动化定位的检查工具。用户需要从当前投屏画面快速取得设备像素坐标和颜色，并用 Android UI XML 树定位元素、验证 XPath 和查看对应画布区域。
 
-10.0.0.11 上的 adb-uiweb 已验证可通过 `uiautomator dump` 取得 XML，并在前端呈现可展开节点树和 `bounds` 选框。MyWebScrcpy 已拥有设备 serial、受控 ADB 执行边界以及与设备分辨率一致的解码 Canvas，因此应在本项目内实现，不引入跨服务代理。
+10.0.0.11 上的 adb-uiweb 已验证可通过 `uiautomator dump` 取得 XML，并在前端呈现可展开节点树和 `bounds` 选框。Farm 已拥有设备 serial、受控 ADB 执行边界以及与设备分辨率一致的解码 Canvas，因此应在本项目内实现，不引入跨服务代理。
 
 ## 目标
 
@@ -100,7 +100,7 @@ XML `bounds="[left,top][right,bottom]"` 使用同一原始像素坐标系。独�
 sequenceDiagram
     participant U as 用户
     participant P as 播放器
-    participant M as MyWebScrcpy
+    participant M as Farm
     participant A as Android 设备
 
     U->>P: 打开 XML 树或点击刷新

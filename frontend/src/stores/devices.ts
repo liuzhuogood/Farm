@@ -12,7 +12,7 @@ import { DEVICE_ORDER_KEY, readDeviceOrder, orderDevices, reorderVisibleDevices,
 import { MOCK_DEVICES } from '@/mocks/devices'
 
 const ALIAS_KEY = 'device_aliases'
-const MOCK_KEY = 'mywebscrcpy.mock'
+const MOCK_KEY = 'farm.mock'
 const POLL_MS = 3000
 
 function readAliases(): Record<string, string> {

@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/visionframes"
+	"farm/internal/dependencies"
+	"farm/internal/visionframes"
 )
 
 const (

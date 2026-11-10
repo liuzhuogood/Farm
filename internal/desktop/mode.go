@@ -53,7 +53,7 @@ func ShellPath() string {
 	if err != nil {
 		return ""
 	}
-	name := "mywebscrcpy-gui"
+	name := "farm-gui"
 	if runtime.GOOS == "windows" {
 		name += ".exe"
 	}
@@ -123,7 +123,7 @@ func LinuxDisplayAvailable(getenv func(string) string, connect func(string, stri
 
 // Launch returns fallback=true only when automatic GUI initialization failed.
 func Launch(shell string, explicit bool) (fallback bool, err error) {
-	dir, err := os.MkdirTemp("", "mywebscrcpy-launch-")
+	dir, err := os.MkdirTemp("", "farm-launch-")
 	if err != nil {
 		return false, err
 	}

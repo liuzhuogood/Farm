@@ -1,12 +1,12 @@
-# v1.5.0-feature MyWebScrcpy 录屏与自适应播放器工具栏
+# v1.5.0-feature Farm 录屏与自适应播放器工具栏
 
 ## 背景
 
-MyWebScrcpy 已维护每台设备的共享 scrcpy 会话、原始视频帧、会话生命周期和 Web 控制界面。OpenCV 服务虽然能订阅 Vision 流，但不应为录像再复制一条解码/编码与文件管理链路。播放器现有工具栏有“更多”菜单；用户要求主要操作保持直接可见，只在实际可用空间不足时收起低优先级按钮。
+Farm 已维护每台设备的共享 scrcpy 会话、原始视频帧、会话生命周期和 Web 控制界面。OpenCV 服务虽然能订阅 Vision 流，但不应为录像再复制一条解码/编码与文件管理链路。播放器现有工具栏有“更多”菜单；用户要求主要操作保持直接可见，只在实际可用空间不足时收起低优先级按钮。
 
 ## 目标
 
-1. 在 MyWebScrcpy 增加受控的 MP4 录屏启动、停止、状态查询和下载 API。
+1. 在 Farm 增加受控的 MP4 录屏启动、停止、状态查询和下载 API。
 2. 录屏复用同 serial 的共享 scrcpy 会话，不能中断播放器、Vision 检测或设备控制。
 3. 在播放器增加直接可见的录制/停止入口、明确录制中状态和完成后的下载入口。
 4. 工具栏默认展示主要按钮；仅在容器实际溢出时，将低优先级按钮移入“更多”。
@@ -48,7 +48,7 @@ MyWebScrcpy 已维护每台设备的共享 scrcpy 会话、原始视频帧、会
 
 ## 组合键协议
 
-MyWebScrcpy 的 `action="key"` 增加可选 `meta_state`（无符号 32 位 Android meta state）。Vision WebSocket 的 `vision.Message`、ActionQueue 的 `action.Request` 和设备执行器必须完整透传它，并在 `scrcpy.KeyCodeEvent` 的 down/up 两次调用中使用同一个值。
+Farm 的 `action="key"` 增加可选 `meta_state`（无符号 32 位 Android meta state）。Vision WebSocket 的 `vision.Message`、ActionQueue 的 `action.Request` 和设备执行器必须完整透传它，并在 `scrcpy.KeyCodeEvent` 的 down/up 两次调用中使用同一个值。
 
 上层 HTTP 调用使用受限修饰键数组，而不是暴露位掩码：
 
@@ -63,7 +63,7 @@ MyWebScrcpy 的 `action="key"` 增加可选 `meta_state`（无符号 32 位 Andr
 ```mermaid
 sequenceDiagram
     participant U as 播放器 / API 调用方
-    participant H as MyWebScrcpy HTTP
+    participant H as Farm HTTP
     participant R as RecordingManager
     participant S as 共享 scrcpy 会话
     participant F as 受控录像目录
@@ -84,7 +84,7 @@ sequenceDiagram
 
 ## HTTP 接口
 
-所有接口通过 `serial` 查询参数锁定设备，沿用 MyWebScrcpy 的当前设备接口习惯。
+所有接口通过 `serial` 查询参数锁定设备，沿用 Farm 的当前设备接口习惯。
 
 | 方法 | 路径 | 含义 |
 | --- | --- | --- |
@@ -165,7 +165,7 @@ sequenceDiagram
 2. ✅ 滑块默认 30 分钟。
 3. ✅ 全局录像配额默认 10 GiB、完成录像保留 7 天；使用 H.264 原始帧的 Go MP4 封装，不重新编码。
 4. ✅ 本期只在播放器页提供录制入口。
-5. ✅ OpenCV 不镜像/转发录屏接口，调用方直接使用 MyWebScrcpy。
+5. ✅ OpenCV 不镜像/转发录屏接口，调用方直接使用 Farm。
 6. ✅ `ADB_MAX_TIMEOUT_MS` 默认 600000 毫秒；60 秒仍是单次请求默认值。
 7. ✅ 接口定位为本机/受控内网；跨网暴露前必须补认证与授权。
 8. ✅ 本期只开放 `shift`、`alt`、`ctrl`、`meta` 四类修饰键。

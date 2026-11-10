@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MyWebScrcpy Vision 最小演示：收帧、解码、显示，并回传一个演示框。
+"""Farm Vision 最小演示：收帧、解码、显示，并回传一个演示框。
 
 依赖：pip install websocket-client av opencv-python
 用法：python3 scripts/vision/demo_vision.py --serial 10.0.0.30:5555
@@ -134,7 +134,7 @@ def main():
                     x, y, w, h = int(width * .25), int(height * .25), int(width * .5), int(height * .5)
                     cv2.rectangle(image, (x, y), (x + w, y + h), (0, 230, 118), 3)
                     cv2.putText(image, "demo-box", (x, max(24, y - 8)), cv2.FONT_HERSHEY_SIMPLEX, .8, (0, 230, 118), 2)
-                    cv2.imshow("MyWebScrcpy Vision Demo", image)
+                    cv2.imshow("Farm Vision Demo", image)
 
                 # 同一个框以归一化坐标回传，浏览器播放器会在 overlay Canvas 上显示。
                     now = time.monotonic()

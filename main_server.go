@@ -4,9 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"farm/internal/desktop"
+	"farm/internal/updater"
 	"log"
-	"mywebscrcpy/internal/desktop"
-	"mywebscrcpy/internal/updater"
 	"net"
 	"net/http"
 	"os"
@@ -64,12 +64,12 @@ func serveApplication(addr string, httpsFlag *bool, readyFlag *string, mux *http
 		if err != nil {
 			log.Fatalf("TLS 监听失败: %v", err)
 		}
-		log.Printf("MyWebScrcpy 启动 → https://localhost:%s (%s)", port, addr)
+		log.Printf("Farm 启动 → https://localhost:%s (%s)", port, addr)
 		if err := serveManaged(listener, mux, true); err != nil {
 			log.Fatalf("server: %v", err)
 		}
 	} else {
-		log.Printf("MyWebScrcpy 启动 → http://localhost:%s (%s)", port, addr)
+		log.Printf("Farm 启动 → http://localhost:%s (%s)", port, addr)
 		log.Printf("提示: 使用 -https 参数启用 HTTPS，或设置 TLS_CERT/TLS_KEY 环境变量")
 		listener, err := net.Listen("tcp", addr)
 		if err != nil {

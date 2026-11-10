@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "paddleocr-server"
 version = "1.23.1"
-description = "PaddleOCR sidecar service for MyWebScrcpy"
+description = "PaddleOCR sidecar service for Farm"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

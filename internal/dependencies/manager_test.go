@@ -31,7 +31,7 @@ func newTestManager(t *testing.T) *Manager {
 func TestManagedSourceNeverFallsBack(t *testing.T) {
 	m := newTestManager(t)
 	m.settings.ADB = Selection{Source: "builtin"}
-	t.Setenv("MYWEBSCRCPY_ADB", os.Args[0])
+	t.Setenv("FARM_ADB", os.Args[0])
 	if _, e := m.resolveADB(m.settings.ADB); e == nil {
 		t.Fatal("missing built-in ADB fell back to system")
 	}
@@ -199,9 +199,9 @@ func TestExternalProcessLock(t *testing.T) {
 }
 
 func TestRealManagedADBFromArchive(t *testing.T) {
-	source := os.Getenv("MYWEBSCRCPY_ADB_ARCHIVE")
+	source := os.Getenv("FARM_ADB_ARCHIVE")
 	if source == "" {
-		t.Skip("set MYWEBSCRCPY_ADB_ARCHIVE to inspect the locked platform archive")
+		t.Skip("set FARM_ADB_ARCHIVE to inspect the locked platform archive")
 	}
 	m := newTestManager(t)
 	raw, e := os.ReadFile(source)

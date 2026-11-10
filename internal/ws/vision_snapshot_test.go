@@ -3,7 +3,7 @@ package ws
 import (
 	"testing"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 func TestVisionSnapshotIncludesDeltasToCurrentStaticImage(t *testing.T) {

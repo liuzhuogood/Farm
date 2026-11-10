@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 // Opt-in real-WebSocket fixture. It never starts ADB or a device session and
 // deliberately uses the production browser pump, cache and encoded envelope.
 func TestStaticVideoBrowserFixture(t *testing.T) {
-	path := os.Getenv("MYWEBSCRCPY_STATIC_FRAMES")
+	path := os.Getenv("FARM_STATIC_FRAMES")
 	if path == "" {
 		t.Skip("opt-in browser fixture")
 	}

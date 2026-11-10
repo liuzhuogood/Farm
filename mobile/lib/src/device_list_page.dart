@@ -132,7 +132,7 @@ class _DeviceListPageState extends State<DeviceListPage> {
     final onlineDevices = _devices.where((device) => device.state == 'device').toList();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MyWebScrcpy'),
+        title: const Text('Farm'),
         actions: [
           if (_configured)
             IconButton(
@@ -166,9 +166,9 @@ class _DeviceListPageState extends State<DeviceListPage> {
             children: [
               const Icon(Icons.screen_share_outlined, size: 56),
               const SizedBox(height: 20),
-              Text('连接 MyWebScrcpy', style: Theme.of(context).textTheme.headlineSmall),
+              Text('连接 Farm', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 8),
-              const Text('输入运行 MyWebScrcpy 的服务端地址'),
+              const Text('输入运行 Farm 的服务端地址'),
               const SizedBox(height: 20),
               TextField(
                 controller: _urlController,

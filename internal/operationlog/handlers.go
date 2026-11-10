@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"mywebscrcpy/internal/db"
+	"farm/internal/db"
 )
 
 func (s *Service) RegisterRoutes(mux *http.ServeMux) {

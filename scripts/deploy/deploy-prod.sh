@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# 生产环境部署脚本 — MyWebScrcpy
+# 生产环境部署脚本 — Farm
 #
 # 根据 docs/environments/prod.md 资产文档生成。
 # 部署方式：替换二进制 + 重启 systemd 服务。
 #
 # 用法：
-#   1. 先在本机构建：GOOS=linux GOARCH=amd64 bash scripts/build.sh -o mywebscrcpy-linux-amd64
+#   1. 先在本机构建：GOOS=linux GOARCH=amd64 bash scripts/build.sh -o farm-linux-amd64
 #   2. 运行部署：
 #      DEPLOY_HOST=10.0.0.6 DEPLOY_USER=liuzhuo \
 #        bash scripts/deploy/deploy-prod.sh
@@ -17,9 +17,9 @@
 #
 # 可选环境变量：
 #   SSH_PORT      SSH 端口（默认 22）
-#   DEPLOY_PATH   服务器上的部署目录（默认 /opt/mywebscrcpy）
-#   BINARY_NAME   二进制文件名（默认 mywebscrcpy-linux-amd64）
-#   SERVICE_NAME  systemd 服务名（默认 mywebscrcpy.service）
+#   DEPLOY_PATH   服务器上的部署目录（默认 /opt/farm）
+#   BINARY_NAME   二进制文件名（默认 farm-linux-amd64）
+#   SERVICE_NAME  systemd 服务名（默认 farm.service）
 #
 set -euo pipefail
 
@@ -37,9 +37,9 @@ error() { echo -e "${RED}[错误]${NC} $*" >&2; }
 DEPLOY_HOST="${DEPLOY_HOST:-10.0.0.6}"
 DEPLOY_USER="${DEPLOY_USER:-liuzhuo}"
 SSH_PORT="${SSH_PORT:-22}"
-DEPLOY_PATH="${DEPLOY_PATH:-/opt/mywebscrcpy}"
-BINARY_NAME="${BINARY_NAME:-mywebscrcpy-linux-amd64}"
-SERVICE_NAME="${SERVICE_NAME:-mywebscrcpy.service}"
+DEPLOY_PATH="${DEPLOY_PATH:-/opt/farm}"
+BINARY_NAME="${BINARY_NAME:-farm-linux-amd64}"
+SERVICE_NAME="${SERVICE_NAME:-farm.service}"
 
 # ---- 校验本地二进制 ----
 LOCAL_BINARY="./${BINARY_NAME}"

@@ -3,9 +3,9 @@ package apps
 import (
 	"context"
 	"errors"
+	"farm/internal/dependencies"
 	"fmt"
 	"io"
-	"mywebscrcpy/internal/dependencies"
 	"os"
 	"regexp"
 	"strings"
@@ -113,7 +113,7 @@ func (m *Manager) Install(ctx context.Context, serial string, r io.Reader, filen
 	}
 
 	// 写入本地临时文件
-	tmpFile, err := os.CreateTemp("", "mywebscrcpy-install-*.apk")
+	tmpFile, err := os.CreateTemp("", "farm-install-*.apk")
 	if err != nil {
 		return nil, fmt.Errorf("创建临时文件失败: %w", err)
 	}

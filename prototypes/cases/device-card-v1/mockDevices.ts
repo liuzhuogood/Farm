@@ -136,7 +136,7 @@ export const MOCK_DEVICES: PrototypeDevice[] = [
       ramUsedGb: 2.1,
       ramTotalGb: 4,
       currentApp: '控制台主页',
-      currentPackage: 'com.mywebscrcpy.desktop',
+      currentPackage: 'com.farm.desktop',
       resolution: '1080 × 2400',
     },
   },

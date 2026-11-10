@@ -1,5 +1,4 @@
-// Package pythonsdk identifies the PyPI package used by the application.
-// SDK Python sources are distributed by PyPI, not embedded in the executable.
+// Package pythonsdk identifies and packages the SDK used by the application.
 package pythonsdk
 
 const Version = "2026.11.8"

@@ -17,7 +17,7 @@
 - 已核对 `docs/glossary.md`、`internal/ocr/service.go`、`internal/ocr/routes.go` 和 `frontend/src/inspector/useInspectorOcr.ts`。当前 auto 按 Indra OCR → macOCR → PaddleOCR 顺序尝试；检查器单轮提交一次截图，尚无本次要求的多次结果综合。
 - 主分支：`main`；版本分支：`lz/v1.28.0-feature`；起点：`95fd260bfb4c30bb84e455206c0352e4f9f6c189`。
 - 已 fetch 核对：本地 main 比 origin/main 领先 2 个提交、落后 0 个；本次以本地 main 为基线，未推送这两个提交。
-- 主工作区 `/Users/liuzhuo/code/MyWebScrcpy` 存在其他任务的已暂存、未暂存和未跟踪改动，保持原状。在独立工作区 `/Users/liuzhuo/.codex/worktrees/ocr-consensus-v1-28/MyWebScrcpy` 创建版本分支与记录。
+- 主工作区 `/Users/liuzhuo/code/Farm` 存在其他任务的已暂存、未暂存和未跟踪改动，保持原状。在独立工作区 `/Users/liuzhuo/.codex/worktrees/ocr-consensus-v1-28/Farm` 创建版本分支与记录。
 
 ## 2026-10-18：调整模式范围
 
@@ -97,7 +97,7 @@
 - SDK 测试仍出现本机 cv2/PyAV 动态库重复类及临时 fixture socket 的资源警告，未影响测试通过；未更改本机 Python 安装。
 - 主工作区 main 为 `46fff89`，已与 origin/main 一致；仍有快手脚本等未提交改动。本次保留现场，未执行版本完成合并。
 - 按此前提交推送授权，将本版实施与记录作为阶段成果提交到 `lz/v1.28.0-feature` 并推送；具体 SHA 与远端核验以 Git 和本次交付说明为准。
-- 独立工作区仍有待真机验收及后续集成任务，且本次原型预览进程仍运行，不可清理。路径为 `/Users/liuzhuo/.codex/worktrees/ocr-consensus-v1-28/MyWebScrcpy`，分支 `lz/v1.28.0-feature`。未删除或归档任何工作区。
+- 独立工作区仍有待真机验收及后续集成任务，且本次原型预览进程仍运行，不可清理。路径为 `/Users/liuzhuo/.codex/worktrees/ocr-consensus-v1-28/Farm`，分支 `lz/v1.28.0-feature`。未删除或归档任何工作区。
 
 
 ## 2026-10-18：授权合回本地 main，并回归原有改动
@@ -114,5 +114,5 @@
 - 干净集成结果通过前端生产/原型构建、21 项 Node 回归、Go 全量测试、go vet、OCR race 检查、SDK 74 项与通用技能 16 项检查。
 - 合并并恢复全部原有改动后的主工作区再次通过：`pnpm --dir frontend build`、`pnpm --dir frontend proto:build`；Node 21 项；`go test ./...`（含原有 visionframes 改动）、`go vet ./...`、`go test -race ./internal/ocr`；SDK 77 项；通用技能 16 项。
 - 对快手暂存路径对应的当前工作文件补做 9 项离线 fixture 检查：Python 语法、YAML 与区域边界、空/未知页面、视频/任务/广告/弹窗分类、模板与 Activity、显式 serial、多设备拒绝、首帧读取和上下文退出、视频流失败传播；全部通过。检查禁止真实网络连接，未执行设备导航或奖励操作。
-- Python 使用用户指定的 `/Users/liuzhuo/code/MyWebScrcpy/.venv/bin/python`，并显式设置本工作区 SDK 源码路径。该环境缺失测试依赖 websockets，仅装入集成工作区的忽略缓存并加入测试 PYTHONPATH，未修改共享虚拟环境。初次 Go 检查早于新工作区静态资源构建，构建完成后重新执行全部 Go 检查通过。保留既有 Vite 大 chunk、cv2/PyAV 和 fixture socket 警告，不把它们称为真机验收。
+- Python 使用用户指定的 `/Users/liuzhuo/code/Farm/.venv/bin/python`，并显式设置本工作区 SDK 源码路径。该环境缺失测试依赖 websockets，仅装入集成工作区的忽略缓存并加入测试 PYTHONPATH，未修改共享虚拟环境。初次 Go 检查早于新工作区静态资源构建，构建完成后重新执行全部 Go 检查通过。保留既有 Vite 大 chunk、cv2/PyAV 和 fixture socket 警告，不把它们称为真机验收。
 - 本轮只额外提交上述版本文档记录，原有业务改动仍保持原暂存与未暂存状态。恢复保护 stash 保留，未自动删除工作区或用户文件；真机、真实 OCR 服务效果与部署仍未验证。

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MyWebScrcpy 独立模板匹配工程
+"""Farm 独立模板匹配工程
 
 通过 HTTP API 自动拉取模板与图片（亦支持本地目录），通过 WebSocket (/api/vision/stream) 订阅 H.264 视频流，
 在内存中解码并使用 OpenCV 匹配模板，将识别目标通过 detection.result 回传，在前端播放器上实时显示绿框。
@@ -33,9 +33,9 @@ def setup_logger(verbose: bool = False):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="MyWebScrcpy 独立模板匹配客户端")
+    parser = argparse.ArgumentParser(description="Farm 独立模板匹配客户端")
     parser.add_argument("--serial", required=True, help="目标设备序列号 (例如: 10.0.0.11:5555 或 usb 序列号)")
-    parser.add_argument("--url", default="http://127.0.0.1:8080", help="MyWebScrcpy 服务地址 (默认: http://127.0.0.1:8080)")
+    parser.add_argument("--url", default="http://127.0.0.1:8080", help="Farm 服务地址 (默认: http://127.0.0.1:8080)")
     parser.add_argument("--fps", type=int, default=5, help="请求视频降采样帧率 (默认: 5 FPS)")
     parser.add_argument("--threshold", type=float, default=None, help="覆盖模板自身阈值，统一置信度阈值 (0.1 ~ 0.99)")
     parser.add_argument(

@@ -10,7 +10,7 @@ import { ListTodo, Minus, Monitor, Settings, Smartphone, Sparkles, Square, X } f
         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm">
           M
         </div>
-        <span class="text-sm font-semibold tracking-tight text-foreground sm:text-base">MyWebScrcpy</span>
+        <span class="text-sm font-semibold tracking-tight text-foreground sm:text-base">Farm</span>
         <span class="hidden text-xs text-muted-foreground sm:inline">v1.26.0</span>
       </div>
 

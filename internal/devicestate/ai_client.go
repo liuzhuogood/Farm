@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"mywebscrcpy/internal/db"
+	"farm/internal/db"
 )
 
 var (

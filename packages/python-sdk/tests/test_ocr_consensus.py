@@ -7,11 +7,11 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from mywebscrcpy.contracts import Deadline
-from mywebscrcpy.device import Device
-from mywebscrcpy.errors import FrameTimeout
-from mywebscrcpy.models import Frame
-from mywebscrcpy.ocr import OCRBox, OCRResult, perform_ocr
+from farm.contracts import Deadline
+from farm.device import Device
+from farm.errors import FrameTimeout
+from farm.models import Frame
+from farm.ocr import OCRBox, OCRResult, perform_ocr
 
 
 def response(text="确定", x=10, confidence=.8):
@@ -26,7 +26,7 @@ class ParallelTests(TestCase):
             barrier.wait(timeout=.8)  # A serial implementation cannot pass.
             return response("错误" if "8032" in url else "确定",
                             confidence=.99 if "8032" in url else .1)
-        with patch("mywebscrcpy.ocr.upload_image", side_effect=upload) as call:
+        with patch("farm.ocr.upload_image", side_effect=upload) as call:
             result, engine, errors = perform_ocr(np.zeros((100, 100, 3)), engine="parallel", timeout=1)
         self.assertEqual(engine, "parallel")
         self.assertFalse(errors)
@@ -42,7 +42,7 @@ class ParallelTests(TestCase):
             if url == "mac":
                 self.assertEqual(auth, "user:pass")
             return response()
-        with patch("mywebscrcpy.ocr.upload_image", side_effect=upload) as call:
+        with patch("farm.ocr.upload_image", side_effect=upload) as call:
             result, _, errors = perform_ocr(np.zeros((100, 100, 3)), engine="parallel",
                 indraocr_url="bad", macocr_url="mac", macocr_auth="user:pass", paddleocr_url="paddle")
         self.assertEqual({c.args[1] for c in call.call_args_list}, {"bad", "mac", "paddle"})
@@ -51,10 +51,10 @@ class ParallelTests(TestCase):
         self.assertEqual(result["engines_used"], ["macocr", "paddleocr"])
 
     def test_all_failure_raises_and_empty_success_does_not(self):
-        with patch("mywebscrcpy.ocr.upload_image", side_effect=RuntimeError("offline")):
+        with patch("farm.ocr.upload_image", side_effect=RuntimeError("offline")):
             with self.assertRaisesRegex(RuntimeError, "OCR"):
                 perform_ocr(np.zeros((100, 100, 3)), engine="parallel")
-        with patch("mywebscrcpy.ocr.upload_image", return_value=response("")):
+        with patch("farm.ocr.upload_image", return_value=response("")):
             result, _, errors = perform_ocr(np.zeros((100, 100, 3)), engine="parallel")
         self.assertEqual(result["ocr_boxes"], [])
         self.assertFalse(errors)
@@ -68,7 +68,7 @@ class ParallelTests(TestCase):
                 release.wait(.8)
             return response()
         try:
-            with patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+            with patch("farm.ocr.upload_image", side_effect=upload):
                 started = time.monotonic()
                 result, _, errors = perform_ocr(np.zeros((100, 100, 3)), engine="parallel", timeout=.1)
                 self.assertLess(time.monotonic() - started, .35)
@@ -81,7 +81,7 @@ class ParallelTests(TestCase):
     def test_all_timeout_raises(self):
         release = threading.Event()
         try:
-            with patch("mywebscrcpy.ocr.upload_image", side_effect=lambda *a, **k: release.wait(.8)):
+            with patch("farm.ocr.upload_image", side_effect=lambda *a, **k: release.wait(.8)):
                 started = time.monotonic()
                 with self.assertRaises((RuntimeError, TimeoutError)):
                     perform_ocr(np.zeros((100, 100, 3)), engine="parallel", timeout=.05)
@@ -92,7 +92,7 @@ class ParallelTests(TestCase):
     def test_malformed_engine_is_partial_failure(self):
         def upload(image, url, auth="", timeout=10, proxy=None):
             return {} if "8000" in url else response()
-        with patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+        with patch("farm.ocr.upload_image", side_effect=upload):
             result, _, errors = perform_ocr(np.zeros((100, 100, 3)), engine="parallel")
         self.assertEqual(len(result["ocr_boxes"]), 1)
         self.assertEqual(len(errors), 1)
@@ -108,11 +108,11 @@ class ParallelTests(TestCase):
             if len(order) < 3:
                 raise RuntimeError("offline")
             return response()
-        with patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+        with patch("farm.ocr.upload_image", side_effect=upload):
             perform_ocr(None, indraocr_url="indra", macocr_url="mac", paddleocr_url="paddle")
         self.assertEqual(order, ["indra", "mac", "paddle"])
         for engine in ("indraocr", "macocr", "paddleocr"):
-            with self.subTest(engine=engine), patch("mywebscrcpy.ocr.upload_image", side_effect=RuntimeError("offline")) as call:
+            with self.subTest(engine=engine), patch("farm.ocr.upload_image", side_effect=RuntimeError("offline")) as call:
                 with self.assertRaises(RuntimeError):
                     perform_ocr(None, engine=engine)
                 self.assertEqual(call.call_count, 1)
@@ -120,7 +120,7 @@ class ParallelTests(TestCase):
 
 class FusionTests(TestCase):
     def fuse(self, rounds, **kwargs):
-        from mywebscrcpy.ocr_consensus import fuse_boxes
+        from farm.ocr_consensus import fuse_boxes
         return fuse_boxes(rounds, **kwargs)
 
     def box(self, text="确定", x=.1, confidence=.8):
@@ -197,7 +197,7 @@ class SamplingTests(TestCase):
         self.assertEqual(second.engines_used, [])
 
     def test_zero_keeps_current_single_frame(self):
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", return_value=response()):
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", return_value=response()):
             result = self.device.ocr(stabilization_ms=0, engine="indraocr")
         self.assertEqual(result.frame_id, 1)
         self.assertEqual(result.samples, 1)
@@ -209,7 +209,7 @@ class SamplingTests(TestCase):
         def upload(*args, **kwargs):
             self.starts.append(time.monotonic())
             return response("旧" if len(self.starts) == 1 else "新")
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", side_effect=upload):
             result = self.device.ocr(stabilization_ms=125, engine="indraocr", timeout=1)
         self.assertGreaterEqual(len(self.starts), 2)
         self.assertLessEqual(len(self.starts), 3)
@@ -226,7 +226,7 @@ class SamplingTests(TestCase):
             time.sleep(.035)
             return acquire(deadline)
         self.session.frame.side_effect = slow_frame
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", return_value=response()) as upload:
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", return_value=response()) as upload:
             with self.assertRaises(FrameTimeout):
                 self.device.ocr(stabilization_ms=20, timeout=.2)
         upload.assert_not_called()
@@ -235,7 +235,7 @@ class SamplingTests(TestCase):
         def upload(*args, **kwargs):
             time.sleep(.04)
             return response()
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", side_effect=upload) as call:
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", side_effect=upload) as call:
             result = self.device.ocr(stabilization_ms=20, engine="indraocr", mark=True, timeout=.2)
         self.assertEqual(call.call_count, 1)
         self.assertEqual(result.frame_id, 1)
@@ -246,7 +246,7 @@ class SamplingTests(TestCase):
             frame = Frame(1, "s", "phone", 100, 100, 1, time.monotonic(), self.image, 1, "c")
             self.session.frame.side_effect = None
             self.session.frame.return_value = replace(frame, **changes)
-            with self.subTest(changes=changes), patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image") as upload:
+            with self.subTest(changes=changes), patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image") as upload:
                 with self.assertRaises(FrameTimeout):
                     self.device.ocr(stabilization_ms=20, timeout=.1)
                 upload.assert_not_called()
@@ -257,7 +257,7 @@ class SamplingTests(TestCase):
         def repeated(deadline):
             return replace(first, received_at=time.monotonic())
         self.session.frame.side_effect = repeated
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", return_value=response()):
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", return_value=response()):
             with self.assertRaises(FrameTimeout):
                 self.device.ocr(stabilization_ms=120, engine="indraocr", timeout=.3)
 
@@ -265,7 +265,7 @@ class SamplingTests(TestCase):
         old = Frame(1, "s", "phone", 100, 100, 1, time.monotonic()-1, self.image, 1, "c")
         self.session.frame.side_effect = None
         self.session.frame.return_value = old
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image") as upload:
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image") as upload:
             with self.assertRaises(FrameTimeout):
                 self.device.ocr(stabilization_ms=20, engine="indraocr", timeout=.1)
         upload.assert_not_called()
@@ -281,9 +281,9 @@ class SamplingTests(TestCase):
             return acquire(deadline)
         self.session.frame.side_effect = fresh
         with patch.object(self.device, "_session", return_value=self.session), \
-                patch("mywebscrcpy.ocr_sampling.time.monotonic", side_effect=lambda: now[0]), \
+                patch("farm.ocr_sampling.time.monotonic", side_effect=lambda: now[0]), \
                 patch.object(self.device._stop, "wait", side_effect=wait), \
-                patch("mywebscrcpy.ocr_sampling._recognize", return_value=(response(), "indraocr", [])) as recognize:
+                patch("farm.ocr_sampling._recognize", return_value=(response(), "indraocr", [])) as recognize:
             result = self.device.ocr(stabilization_ms=5000, engine="indraocr", timeout=6)
         self.assertGreaterEqual(recognize.call_count, 99)
         self.assertLessEqual(recognize.call_count, 101)
@@ -302,7 +302,7 @@ class SamplingTests(TestCase):
             with lock:
                 active -= 1
             return response()
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", side_effect=upload) as call:
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", side_effect=upload) as call:
             result = self.device.ocr(stabilization_ms=125, engine="parallel", timeout=.5)
         self.assertGreaterEqual(call.call_count, 6)
         self.assertEqual(call.call_count % 3, 0)
@@ -315,7 +315,7 @@ class SamplingTests(TestCase):
             if "8000" in url:
                 raise RuntimeError("offline")
             return response()
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", side_effect=upload):
             result = self.device.ocr(stabilization_ms=20, engine="parallel", bbox=[.2, .3, .5, .5], keywords="确定", timeout=.5)
         self.assertAlmostEqual(result.boxes[0].x, .3)
         self.assertAlmostEqual(result.boxes[0].y, .4)
@@ -325,7 +325,7 @@ class SamplingTests(TestCase):
     def test_keywords_are_applied_after_parallel_and_temporal_fusion(self):
         def upload(image, url, auth="", timeout=10, proxy=None):
             return response("目标" if "8032" in url else "其他")
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", side_effect=upload):
             result = self.device.ocr(stabilization_ms=20, engine="parallel", keywords="目标", timeout=.5)
         self.assertEqual(result.boxes, [])
         self.assertFalse(result.matched)
@@ -340,7 +340,7 @@ class SamplingTests(TestCase):
                     return {"ocr_result": "全框", "ocr_boxes": [
                         dict(text="全框", confidence=.8, x=0, y=0, w=w, h=h)]}
                 with patch.object(self.device, "_session", return_value=self.session), \
-                        patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+                        patch("farm.ocr.upload_image", side_effect=upload):
                     result = self.device.ocr(stabilization_ms=20, engine="indraocr", bbox=bbox, timeout=.5)
                 box = result.boxes[0]
                 for actual, target in zip((box.x, box.y, box.w, box.h), expected):
@@ -354,7 +354,7 @@ class SamplingTests(TestCase):
                 time.sleep(.025)
                 raise RuntimeError("offline")
             return response()
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", side_effect=upload):
             result = self.device.ocr(stabilization_ms=20, timeout=.2)
         self.assertEqual(result.engine, "macocr")
         self.assertEqual(len(timeouts), 2)
@@ -363,7 +363,7 @@ class SamplingTests(TestCase):
     def test_total_timeout_bounds_slow_engine_and_no_late_mark(self):
         release = threading.Event()
         try:
-            with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", side_effect=lambda *a, **k: release.wait(.8)):
+            with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", side_effect=lambda *a, **k: release.wait(.8)):
                 started = time.monotonic()
                 with self.assertRaises((FrameTimeout, RuntimeError, TimeoutError)):
                     self.device.ocr(stabilization_ms=500, engine="indraocr", mark=True, timeout=.06)
@@ -376,7 +376,7 @@ class SamplingTests(TestCase):
         def upload(*args, **kwargs):
             self.session.generation = 2
             return response()
-        with patch.object(self.device, "_session", return_value=self.session), patch("mywebscrcpy.ocr.upload_image", side_effect=upload):
+        with patch.object(self.device, "_session", return_value=self.session), patch("farm.ocr.upload_image", side_effect=upload):
             with self.assertRaises(FrameTimeout):
                 self.device.ocr(stabilization_ms=20, engine="indraocr", mark=True, timeout=.1)
         self.session.publish_current.assert_not_called()

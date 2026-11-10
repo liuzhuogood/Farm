@@ -1,5 +1,5 @@
 [package]
-name = "mywebscrcpy-gui"
+name = "farm-gui"
 version = "2026.11.8"
 edition = "2021"
 rust-version = "1.90"

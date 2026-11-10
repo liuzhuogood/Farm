@@ -1,4 +1,4 @@
-"""OCR text detection for MyWebScrcpy Python SDK."""
+"""OCR text detection for Farm Python SDK."""
 from __future__ import annotations
 
 import base64
@@ -84,7 +84,7 @@ def upload_image(image: Any, url: str, auth: str = "", timeout: float = 10.0,
                  proxy: str | None = None) -> dict[str, Any]:
     """通过 multipart 上传图像到支持 /upload 契约的 OCR 服务。"""
     encoded_png = _encode_png(image)
-    boundary = f"----mywebscrcpy-ocr-{uuid.uuid4().hex}"
+    boundary = f"----farm-ocr-{uuid.uuid4().hex}"
     body = (
         f"--{boundary}\r\n"
         'Content-Disposition: form-data; name="file"; filename="ocr.png"\r\n'

@@ -169,7 +169,7 @@ function testPaddleOcr() {
     <header class="flex shrink-0 items-center justify-between border-b px-5 py-3 bg-card">
       <div class="flex items-center gap-3">
         <ScanText class="size-5 text-primary" />
-        <h1 class="text-base font-semibold">MyWebScrcpy · OCR 视觉与服务设计原型</h1>
+        <h1 class="text-base font-semibold">Farm · OCR 视觉与服务设计原型</h1>
         <Badge variant="outline" class="text-xs">v1.23.1 规划</Badge>
       </div>
       <div class="flex items-center gap-2">

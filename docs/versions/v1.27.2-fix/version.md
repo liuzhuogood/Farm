@@ -22,7 +22,7 @@
 - [x] `go test ./internal/template/ -count=5 -race` 通过，含新增的关闭场景用例与既有热重载用例。
 - [x] `go build ./...`、`go test ./... -count=1` 全量通过；`gofmt -l internal/template` 无输出。
 - [x] Windows 原生验证：`v1.27.2` 的 `desktop (windows-latest, windows-x86_64, nsis)` 任务中 `Go regression` 全量通过（含 `internal/template` 与 `internal/skillsmarket`）。该互锁为偶发，绿灯不构成"必然不再复现"的证明，本版以机制分析加新增的关闭场景用例作为修复依据。
-- [x] 推送后 [GitHub Actions](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/39018862813) 的五个平台构建、Windows 桌面任务、macOS DMG、`release` 与 `docker` 全部成功。
+- [x] 推送后 [GitHub Actions](https://github.com/liuzhuogood/Farm/actions/runs/39018862813) 的五个平台构建、Windows 桌面任务、macOS DMG、`release` 与 `docker` 全部成功。
 
 ## 未验证范围
 
@@ -31,6 +31,6 @@
 
 ## 发布状态
 
-- `VERSION` 已同步为 `v1.27.2`，标签 `v1.27.2` 指向本次发布提交；2026-10-17 [GitHub Actions](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/39018862813) 全部成功，[Release](https://github.com/liuzhuogood/MyWebScrcpy/releases/tag/v1.27.2) 已发布 10 个资产。
+- `VERSION` 已同步为 `v1.27.2`，标签 `v1.27.2` 指向本次发布提交；2026-10-17 [GitHub Actions](https://github.com/liuzhuogood/Farm/actions/runs/39018862813) 全部成功，[Release](https://github.com/liuzhuogood/Farm/releases/tag/v1.27.2) 已发布 10 个资产。
 - **本次发布已完成**：v1.27.0 的技能市场内容连同两处修复（技能包中文输出编码、模板监听关闭互锁）随 `v1.27.2` 正式发布。
 - `v1.27.0` 与 `v1.27.1` 标签保留，但都没有 Release；`v1.26.1` 已发布。

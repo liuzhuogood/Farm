@@ -219,7 +219,7 @@ onUnmounted(() => {
       <div class="flex items-center gap-3">
         <Smartphone class="size-6 text-primary" />
         <div class="flex items-center gap-2">
-          <span class="font-semibold tracking-tight">MyWebScrcpy</span>
+          <span class="font-semibold tracking-tight">Farm</span>
           <Badge variant="outline" class="font-mono text-[10px]">快捷键与设备排序 v1.1</Badge>
         </div>
       </div>

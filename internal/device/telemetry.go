@@ -2,7 +2,7 @@ package device
 
 import (
 	"context"
-	"mywebscrcpy/internal/dependencies"
+	"farm/internal/dependencies"
 	"os"
 	"regexp"
 	"strconv"
@@ -284,8 +284,8 @@ func resolveAppInfo(pkg string) (name string, iconKey string) {
 		"com.bbk.appstore":                      {"vivo应用商店", "market"},
 		"com.heytap.market":                     {"OPPO软件商店", "market"},
 		"com.huawei.appmarket":                  {"华为应用市场", "market"},
-		"com.mywebscrcpy.desktop":               {"控制台主页", "monitor"},
-		"com.mywebscrcpy":                       {"控制台主页", "monitor"},
+		"com.farm.desktop":                      {"控制台主页", "monitor"},
+		"com.farm":                              {"控制台主页", "monitor"},
 
 		// 社交与通讯
 		"com.tencent.mm":       {"微信", "wechat"},

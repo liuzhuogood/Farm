@@ -70,17 +70,17 @@ pub fn action(app: &AppHandle, id: &str) {
 }
 
 pub fn install(app: &mut App) -> tauri::Result<bool> {
-    let application = SubmenuBuilder::new(app, "MyWebScrcpy")
+    let application = SubmenuBuilder::new(app, "Farm")
         .item(&PredefinedMenuItem::about(
             app,
-            Some("关于 MyWebScrcpy"),
+            Some("关于 Farm"),
             None,
         )?)
         .separator()
         .text("dependencies", "依赖管理")
         .text("browser", "在浏览器中打开")
         .separator()
-        .text("quit", "退出 MyWebScrcpy")
+        .text("quit", "退出 Farm")
         .build()?;
     let edit = SubmenuBuilder::new(app, "编辑")
         .item(&PredefinedMenuItem::undo(app, Some("撤销"))?)
@@ -125,10 +125,10 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
         .separator()
         .text("browser", "在浏览器中打开")
         .separator()
-        .text("quit", "退出 MyWebScrcpy")
+        .text("quit", "退出 Farm")
         .build()?;
     let mut tray = TrayIconBuilder::with_id("main-tray")
-        .tooltip("MyWebScrcpy")
+        .tooltip("Farm")
         .menu(&tray_menu)
         .show_menu_on_left_click(true)
         .on_tray_icon_event(|tray, event| {

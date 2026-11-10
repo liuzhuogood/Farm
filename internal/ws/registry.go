@@ -13,13 +13,13 @@ import (
 	"math/rand"
 	"strconv"
 
+	"farm/internal/action"
+	"farm/internal/adbcommand"
+	debuglog "farm/internal/debug"
+	"farm/internal/dependencies"
+	"farm/internal/devicegate"
+	"farm/internal/scrcpy"
 	"github.com/gorilla/websocket"
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/adbcommand"
-	debuglog "mywebscrcpy/internal/debug"
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/devicegate"
-	"mywebscrcpy/internal/scrcpy"
 )
 
 type managedSession struct {

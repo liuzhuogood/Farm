@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"mywebscrcpy/internal/db"
-	"mywebscrcpy/internal/servicepython"
-	"mywebscrcpy/internal/ws"
+	"farm/internal/db"
+	"farm/internal/servicepython"
+	"farm/internal/ws"
 )
 
 type pythonRuntime interface {

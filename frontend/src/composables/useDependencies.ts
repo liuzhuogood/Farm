@@ -34,7 +34,7 @@ export function useDependencies() {
   let stopped = false
   let refreshing: Promise<ManagedStatus> | undefined
   function headers(): Record<string, string> {
-    const desktopToken = (window as Window & { __MYWEBSCRCPY_DESKTOP_TOKEN__?: string }).__MYWEBSCRCPY_DESKTOP_TOKEN__
+    const desktopToken = (window as Window & { __FARM_DESKTOP_TOKEN__?: string }).__FARM_DESKTOP_TOKEN__
     return { 'Content-Type': 'application/json', ...(desktopToken ? { Authorization: `Bearer ${desktopToken}` } : {}) }
   }
   async function request<T>(url: string, init?: RequestInit): Promise<T> {

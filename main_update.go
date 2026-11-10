@@ -1,9 +1,9 @@
 package main
 
 import (
+	"farm/internal/updater"
 	"fmt"
 	"log"
-	"mywebscrcpy/internal/updater"
 	"net"
 	"net/http"
 	"os"
@@ -25,7 +25,7 @@ func updateMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		if receipt := os.Getenv("MYWEBSCRCPY_UPDATE_RECEIPT"); receipt != "" {
+		if receipt := os.Getenv("FARM_UPDATE_RECEIPT"); receipt != "" {
 			if _, err := os.Stat(receipt + ".confirmed"); err != nil {
 				http.Error(w, "正在验证更新，请稍后重试", http.StatusServiceUnavailable)
 				return

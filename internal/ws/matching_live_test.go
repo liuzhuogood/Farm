@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"mywebscrcpy/internal/matchingservice"
-	"mywebscrcpy/internal/template"
+	"farm/internal/matchingservice"
+	"farm/internal/template"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -18,11 +18,11 @@ import (
 
 // Explicit opt-in is restricted to the phone authorized for read-only acceptance.
 func TestLiveMatchingServiceReadOnly(t *testing.T) {
-	if os.Getenv("MYWEBSCRCPY_MATCHING_LIVE_SERIAL") != "10.0.0.30:5555" {
+	if os.Getenv("FARM_MATCHING_LIVE_SERIAL") != "10.0.0.30:5555" {
 		t.Skip("requires explicit Xiaomi read-only opt-in")
 	}
-	python := os.Getenv("MYWEBSCRCPY_MATCHING_TEST_PYTHON")
-	adb := os.Getenv("MYWEBSCRCPY_MATCHING_LIVE_ADB")
+	python := os.Getenv("FARM_MATCHING_TEST_PYTHON")
+	adb := os.Getenv("FARM_MATCHING_LIVE_ADB")
 	if !filepath.IsAbs(python) || !filepath.IsAbs(adb) {
 		t.Fatal("explicit absolute Python/ADB paths required")
 	}
@@ -32,7 +32,7 @@ func TestLiveMatchingServiceReadOnly(t *testing.T) {
 	}
 	h := NewHub(adb, jar)
 	defer h.Close()
-	// Isolate forwarding from any already running MyWebScrcpy instance.
+	// Isolate forwarding from any already running Farm instance.
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -59,7 +59,7 @@ func TestLiveMatchingServiceReadOnly(t *testing.T) {
 	defer m.Close()
 	source := `import sys,json,time,threading
 import cv2,numpy as np,websocket
-from mywebscrcpy import Client
+from farm import Client
 url=sys.argv[1]
 with Client(url) as client:
  with client.device('10.0.0.30:5555') as device:
@@ -96,7 +96,7 @@ with Client(url) as client:
   finally:
    if peer is not None:peer.close()
    client.templates.delete(asset.id)
-print(json.dumps(dict(type='closed',receivers=sum(t.name.startswith('mywebscrcpy-vision-') for t in threading.enumerate()))),flush=True)
+print(json.dumps(dict(type='closed',receivers=sum(t.name.startswith('farm-vision-') for t in threading.enumerate()))),flush=True)
 `
 	ctx, cancel := context.WithTimeout(context.Background(), 110*time.Second)
 	defer cancel()

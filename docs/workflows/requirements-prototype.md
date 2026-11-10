@@ -3,7 +3,7 @@
 状态：可执行
 用途：收集需求、验证首页设备卡片手机拟物设计，把需求资料与原型合入主干，阶段到此结束。
 输入：
-- 目标项目：`/Users/liuzhuo/code/MyWebScrcpy`
+- 目标项目：`/Users/liuzhuo/code/Farm`
 - 主题：`device-phone-card`（首页设备卡片手机拟物重构）
 - 原型分支：`codex/prototype/device-phone-card`
 - 原型目录：`prototypes/cases/device-phone-card-v1`

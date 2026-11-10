@@ -4,12 +4,12 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from mywebscrcpy import Client
-from mywebscrcpy import ConnectionError as SDKConnectionError
-from mywebscrcpy import ocr as ocr_module
-from mywebscrcpy import vision as vision_module
-from mywebscrcpy.contracts import Deadline
-from mywebscrcpy.net import ENV_MODE, ENV_VAR, httpx_options, resolve_proxy, urllib_opener, websocket_options
+from farm import Client
+from farm import ConnectionError as SDKConnectionError
+from farm import ocr as ocr_module
+from farm import vision as vision_module
+from farm.contracts import Deadline
+from farm.net import ENV_MODE, ENV_VAR, httpx_options, resolve_proxy, urllib_opener, websocket_options
 
 PROXY = "http://127.0.0.1:7890"
 

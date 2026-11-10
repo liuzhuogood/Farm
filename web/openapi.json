@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "MyWebScrcpy API",
+    "title": "Farm API",
     "version": "1.20.0",
-    "description": "MyWebScrcpy 提供的完整 HTTP 与 WebSocket 接口规范。涵盖设备管理、实时投屏、录像、截图、回放、ADB 命令与按键注入、文件管理、脚本管理、UI 布局抓取及 Vision 智能交互。服务默认无内建身份认证，请在受信任网络中部署与使用。"
+    "description": "Farm 提供的完整 HTTP 与 WebSocket 接口规范。涵盖设备管理、实时投屏、录像、截图、回放、ADB 命令与按键注入、文件管理、脚本管理、UI 布局抓取及 Vision 智能交互。服务默认无内建身份认证，请在受信任网络中部署与使用。"
   },
   "servers": [
     {
@@ -18,7 +18,7 @@
           "系统"
         ],
         "summary": "获取 OpenAPI 规范",
-        "description": "返回 MyWebScrcpy 完整的 OpenAPI 3.1.0 规范定义 JSON，供外部客户端或自动化 Agent 消费与构建客户端。",
+        "description": "返回 Farm 完整的 OpenAPI 3.1.0 规范定义 JSON，供外部客户端或自动化 Agent 消费与构建客户端。",
         "responses": {
           "200": {
             "description": "OpenAPI 3.1.0 规范文档",
@@ -1631,7 +1631,7 @@
           "文件"
         ],
         "summary": "删除文件",
-        "description": "批量删除指定的文件或目录（移入设备端 .mywebscrcpy-trash 回收站），并返回用于撤销的 undo_token。",
+        "description": "批量删除指定的文件或目录（移入设备端 .farm-trash 回收站），并返回用于撤销的 undo_token。",
         "parameters": [
           {
             "$ref": "#/components/parameters/serial"
@@ -4846,7 +4846,7 @@
           "AI 集成与技能市场"
         ],
         "summary": "获取技能市场列表及各助手安装状态",
-        "description": "返回技能市场中的所有技能概要，并根据运行 MyWebScrcpy 服务的宿主机文件系统返回各 AI 助手的实时安装状态。",
+        "description": "返回技能市场中的所有技能概要，并根据运行 Farm 服务的宿主机文件系统返回各 AI 助手的实时安装状态。",
         "responses": {
           "200": {
             "description": "技能市场列表",
@@ -4876,8 +4876,8 @@
             "schema": {
               "type": "string"
             },
-            "description": "技能唯一标识（如 mywebscrcpy-device-base）",
-            "example": "mywebscrcpy-device-base"
+            "description": "技能唯一标识（如 farm-device-base）",
+            "example": "farm-device-base"
           }
         ],
         "responses": {
@@ -4920,7 +4920,7 @@
               "type": "string"
             },
             "description": "技能唯一标识",
-            "example": "mywebscrcpy-device-base"
+            "example": "farm-device-base"
           }
         ],
         "responses": {
@@ -4954,7 +4954,7 @@
           "AI 集成与技能市场"
         ],
         "summary": "安装技能至选定的 AI 助手",
-        "description": "原子安装指定技能到运行 MyWebScrcpy 服务的宿主机中选定的一个或多个 AI 助手目录中。返回各目标的实际安装状态，拒绝跨 Origin 请求。",
+        "description": "原子安装指定技能到运行 Farm 服务的宿主机中选定的一个或多个 AI 助手目录中。返回各目标的实际安装状态，拒绝跨 Origin 请求。",
         "parameters": [
           {
             "name": "id",
@@ -4964,7 +4964,7 @@
               "type": "string"
             },
             "description": "技能唯一标识",
-            "example": "mywebscrcpy-device-base"
+            "example": "farm-device-base"
           }
         ],
         "x-side-effect": true,
@@ -8280,7 +8280,7 @@
           "builtin_path": {
             "type": "string",
             "description": "安装在内置目录中的绝对路径",
-            "example": "/Users/liuzhuo/code/MyWebScrcpy/data/bin/adb"
+            "example": "/Users/liuzhuo/code/Farm/data/bin/adb"
           },
           "supported": {
             "type": "boolean",
@@ -8433,7 +8433,7 @@
           "asset_name": {
             "type": "string",
             "description": "匹配当前操作系统和架构的安装包文件名",
-            "example": "mywebscrcpy-darwin-arm64.tar.gz"
+            "example": "farm-darwin-arm64.tar.gz"
           },
           "asset_size": {
             "type": "integer",
@@ -8443,7 +8443,7 @@
           "download_url": {
             "type": "string",
             "description": "安装包官方下载直链",
-            "example": "https://github.com/mywebscrcpy/releases/download/v1.26.2/mywebscrcpy-darwin-arm64.tar.gz"
+            "example": "https://github.com/farm/releases/download/v1.26.2/farm-darwin-arm64.tar.gz"
           },
           "digest": {
             "type": "string",

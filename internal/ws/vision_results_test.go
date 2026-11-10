@@ -3,7 +3,7 @@ package ws
 import (
 	"testing"
 
-	"mywebscrcpy/internal/vision"
+	"farm/internal/vision"
 )
 
 func TestResultSubscriberReceivesCurrentSessionState(t *testing.T) {
@@ -81,4 +81,3 @@ func TestResultSubscriberReceivesDeviceLevelBroadcast(t *testing.T) {
 		t.Fatal("late subscriber with session_id failed to receive replayed device-level broadcast")
 	}
 }
-

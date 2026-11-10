@@ -9,7 +9,7 @@
 
 ## 修复
 
-1. 三个技能包（`mywebscrcpy-device-base`、`mywebscrcpy-kuaishou-daily`、`mywebscrcpy-wechat-helper`）的 `scripts/request_client.py` 在 CLI 入口把标准输出与标准错误重配为 UTF-8，与 `v1.19.2` 对生成脚本的既有处理一致；三份脚本保持内容完全一致。
+1. 三个技能包（`farm-device-base`、`farm-kuaishou-daily`、`farm-wechat-helper`）的 `scripts/request_client.py` 在 CLI 入口把标准输出与标准错误重配为 UTF-8，与 `v1.19.2` 对生成脚本的既有处理一致；三份脚本保持内容完全一致。
 2. `TestExtractedZipPythonClientExecutable` 为被执行的子进程固定 `PYTHONIOENCODING=cp1252`，使该编码缺陷在非 Windows 平台也能复现，防止回归。
 
 ## 本地验证

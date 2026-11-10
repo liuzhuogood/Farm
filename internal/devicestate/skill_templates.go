@@ -15,8 +15,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"mywebscrcpy/internal/automation"
-	"mywebscrcpy/internal/template"
+	"farm/internal/automation"
+	"farm/internal/template"
 )
 
 // LoadedTemplate 待匹配的模板统一定义

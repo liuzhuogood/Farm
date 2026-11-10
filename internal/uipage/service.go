@@ -4,7 +4,7 @@ package uipage
 import (
 	"context"
 	"errors"
-	"mywebscrcpy/internal/dependencies"
+	"farm/internal/dependencies"
 	"regexp"
 	"strconv"
 	"strings"

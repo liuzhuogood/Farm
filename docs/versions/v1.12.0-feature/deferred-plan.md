@@ -14,7 +14,7 @@
 - 画面只有裸 canvas，无手机外形边框。
 - 录制为后端复用 H.264 共享流直接封装 mp4（`internal/ws/recording.go` → `newMP4RecordingMuxer`），不含前端 overlay 边框与点击反馈。
 
-本轮需求横跨两个仓库：前端 `MyWebScrcpyNew`（Vue 3）与后端 `MyWebScrcpy`（Go）。
+本轮需求横跨两个仓库：前端 `FarmNew`（Vue 3）与后端 `Farm`（Go）。
 
 ## 目标与非目标
 
@@ -52,8 +52,8 @@
 ```mermaid
 sequenceDiagram
   participant U as 用户
-  participant F as 前端 MyWebScrcpyNew
-  participant B as 后端 MyWebScrcpy
+  participant F as 前端 FarmNew
+  participant B as 后端 Farm
   participant D as adb 设备
   U->>F: 开启录制并勾选收录边框/点击反馈
   F->>B: POST /api/recordings {record_frame, record_touch}
@@ -101,15 +101,15 @@ sequenceDiagram
 ## 1. 规格与设计
 
 - ✅ 完成 session/design/tasks/version 初稿。
-- ✅ 确认影响范围（前端 `MyWebScrcpyNew` + 后端 `MyWebScrcpy`）与回滚策略。
+- ✅ 确认影响范围（前端 `FarmNew` + 后端 `Farm`）与回滚策略。
 
-## 2. 实现（前端 MyWebScrcpyNew）
+## 2. 实现（前端 FarmNew）
 
 - ⬜ 2.1 显示尺寸并入设置面板：迁移 Slider + 适应窗口，删除 `sizeOpen` 与「更多」菜单条目。
 - ⬜ 2.2 手机边框：内置机型 CSS/SVG 绘制，扩展 `fitCanvas` 屏幕区对齐。
 - ⬜ 2.3 录制选项 UI：录制面板增加「收录边框」「收录点击反馈」，同步 `POST /api/recordings` 参数。
 
-## 3. 实现（后端 MyWebScrcpy）
+## 3. 实现（后端 Farm）
 
 - ⬜ 3.1 录制期间记录触控事件时序日志。
 - ⬜ 3.2 边框/点击反馈合成（ffmpeg 后处理或实时叠加，路径待确认）。
@@ -135,4 +135,4 @@ sequenceDiagram
 1. 显示尺寸调整并入设置面板，去掉「更多」菜单中的独立入口与对话框。
 2. 投屏画面新增常见手机边框，采用 CSS/SVG 绘制，自适应分辨率与横竖屏，不依赖外部素材。
 3. 录制新增可选「是否收录边框」「是否收录点击反馈」，沿用后端录制链路合成（实现待后端单独立项）。
-4. 涉及前端 `MyWebScrcpyNew` 与后端 `MyWebScrcpy` 两个仓库，验证与发布需两端联调。
+4. 涉及前端 `FarmNew` 与后端 `Farm` 两个仓库，验证与发布需两端联调。

@@ -28,7 +28,7 @@ func TestPolicyBlocksNonBinaryUpgrade(t *testing.T) {
 	}
 }
 func TestExplicitDockerPolicy(t *testing.T) {
-	t.Setenv("MYWEBSCRCPY_RUNTIME", "docker")
+	t.Setenv("FARM_RUNTIME", "docker")
 	if policy := DetectPolicy(true); policy.Method != "image" {
 		t.Fatalf("Docker must take precedence: %+v", policy)
 	}
@@ -49,7 +49,7 @@ func TestBackupRestoresDatabaseAndRemovesNewWAL(t *testing.T) {
 	root := t.TempDir()
 	backup := t.TempDir()
 	os.MkdirAll(filepath.Join(root, "data"), 0700)
-	database := filepath.Join(root, "data", "mywebscrcpy.db")
+	database := filepath.Join(root, "data", "farm.db")
 	os.WriteFile(database, []byte("old"), 0600)
 	if err := BackupRuntime(root, backup); err != nil {
 		t.Fatal(err)
@@ -71,23 +71,23 @@ func TestBackupRestoresDatabaseAndRemovesNewWAL(t *testing.T) {
 // This subprocess emulates an actual candidate: bind a fresh port, mutate a DB,
 // publish its readiness, then serve health until the parent test cleans it up.
 func TestUpdateChild(t *testing.T) {
-	if os.Getenv("MYWEBSCRCPY_TEST_UPDATE_CHILD") != "1" {
+	if os.Getenv("FARM_TEST_UPDATE_CHILD") != "1" {
 		return
 	}
-	receipt := os.Getenv("MYWEBSCRCPY_UPDATE_RECEIPT")
-	marker := os.Getenv("MYWEBSCRCPY_TEST_UPDATE_MARKER")
+	receipt := os.Getenv("FARM_UPDATE_RECEIPT")
+	marker := os.Getenv("FARM_TEST_UPDATE_MARKER")
 	_ = os.WriteFile(marker, []byte(strconv.Itoa(os.Getpid())), 0600)
 	if receipt == "" {
 		select {}
 	}
-	_ = os.WriteFile(filepath.Join("data", "mywebscrcpy.db"), []byte("migrated"), 0600)
-	_ = os.WriteFile(filepath.Join("data", "mywebscrcpy.db-wal"), []byte("new wal"), 0600)
+	_ = os.WriteFile(filepath.Join("data", "farm.db"), []byte("migrated"), 0600)
+	_ = os.WriteFile(filepath.Join("data", "farm.db-wal"), []byte("new wal"), 0600)
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		os.Exit(2)
 	}
 	version := "v1.13.0"
-	if os.Getenv("MYWEBSCRCPY_TEST_BAD_HEALTH") == "1" {
+	if os.Getenv("FARM_TEST_BAD_HEALTH") == "1" {
 		version = "v1.12.0"
 	}
 	if PublishHealth(listener, false, version) != nil {
@@ -117,10 +117,10 @@ func workerFixture(t *testing.T) (updatePlan, string) {
 		}
 	}
 	os.MkdirAll(filepath.Join(root, "data"), 0700)
-	os.WriteFile(filepath.Join(root, "data", "mywebscrcpy.db"), []byte("old"), 0600)
+	os.WriteFile(filepath.Join(root, "data", "farm.db"), []byte("old"), 0600)
 	marker := filepath.Join(stage, "pid")
-	t.Setenv("MYWEBSCRCPY_TEST_UPDATE_CHILD", "1")
-	t.Setenv("MYWEBSCRCPY_TEST_UPDATE_MARKER", marker)
+	t.Setenv("FARM_TEST_UPDATE_CHILD", "1")
+	t.Setenv("FARM_TEST_UPDATE_MARKER", marker)
 	t.Cleanup(func() {
 		if bytes, err := os.ReadFile(marker); err == nil {
 			pid, _ := strconv.Atoi(string(bytes))
@@ -155,18 +155,18 @@ func TestWorkerCommitsOnlyAfterHealthyStartup(t *testing.T) {
 }
 func TestWorkerRollsBackFailedStartupAndDatabase(t *testing.T) {
 	plan, file := workerFixture(t)
-	t.Setenv("MYWEBSCRCPY_TEST_BAD_HEALTH", "1")
+	t.Setenv("FARM_TEST_BAD_HEALTH", "1")
 	previous := workerHealthTimeout
 	workerHealthTimeout = 200 * time.Millisecond
 	defer func() { workerHealthTimeout = previous }()
 	if err := RunWorker(file); err == nil {
 		t.Fatal("bad startup accepted")
 	}
-	bytes, _ := os.ReadFile(filepath.Join(plan.Directory, "data", "mywebscrcpy.db"))
+	bytes, _ := os.ReadFile(filepath.Join(plan.Directory, "data", "farm.db"))
 	if string(bytes) != "old" {
 		t.Fatalf("DB rollback failed: %q", bytes)
 	}
-	if fileExists(filepath.Join(plan.Directory, "data", "mywebscrcpy.db-wal")) {
+	if fileExists(filepath.Join(plan.Directory, "data", "farm.db-wal")) {
 		t.Fatal("candidate WAL survived rollback")
 	}
 	bytes, _ = os.ReadFile(plan.Status)
@@ -193,7 +193,7 @@ func TestMacAppRollbackRestoresWholeBundleAndDatabase(t *testing.T) {
 	}
 	os.WriteFile(filepath.Join(backup, "old-resource"), []byte("old"), 0600)
 	os.WriteFile(filepath.Join(app, "new-resource"), []byte("new"), 0600)
-	database := filepath.Join(data, "data", "mywebscrcpy.db")
+	database := filepath.Join(data, "data", "farm.db")
 	os.WriteFile(database, []byte("old database"), 0600)
 	if err := BackupRuntime(data, filepath.Join(stage, "runtime")); err != nil {
 		t.Fatal(err)

@@ -2,7 +2,7 @@
 
 系统配置的「依赖」页统一管理 Python。系统来源检测 PATH 或用户指定的解释器；内置来源按需下载锁定版本的 python-build-standalone，保存在应用数据目录，不借用系统解释器。来源缺失或无效时直接报错。
 
-系统来源只显示执行路径、版本及检测结果。内置来源显示安装状态、下载、取消和卸载。Python 卡片额外显示 `mywebscrcpy-sdk` 的安装版本和「安装依赖」，对当前选择的解释器生效，不隐式保存或切换来源。
+系统来源只显示执行路径、版本及检测结果。内置来源显示安装状态、下载、取消和卸载。Python 卡片额外显示 `farm-sdk` 的安装版本和「安装依赖」，对当前选择的解释器生效，不隐式保存或切换来源。
 
 ```mermaid
 flowchart TD
@@ -13,7 +13,7 @@ flowchart TD
     C --> F[点击安装依赖]
     E --> F
     F --> G[锁定所选环境]
-    G --> H[python -m pip install mywebscrcpy-sdk==主程序版本]
+    G --> H[python -m pip install farm-sdk==主程序版本]
     H --> I[检查 SDK 版本和导入]
     I --> J[刷新状态并释放锁]
     J --> K[任务直接导入已安装的 SDK]
@@ -34,4 +34,4 @@ python -m pip install ./packages/python-sdk
 go test ./...
 ```
 
-真实内置运行时及 PyPI 安装验证使用 `MYWEBSCRCPY_PYTHON_ARCHIVE` 指向对应平台的锁定归档。常规单元测试使用受控解释器，验证固定安装命令、重复安装拒绝、运行期间的修改保护、配置持久化和归档路径边界。
+真实内置运行时及 PyPI 安装验证使用 `FARM_PYTHON_ARCHIVE` 指向对应平台的锁定归档。常规单元测试使用受控解释器，验证固定安装命令、重复安装拒绝、运行期间的修改保护、配置持久化和归档路径边界。

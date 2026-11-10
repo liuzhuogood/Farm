@@ -9,7 +9,7 @@ import router from './router'
 if (typeof window !== 'undefined') {
   const isDesktop = Boolean(
     isTauri() ||
-    (window as any).__MYWEBSCRCPY_DESKTOP_TOKEN__ ||
+    (window as any).__FARM_DESKTOP_TOKEN__ ||
     (window as any).__TAURI_INTERNALS__ ||
     (window as any).__TAURI__
   )

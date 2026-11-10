@@ -11,24 +11,24 @@ const (
 
 // AiTool represents metadata, guide steps, and installation paths for an AI assistant.
 type AiTool struct {
-	ID             AiToolID `json:"id"`
-	Name           string   `json:"name"`
-	Subtitle       string   `json:"subtitle"`
-	GuideTitle     string   `json:"guideTitle"`
-	GuideBadge     string   `json:"guideBadge"`
-	Step1Title     string   `json:"step1Title"`
-	Step1Desc      string   `json:"step1Desc"`
-	Step2Title     string   `json:"step2Title"`
-	Step2Desc      string   `json:"step2Desc"`
-	Step2ActionText string  `json:"step2ActionText"`
-	Step3Title     string   `json:"step3Title"`
-	Step3Desc      string   `json:"step3Desc"`
-	Step3ActionText string  `json:"step3ActionText"`
-	SamplePrompt   string   `json:"samplePrompt"`
-	IconType       string   `json:"iconType"`
-	TargetPath     string   `json:"targetPath"`
-	TargetRelPath  string   `json:"targetRelPath"`
-	OfficialDocURL string   `json:"officialDocUrl"`
+	ID              AiToolID `json:"id"`
+	Name            string   `json:"name"`
+	Subtitle        string   `json:"subtitle"`
+	GuideTitle      string   `json:"guideTitle"`
+	GuideBadge      string   `json:"guideBadge"`
+	Step1Title      string   `json:"step1Title"`
+	Step1Desc       string   `json:"step1Desc"`
+	Step2Title      string   `json:"step2Title"`
+	Step2Desc       string   `json:"step2Desc"`
+	Step2ActionText string   `json:"step2ActionText"`
+	Step3Title      string   `json:"step3Title"`
+	Step3Desc       string   `json:"step3Desc"`
+	Step3ActionText string   `json:"step3ActionText"`
+	SamplePrompt    string   `json:"samplePrompt"`
+	IconType        string   `json:"iconType"`
+	TargetPath      string   `json:"targetPath"`
+	TargetRelPath   string   `json:"targetRelPath"`
+	OfficialDocURL  string   `json:"officialDocUrl"`
 }
 
 // AiIntegrationsResponse is the response structure for GET /api/ai-integrations.
@@ -40,9 +40,9 @@ type AiIntegrationsResponse struct {
 type SkillID string
 
 const (
-	SkillDeviceBase    SkillID = "mywebscrcpy-device-base"
-	SkillKuaishouDaily SkillID = "mywebscrcpy-kuaishou-daily"
-	SkillWechatHelper  SkillID = "mywebscrcpy-wechat-helper"
+	SkillDeviceBase    SkillID = "farm-device-base"
+	SkillKuaishouDaily SkillID = "farm-kuaishou-daily"
+	SkillWechatHelper  SkillID = "farm-wechat-helper"
 	SkillCommon        SkillID = "my-scrcpy-common"
 )
 

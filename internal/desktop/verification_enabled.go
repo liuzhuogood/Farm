@@ -11,7 +11,7 @@ import (
 // Only compiled into the explicit native verification build. Reports omit
 // device/user data and the private control token.
 func registerVerification(mux *http.ServeMux, authorize func(http.HandlerFunc) http.HandlerFunc) {
-	path := os.Getenv("MYWEBSCRCPY_NATIVE_REPORT")
+	path := os.Getenv("FARM_NATIVE_REPORT")
 	if path == "" {
 		return
 	}

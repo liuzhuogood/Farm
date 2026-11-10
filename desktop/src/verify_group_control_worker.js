@@ -1,8 +1,8 @@
 if (!window.__nativeGroupWorkerStarted && document.querySelector('canvas[aria-label="设备投屏画面"]') && document.documentElement.classList.contains('desktop-player')) {
   window.__nativeGroupWorkerStarted = true;
   const serial = new URL(location.href).searchParams.get('serial');
-  const control = new BroadcastChannel('mywebscrcpy.native-group-verification');
-  const production = new BroadcastChannel('mywebscrcpy.group-control.v1');
+  const control = new BroadcastChannel('farm.native-group-verification');
+  const production = new BroadcastChannel('farm.group-control.v1');
   let state = null;
   production.onmessage = ({ data }) => {
     if (data.type === 'state' && data.active === true && Array.isArray(data.serials)) state = data;

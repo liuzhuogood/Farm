@@ -5,7 +5,7 @@
 - [x] 3. 首页重构：整合全息流卡片组件（3D 浮雕倾斜 + 动态高光）、悬浮控制胶囊（HomeControlCapsule）、极光星芒背景（HomeAuroraBackground）
 - [x] 4. 业务逻辑与状态联动：真实 Device 数据、ADB 轮询、别名编辑、快捷投屏、小窗、重连、删除、网络设备添加
 - [x] 5. 前端编译与桌面 GUI 应用打包编译（`DESKTOP_BUNDLES=app node scripts/build-desktop.mjs`）
-- [x] 6. 运行验证与实际验收交付（通过 macOS `open` 唤起 `MyWebScrcpy.app`，浏览器端与桌面端均正常运行并截图确认）
+- [x] 6. 运行验证与实际验收交付（通过 macOS `open` 唤起 `Farm.app`，浏览器端与桌面端均正常运行并截图确认）
 - [x] 7. 细节微调与体验优化：
   - “设备矩阵”更新为“设备列表”，并移除旁侧动态图标；
   - “设备投屏”主按钮调整为纯蓝色 `#406BDB`；

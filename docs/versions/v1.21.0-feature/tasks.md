@@ -6,7 +6,7 @@
 
 - ✅ 用户确认替换旧生成器、取消执行前自动编译，并限定基础 SDK 接入；完整识图留在 v1.22。
 - ✅ 建立并使用 lz/v1.21.0-feature，记录实际基线及另一项已推送的 v1.22 设计提交。
-- ✅ 统一 packages/python-sdk 可安装基础包，使用 HTTPX，提供 Client/Device.adb/page_info、结果与异常；不提供另一套 mywebscrcpy_runtime。
+- ✅ 统一 packages/python-sdk 可安装基础包，使用 HTTPX，提供 Client/Device.adb/page_info、结果与异常；不提供另一套 farm_runtime。
 - ✅ 核对 ADB 与页面 HTTP 契约，验证绑定设备、单位转换、真实业务失败、截断、缺字段、资源关闭与目标切换拒绝。
 - ✅ 实现 Pi 技能、SDK 引用及独立示例，技能结构校验通过。
 - ✅ 独立只读 Pi 生成、冻结真实 API 文档、SSE 活动、有限修正、总期限、取消及重复请求拒绝。

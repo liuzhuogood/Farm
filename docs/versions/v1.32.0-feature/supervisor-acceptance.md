@@ -60,7 +60,7 @@
 
 ## 预览进程
 
-复用已有正式开发服务5173/8080，未重启。主管创建原型服务PID29157，入口 `http://127.0.0.1:5174/#home-phone-batch-v1`；归属记录 `/tmp/mywebscrcpy-v132-supervisor-preview/session.json`，日志同目录prototype.log。停止前须核对PID、命令和进程组，只停止本任务原型进程，不停止共享服务。未创建公网隧道。
+复用已有正式开发服务5173/8080，未重启。主管创建原型服务PID29157，入口 `http://127.0.0.1:5174/#home-phone-batch-v1`；归属记录 `/tmp/farm-v132-supervisor-preview/session.json`，日志同目录prototype.log。停止前须核对PID、命令和进程组，只停止本任务原型进程，不停止共享服务。未创建公网隧道。
 
 
 ## 2026-10-21 · 浮动面板与离线开关追加验收

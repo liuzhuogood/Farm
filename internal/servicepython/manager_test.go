@@ -10,6 +10,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	pythonsdk "farm/packages/python-sdk"
 )
 
 func fixture(t *testing.T) (*Manager, *atomic.Int32, *atomic.Int32) {
@@ -80,6 +82,37 @@ func TestPrepareInstallsOnceAndProtectsRunningEnvironment(t *testing.T) {
 	}
 	if !strings.Contains(strings.Join(stages, ","), "installing") || stages[len(stages)-1] != "starting" {
 		t.Fatal(stages)
+	}
+}
+
+func TestMatchingInstallsBundledSDKWithoutSourceCheckout(t *testing.T) {
+	m, _, _ := fixture(t)
+	run := m.run
+	var local string
+	m.run = func(ctx context.Context, python string, args ...string) ([]byte, error) {
+		if args[0] == "-m" && args[1] == "pip" {
+			requirement := args[len(args)-1]
+			local = strings.TrimSuffix(requirement, "[vision]")
+			if !strings.HasSuffix(requirement, "[vision]") || !filepath.IsAbs(local) || !strings.HasPrefix(filepath.Base(local), "farm-sdk-") {
+				t.Fatalf("matching service requested an unpublished index package: %v", args)
+			}
+			project, err := os.ReadFile(filepath.Join(local, "pyproject.toml"))
+			if err != nil || !strings.Contains(string(project), `version = "`+pythonsdk.Version+`"`) {
+				t.Fatal("matching service source is not bundled with this version", err)
+			}
+		}
+		return run(ctx, python, args...)
+	}
+	_, release, err := m.Prepare(context.Background(), Matching, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	release()
+	if local == "" {
+		t.Fatal("matching service did not install bundled SDK")
+	}
+	if _, err := os.Stat(local); !os.IsNotExist(err) {
+		t.Fatal("temporary SDK source leaked after environment preparation", err)
 	}
 }
 
@@ -163,31 +196,11 @@ func TestCancelledInstallReleasesEnvironmentForRetry(t *testing.T) {
 
 // Opt in to real pip downloads in a disposable environment, never the user's runtime.
 func TestRealMatchingEnvironment(t *testing.T) {
-	base := os.Getenv("MYWEBSCRCPY_SERVICE_PYTHON_TEST")
+	base := os.Getenv("FARM_SERVICE_PYTHON_TEST")
 	if base == "" {
-		t.Skip("set MYWEBSCRCPY_SERVICE_PYTHON_TEST to a Python executable")
+		t.Skip("set FARM_SERVICE_PYTHON_TEST to a Python executable")
 	}
 	root := t.TempDir()
-	source, err := filepath.Abs("../../packages/python-sdk")
-	if err != nil {
-		t.Fatal(err)
-	}
-	local := filepath.Join(root, "packages", "python-sdk")
-	if err := os.MkdirAll(local, 0700); err != nil {
-		t.Fatal(err)
-	}
-	for _, name := range []string{"README.md", "pyproject.toml"} {
-		data, err := os.ReadFile(filepath.Join(source, name))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(local, name), data, 0600); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := os.CopyFS(filepath.Join(local, "src"), os.DirFS(filepath.Join(source, "src"))); err != nil {
-		t.Fatal(err)
-	}
 	m := New(root)
 	m.acquire = func() (string, func(), error) { return base, func() {}, nil }
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
@@ -196,7 +209,7 @@ func TestRealMatchingEnvironment(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cmd := exec.CommandContext(ctx, python, "-c", "from importlib.metadata import version; from mywebscrcpy import Matcher; print(version('mywebscrcpy-sdk'))")
+	cmd := exec.CommandContext(ctx, python, "-c", "from importlib.metadata import version; from farm import Matcher; print(version('farm-sdk'))")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		release()

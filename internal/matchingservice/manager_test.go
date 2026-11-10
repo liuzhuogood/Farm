@@ -20,7 +20,7 @@ func fakePython(t *testing.T, ready bool, block bool) string {
 		t.Skip("shell fixture requires Unix; native Windows verification remains separate")
 	}
 	entries := []string{}
-	for _, name := range []string{"mywebscrcpy-sdk", "httpx", "websocket", "av", "cv2", "numpy"} {
+	for _, name := range []string{"farm-sdk", "httpx", "websocket", "av", "cv2", "numpy"} {
 		entries = append(entries, fmt.Sprintf(`{"name":%q,"available":%t,"error":""}`, name, ready))
 	}
 	probe := fmt.Sprintf(`{"version":"3.14.3","ready":%t,"dependencies":[%s],"error":""}`, ready, strings.Join(entries, ","))

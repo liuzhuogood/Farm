@@ -5,8 +5,8 @@ import assert from 'node:assert/strict'
 import os from 'node:os'
 import path from 'node:path'
 
-const executable = path.resolve(process.argv[2] ?? '.cache/verification/mywebscrcpy')
-assert(process.env.MYWEBSCRCPY_MATCHING_TEST_PYTHON, 'set MYWEBSCRCPY_MATCHING_TEST_PYTHON to a Python with vision dependencies')
+const executable = path.resolve(process.argv[2] ?? '.cache/verification/farm')
+assert(process.env.FARM_MATCHING_TEST_PYTHON, 'set FARM_MATCHING_TEST_PYTHON to a Python with vision dependencies')
 const directory = await mkdtemp(path.join(os.tmpdir(), 'matching-service-test-'))
 let child
 let ready
@@ -15,7 +15,7 @@ async function boot() {
   const readyFile = path.join(directory, 'ready.json')
   child = spawn(executable, ['--no-gui', '--listen', '127.0.0.1:0', '--data-dir', directory, '--desktop-ready', readyFile], {
     stdio: ['pipe', 'ignore', 'pipe'],
-    env: { ...process.env, MYWEBSCRCPY_PYTHON: process.env.MYWEBSCRCPY_MATCHING_TEST_PYTHON, MYWEBSCRCPY_ADB: path.join(directory, 'missing-adb'), PORT: '', SCRIPTS_DIR: path.join(directory, 'scripts'), TEMPLATES_DIR: path.join(directory, 'templates') },
+    env: { ...process.env, FARM_PYTHON: process.env.FARM_MATCHING_TEST_PYTHON, FARM_ADB: path.join(directory, 'missing-adb'), PORT: '', SCRIPTS_DIR: path.join(directory, 'scripts'), TEMPLATES_DIR: path.join(directory, 'templates') },
   })
   child.stderr.on('data', data => { errorLog = (errorLog + data).slice(-8192) })
   const deadline = Date.now() + 15000
@@ -48,7 +48,7 @@ try {
   const pid = status.pid
   assert.equal((await request('start')).status, 409)
   assert.equal((await (await request('status')).json()).pid, pid)
-  const install = await fetch(`${ready.url}/api/dependencies/python/modules`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ready.token}` }, body: JSON.stringify({ selection: { source: 'system', path: process.env.MYWEBSCRCPY_MATCHING_TEST_PYTHON } }) })
+  const install = await fetch(`${ready.url}/api/dependencies/python/modules`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ready.token}` }, body: JSON.stringify({ selection: { source: 'system', path: process.env.FARM_MATCHING_TEST_PYTHON } }) })
   assert.equal(install.status, 409, 'active matcher must prevent Python dependency mutation')
   status = await (await request('stop')).json()
   assert.equal(status.state, 'stopped'); assert.equal(status.pid, 0)

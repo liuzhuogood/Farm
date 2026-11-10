@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
+	"farm/internal/scrcpy"
 	"github.com/Eyevinn/mp4ff/aac"
 	"github.com/Eyevinn/mp4ff/mp4"
-	"mywebscrcpy/internal/scrcpy"
 )
 
 const recordingTimescale = uint64(1_000_000) // scrcpy PTS uses microseconds.

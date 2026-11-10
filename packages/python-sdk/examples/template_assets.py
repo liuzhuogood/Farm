@@ -1,14 +1,14 @@
 import argparse
 import os
 from pathlib import Path
-from mywebscrcpy import Client
+from farm import Client
 
 
 def main():
     parser = argparse.ArgumentParser(description='列出设备模板，或从 PNG 创建模板')
     parser.add_argument('serial')
-    parser.add_argument('--base-url', default=os.environ.get('MYWEBSCRCPY_API_URL', ''))
-    parser.add_argument('--token', default=os.environ.get('MYWEBSCRCPY_API_TOKEN', ''))
+    parser.add_argument('--base-url', default=os.environ.get('FARM_API_URL', ''))
+    parser.add_argument('--token', default=os.environ.get('FARM_API_TOKEN', ''))
     parser.add_argument('--image', type=Path)
     parser.add_argument('--name')
     options = parser.parse_args()

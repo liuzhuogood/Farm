@@ -1,11 +1,11 @@
 # 全栈特性迭代工作流 (feature-dev)
 
 状态：可执行  
-用途：指导在 MyWebScrcpy 项目中执行端到端全栈特性开发，涵盖需求设计、后端领域逻辑/接口开发、前端交互联调、全量自动化门禁与文档资产同步，保证在项目内闭环交付。  
+用途：指导在 Farm 项目中执行端到端全栈特性开发，涵盖需求设计、后端领域逻辑/接口开发、前端交互联调、全量自动化门禁与文档资产同步，保证在项目内闭环交付。
 
 ## 输入与规范
 
-- **目标项目**：`/Users/liuzhuo/code/MyWebScrcpy`
+- **目标项目**：`/Users/liuzhuo/code/Farm`
 - **特性主题**：`<feature-name>`（如 `device-batch-control`）
 - **目标版本**：`<version>`（如 `v1.33.0-feature`，对应 `docs/versions/<version>/`）
 - **特性分支**：`feature/<feature-name>` 或版本分支

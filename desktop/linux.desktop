@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=MyWebScrcpy
+Name=Farm
 Comment=Android 设备投屏与自动化
-Exec=mywebscrcpy
-Icon=mywebscrcpy-gui
+Exec=farm
+Icon=farm-gui
 Terminal=false
 Categories=Development;Utility;

@@ -105,7 +105,7 @@ export const skills: SkillItem[] = [
       ],
       prerequisites: [
         '手机已安装快手 APP 且处于正常登录与解锁状态',
-        'MyWebScrcpy 连接正常，设备控制权限完备',
+        'Farm 连接正常，设备控制权限完备',
         '已在外部 AI 助手安装基础技能 (device-base)',
       ],
       usageSteps: [
@@ -201,12 +201,12 @@ export const skills: SkillItem[] = [
       ],
       prerequisites: [
         'Android 设备已开启 USB 调试或局域网无线调试模式',
-        'MyWebScrcpy 服务处于运行状态且设备连接显示就绪',
+        'Farm 服务处于运行状态且设备连接显示就绪',
         '授权允许模拟按键与无障碍/投屏相关权限',
       ],
       usageSteps: [
         '在外部 AI 助手接入步骤中下载并安装此基础技能包',
-        '连接目标手机并验证 MyWebScrcpy 正常显示屏幕流',
+        '连接目标手机并验证 Farm 正常显示屏幕流',
         '在 AI 助手内直接发出屏幕识别与手势控制指令',
       ],
     },

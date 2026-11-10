@@ -26,7 +26,7 @@ function syncSelection() {
 
 watch(selectedId, () => { loadError.value = false })
 watch(selected, (item) => {
-  document.title = item ? `${item.title} · 原型` : 'MyWebScrcpy · 原型'
+  document.title = item ? `${item.title} · 原型` : 'Farm · 原型'
 }, { immediate: true })
 watch(dark, value => document.documentElement.classList.toggle('dark', value), { immediate: true })
 window.addEventListener('hashchange', syncSelection)

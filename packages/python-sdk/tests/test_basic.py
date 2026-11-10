@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import httpx
-from mywebscrcpy import Client, CommandError, HTTPError, ProtocolError, SDKError
+from farm import Client, CommandError, HTTPError, ProtocolError, SDKError
 
 
 class BasicContractTests(unittest.TestCase):
@@ -104,7 +104,7 @@ class BasicContractTests(unittest.TestCase):
             self.assertIn("Portable Phone", result.stdout)
             self.assertEqual(requests[0][1]["timeout_ms"], 10000)
             self.assertIn("serial=portable-phone", requests[0][0])
-            clean = subprocess.run([sys.executable, "-c", "import sys,mywebscrcpy; assert not ({'cv2','av','numpy'} & sys.modules.keys())"], capture_output=True, text=True)
+            clean = subprocess.run([sys.executable, "-c", "import sys,farm; assert not ({'cv2','av','numpy'} & sys.modules.keys())"], capture_output=True, text=True)
             self.assertEqual(clean.returncode, 0, clean.stderr)
         finally:
             server.shutdown()

@@ -18,15 +18,15 @@
 | 桌面生命周期 | `desktop-service.mjs`：ready、私有控制、旧路径、更新防护、SPA、正常关闭通过 |
 | 桌面编译 | `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk node scripts/build-desktop.mjs --check --skip-frontend` 通过；默认 SDK27 链接报 TAPI 问题，明确使用已安装 SDK26.5 完成检查 |
 | 五目标编译 | CGO=0，Windows AMD64、Linux AMD64/ARM64、macOS AMD64/ARM64 交叉编译通过；不代替目标原生运行 |
-| 外置 Pi 回归 | `MYWEBSCRCPY_PI_TEST_PAYLOAD="$PWD/.cache/pi-test" go test -count=1 ./internal/aiprovider ./internal/pibundle` 通过，测试真实 RPC/助手工具/技能，不使用生产内嵌包 |
+| 外置 Pi 回归 | `FARM_PI_TEST_PAYLOAD="$PWD/.cache/pi-test" go test -count=1 ./internal/aiprovider ./internal/pibundle` 通过，测试真实 RPC/助手工具/技能，不使用生产内嵌包 |
 | 发布契约 | release-manifest 检查及 sync-version 两测试通过；发布前同步 VERSION 为 1.20.1 |
 | diff | `git diff --check` 通过 |
 
 真实归档测试命令：
 
 ```sh
-MYWEBSCRCPY_PI_ARCHIVE_CACHE="$PWD/.cache/pi" \
-MYWEBSCRCPY_ADB_ARCHIVE=/tmp/mywebscrcpy-adb-lock/darwin.zip \
+FARM_PI_ARCHIVE_CACHE="$PWD/.cache/pi" \
+FARM_ADB_ARCHIVE=/tmp/farm-adb-lock/darwin.zip \
 go test -count=1 -race ./internal/dependencies ./internal/updater .
 ```
 
@@ -47,7 +47,7 @@ ADB 的 Darwin/Linux/Windows 36.0.2 原始 ZIP 已下载校验并锁定哈希；
 - 当前浏览器控制台 error/warn 捕获为空。
 - 截图：`implementation-desktop.png`、`implementation-mobile.png`、`implementation-system-pi.png`、`implementation-uninstall-confirm.png`、`implementation-no-token.png`。
 
-预览进程元数据保存在 `/tmp/mywebscrcpy-system-config-session.json`；仅本机回环监听，不接入原型公网隧道。
+预览进程元数据保存在 `/tmp/farm-system-config-session.json`；仅本机回环监听，不接入原型公网隧道。
 
 ## 同参数体积
 
@@ -83,7 +83,7 @@ ADB 的 Darwin/Linux/Windows 36.0.2 原始 ZIP 已下载校验并锁定哈希；
 停止本次预览与隧道（脚本先检查进程身份，保留其他会话服务）：
 
 ```sh
-bash /Users/liuzhuo/code/MyWebScrcpy/prototypes/artifacts/remote-preview/20261013-system-config/stop.sh
+bash /Users/liuzhuo/code/Farm/prototypes/artifacts/remote-preview/20261013-system-config/stop.sh
 ```
 
 ## 浏览器实测

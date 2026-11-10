@@ -49,9 +49,9 @@ func screenshotStorageDir() string {
 		return dir
 	}
 	if cacheDir, err := os.UserCacheDir(); err == nil && cacheDir != "" {
-		return filepath.Join(cacheDir, "mywebscrcpy", "screenshots")
+		return filepath.Join(cacheDir, "farm", "screenshots")
 	}
-	return filepath.Join(os.TempDir(), "mywebscrcpy-screenshots")
+	return filepath.Join(os.TempDir(), "farm-screenshots")
 }
 
 func sanitizeSerial(serial string) string {

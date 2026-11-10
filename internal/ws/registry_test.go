@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"testing"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 func TestEncodeFrameUsesStableEnvelope(t *testing.T) {

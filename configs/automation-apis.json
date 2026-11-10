@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "MyWebScrcpy 自动化接口配置",
+  "title": "Farm 自动化接口配置",
   "description": "自动化接口文档(/api-docs-automation.html 与 /api/openapi-automation.json)中展示的接口清单。支持按路径精确匹配、方法限定(如 GET /api/devices)或通配前缀匹配(如 /api/v1/actions/*)。",
   "endpoints": [
     "/api/devices",

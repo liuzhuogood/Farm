@@ -10,17 +10,17 @@ import (
 	"path/filepath"
 	"time"
 
-	"mywebscrcpy/internal/automation"
-	"mywebscrcpy/internal/db"
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/inputconfig"
-	"mywebscrcpy/internal/matchingservice"
-	"mywebscrcpy/internal/ocr"
-	"mywebscrcpy/internal/serviceprefs"
-	"mywebscrcpy/internal/servicepython"
-	"mywebscrcpy/internal/visionframes"
-	"mywebscrcpy/internal/template"
-	"mywebscrcpy/internal/ws"
+	"farm/internal/automation"
+	"farm/internal/db"
+	"farm/internal/dependencies"
+	"farm/internal/inputconfig"
+	"farm/internal/matchingservice"
+	"farm/internal/ocr"
+	"farm/internal/serviceprefs"
+	"farm/internal/servicepython"
+	"farm/internal/template"
+	"farm/internal/visionframes"
+	"farm/internal/ws"
 )
 
 type auxiliaryServices struct {
@@ -37,7 +37,7 @@ func configureAuxiliaryServices(dataDir string, database *db.DB, hub *ws.Hub, mu
 	templateStorage, err := template.NewStorage("")
 	if err != nil {
 		log.Printf("警告: 初始化模板存储失败: %v，尝试回退到临时目录", err)
-		fallbackDir := filepath.Join(os.TempDir(), "mywebscrcpy-templates")
+		fallbackDir := filepath.Join(os.TempDir(), "farm-templates")
 		templateStorage, err = template.NewStorage(fallbackDir)
 		if err != nil {
 			log.Fatalf("致命错误: 模板存储完全无法初始化: %v", err)

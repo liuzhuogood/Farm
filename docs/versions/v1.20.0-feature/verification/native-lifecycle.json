@@ -1,7 +1,7 @@
 {
   "close_hides": true,
   "restore_visible": true,
-  "title": "MyWebScrcpy - 依赖管理",
+  "title": "Farm - 依赖管理",
   "mounted": true,
   "video_decoder": true,
   "audio_decoder": true,

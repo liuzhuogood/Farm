@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"mywebscrcpy/internal/dependencies"
+	"farm/internal/dependencies"
 )
 
 // Discovery owns at most one scan and one QR session. Polling leases prevent

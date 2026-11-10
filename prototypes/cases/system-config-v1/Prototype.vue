@@ -18,7 +18,7 @@ const devices = [
   <div class="min-h-[65vh] overflow-hidden rounded-xl border bg-background shadow-sm">
     <header class="flex h-14 items-center gap-3 border-b px-4">
       <Smartphone class="size-6 shrink-0 text-primary" />
-      <span class="min-w-0 truncate text-base font-semibold">MyWebScrcpy</span>
+      <span class="min-w-0 truncate text-base font-semibold">Farm</span>
       <span class="hidden text-xs text-muted-foreground sm:inline">v1.19.5</span>
       <div class="ml-auto flex shrink-0 items-center gap-1">
         <Button variant="ghost" size="sm" class="hidden sm:inline-flex" disabled><FileCode2 class="size-4" />脚本与任务</Button>

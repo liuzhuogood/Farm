@@ -2,7 +2,7 @@
 
 ## 背景
 
-设备能力由 MyWebScrcpy 提供，AI 对话、编排与执行沿用外部工具。用户需要从应用内找到接入方式，并获取常用 APP 的自动化技能。
+设备能力由 Farm 提供，AI 对话、编排与执行沿用外部工具。用户需要从应用内找到接入方式，并获取常用 APP 的自动化技能。
 
 ## 目标与范围
 
@@ -147,4 +147,4 @@ flowchart TD
 ![390px 小屏完整页面](prototypes/ai-integration-v126-formal-mobile.png)
 ![小屏空选择禁用](prototypes/ai-integration-v126-formal-empty-install.jpg)
 
-本地隔离预览会话记录在 `/tmp/mywebscrcpy-ai-implementation-20261016/browser-session.json`，包含实际 URL、临时 home 和进程记录；预览不替代主服务部署，原公网原型仍单独保留。
+本地隔离预览会话记录在 `/tmp/farm-ai-implementation-20261016/browser-session.json`，包含实际 URL、临时 home 和进程记录；预览不替代主服务部署，原公网原型仍单独保留。

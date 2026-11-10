@@ -9,11 +9,11 @@
 ### 验证证据
 - **Git Commit**: `5c61f39` (`fix(ocr): 修复 Windows CI 下 OCR 测试夹具并发布 v1.25.1`)
 - **Git Tag**: `v1.25.1`
-- **Build and Release**: [Run 38772002243](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/38772002243) (10/10 Jobs 全部 Success)
-- **Publish Python SDK**: [Run 38771975375](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/38771975375) / [Run 38772001467](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/38772001467)
-- **GitHub Release**: [v1.25.1](https://github.com/liuzhuogood/MyWebScrcpy/releases/tag/v1.25.1) (非草稿，含 9 个多平台二进制程序及 `desktop-latest.json`)
+- **Build and Release**: [Run 38772002243](https://github.com/liuzhuogood/Farm/actions/runs/38772002243) (10/10 Jobs 全部 Success)
+- **Publish Python SDK**: [Run 38771975375](https://github.com/liuzhuogood/Farm/actions/runs/38771975375) / [Run 38772001467](https://github.com/liuzhuogood/Farm/actions/runs/38772001467)
+- **GitHub Release**: [v1.25.1](https://github.com/liuzhuogood/Farm/releases/tag/v1.25.1) (非草稿，含 9 个多平台二进制程序及 `desktop-latest.json`)
 - **Docker Hub**: 多架构镜像 `v1.25.1` 成功构建并推送
-- **PyPI**: `mywebscrcpy-sdk 1.25.1` 成功发布并完成干净环境安装校验
+- **PyPI**: `farm-sdk 1.25.1` 成功发布并完成干净环境安装校验
 
 ### 范围与保护
 - 严格隔离未提交的 OCR/服务配置新改动，未将其带入发布。

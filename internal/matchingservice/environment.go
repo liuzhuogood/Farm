@@ -3,9 +3,9 @@ package matchingservice
 import (
 	"context"
 	"encoding/json"
+	"farm/internal/dependencies"
+	pythonsdk "farm/packages/python-sdk"
 	"fmt"
-	"mywebscrcpy/internal/dependencies"
-	pythonsdk "mywebscrcpy/packages/python-sdk"
 	"os"
 	"os/exec"
 	"strings"
@@ -30,15 +30,15 @@ const probeScript = `import importlib,json,sys
 items=[]
 from importlib.metadata import version
 try:
-    from mywebscrcpy import Client, Device, Matcher, FrameTimeout
-    from mywebscrcpy.dependencies import vision_dependencies
-    v = version("mywebscrcpy-sdk")
+    from farm import Client, Device, Matcher, FrameTimeout
+    from farm.dependencies import vision_dependencies
+    v = version("farm-sdk")
     req = sys.argv[1]
     if v != req and v.replace(".post", "-") != req and req.replace(".post", "-") != v:
         raise RuntimeError("SDK 版本不符，需要 " + sys.argv[1])
-    items.append(dict(name="mywebscrcpy-sdk",available=True,error=""))
+    items.append(dict(name="farm-sdk",available=True,error=""))
 except Exception as e:
-    items.append(dict(name="mywebscrcpy-sdk",available=False,error=type(e).__name__+": "+str(e)))
+    items.append(dict(name="farm-sdk",available=False,error=type(e).__name__+": "+str(e)))
 for name in ('httpx','websocket','av','cv2','numpy'):
     try:
         importlib.import_module(name)
@@ -75,7 +75,7 @@ func inspectPython(ctx context.Context, path string) Environment {
 		result.Ready = false
 		return result
 	}
-	for i, name := range []string{"mywebscrcpy-sdk", "httpx", "websocket", "av", "cv2", "numpy"} {
+	for i, name := range []string{"farm-sdk", "httpx", "websocket", "av", "cv2", "numpy"} {
 		if result.Dependencies[i].Name != name || !result.Dependencies[i].Available {
 			result.Ready = false
 		}

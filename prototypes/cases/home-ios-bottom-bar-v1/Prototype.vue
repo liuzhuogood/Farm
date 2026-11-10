@@ -248,7 +248,7 @@ function toggleDarkMode() {
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-sm font-bold tracking-tight text-slate-900 dark:text-white">MyWebScrcpy</h1>
+            <h1 class="text-sm font-bold tracking-tight text-slate-900 dark:text-white">Farm</h1>
             <span class="rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">
               iOS 悬浮底栏原型
             </span>

@@ -93,7 +93,7 @@ func SaveConfig(cfg Config) error {
 
 // ResolvePort 解析桌面服务应该监听的端口，优先级：
 // 1. 显式传参 explicit (若非空且包含有效端口)
-// 2. 环境变量 MYWEBSCRCPY_DESKTOP_PORT
+// 2. 环境变量 FARM_DESKTOP_PORT
 // 3. 环境变量 PORT
 // 4. 配置文件 desktop.json 中的 port
 // 5. 默认值 DefaultPort (1989)
@@ -120,9 +120,9 @@ func ResolvePort(explicit string) int {
 	return DefaultPort
 }
 
-// ResolveEnvPort 检查环境变量 MYWEBSCRCPY_DESKTOP_PORT 和 PORT
+// ResolveEnvPort 检查环境变量 FARM_DESKTOP_PORT 和 PORT
 func ResolveEnvPort() (int, bool) {
-	for _, envKey := range []string{"MYWEBSCRCPY_DESKTOP_PORT", "PORT"} {
+	for _, envKey := range []string{"FARM_DESKTOP_PORT", "PORT"} {
 		if val := strings.TrimSpace(os.Getenv(envKey)); val != "" {
 			if p, err := strconv.Atoi(val); err == nil && ValidatePort(p) == nil {
 				return p, true

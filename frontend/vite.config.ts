@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-const backendURL = process.env.MYWEBSCRCPY_BACKEND_URL ?? 'http://localhost:8080'
+const backendURL = process.env.FARM_BACKEND_URL ?? 'http://localhost:8080'
 
 // https://vite.dev/config/
 export default defineConfig({

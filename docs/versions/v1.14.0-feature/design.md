@@ -14,7 +14,7 @@
 ### 2.1 数据库选型
 采用纯 Go 实现的 SQLite 驱动 `modernc.org/sqlite`：
 - **优势**：不依赖 CGO，无需本地 C 编译器，能够完全保留当前项目的跨平台无依赖交叉编译能力（Linux amd64/arm64, Windows, macOS）。
-- **文件位置**：默认位于 `data/mywebscrcpy.db`，跟随应用数据目录。
+- **文件位置**：默认位于 `data/farm.db`，跟随应用数据目录。
 
 ### 2.2 数据模型 (Table: `devices`)
 ```sql

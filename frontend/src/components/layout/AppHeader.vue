@@ -201,7 +201,7 @@ onMounted(() => {
             </RouterLink>
           </Button>
 
-          <!-- 首页默认品牌 Logo + MyWebScrcpy -->
+          <!-- 首页默认品牌 Logo + Farm -->
           <template v-if="shouldShowLogo">
             <RouterLink to="/" class="flex min-w-0 items-center gap-2 group">
               <img
@@ -216,7 +216,7 @@ onMounted(() => {
                 class="truncate font-bold tracking-tight text-slate-900 dark:text-white"
                 :class="isMacDesktop ? 'text-sm' : 'text-base'"
               >
-                MyWebScrcpy
+                Farm
               </span>
             </RouterLink>
 
@@ -308,7 +308,7 @@ onMounted(() => {
             class="h-8 rounded-xl text-slate-700 hover:text-slate-950 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10 text-xs font-medium px-2.5 gap-1.5 transition-colors cursor-pointer"
             as-child
           >
-            <a href="https://github.com/liuzhuogood/MyWebScrcpy" target="_blank" rel="noopener noreferrer" aria-label="在 GitHub 查看项目">
+            <a href="https://github.com/liuzhuogood/Farm" target="_blank" rel="noopener noreferrer" aria-label="在 GitHub 查看项目">
               <Github class="h-4 w-4" />
               GitHub
             </a>
@@ -373,7 +373,7 @@ onMounted(() => {
               <RouterLink to="/ai-integration"><Bot class="h-4 w-4" />AI 集成<Badge v-if="glass" variant="secondary" class="h-4 rounded-full px-1.5 text-[10px]">暂未实现</Badge></RouterLink>
             </DropdownMenuItem>
             <DropdownMenuItem as-child>
-              <a href="https://github.com/liuzhuogood/MyWebScrcpy" target="_blank" rel="noopener noreferrer"><Github class="h-4 w-4" />GitHub</a>
+              <a href="https://github.com/liuzhuogood/Farm" target="_blank" rel="noopener noreferrer"><Github class="h-4 w-4" />GitHub</a>
             </DropdownMenuItem>
             <DropdownMenuItem as-child>
               <a href="/api-docs-automation.html" target="_blank" rel="noopener">🤖 自动化接口文档</a>

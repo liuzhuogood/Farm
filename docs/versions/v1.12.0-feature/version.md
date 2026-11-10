@@ -6,7 +6,7 @@
 
 ## 已完成内容
 
-1. 将 `MyWebScrcpyNew` 的 Vue 前端并入主仓库 `frontend/`，统一前后端源码与构建入口。
+1. 将 `FarmNew` 的 Vue 前端并入主仓库 `frontend/`，统一前后端源码与构建入口。
 2. 新前端直接替换旧 HTML 页面，入口为 `/`，播放器、大屏和文件管理使用 `/player`、`/dashboard`、`/files`。
 3. 调整 Go 静态资源嵌入与路由，保留现有 API、WebSocket 和 API 文档入口。
 4. GitHub Actions 的标签发布构建已接入前端编译；推送标签触发运行，实际结果以工作流为准。

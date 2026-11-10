@@ -7,11 +7,11 @@ import (
 )
 
 func TestExplicitPathDoesNotFallback(t *testing.T) {
-	t.Setenv("MYWEBSCRCPY_PYTHON", filepath.Join(t.TempDir(), "missing-python"))
+	t.Setenv("FARM_PYTHON", filepath.Join(t.TempDir(), "missing-python"))
 	if _, err := PythonPath(); err == nil {
 		t.Fatal("configured missing executable must not fall back")
 	}
-	t.Setenv("MYWEBSCRCPY_ADB", "relative/adb")
+	t.Setenv("FARM_ADB", "relative/adb")
 	if _, err := ADBPath(); err == nil {
 		t.Fatal("relative executable accepted")
 	}

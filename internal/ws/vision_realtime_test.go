@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"farm/internal/action"
+	"farm/internal/scrcpy"
 	"github.com/gorilla/websocket"
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/scrcpy"
 )
 
 func TestVisionReconnectAfterRotationKeepsBootstrapAndReadOnlyContracts(t *testing.T) {

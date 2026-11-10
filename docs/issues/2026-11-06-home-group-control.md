@@ -131,8 +131,8 @@ flowchart LR
 
 ## 部署与未验证范围
 
-- 目标：`liuzhuo@10.0.0.6`，服务 `mywebscrcpy.service`，程序 `/opt/mywebscrcpy/mywebscrcpy-linux-amd64`；沿用源码版本标识 `v2026.11.5-2`，未创建 Release 或修改版本号。
-- 部署前 SQLite 一致性备份：`/opt/mywebscrcpy/data/mywebscrcpy.db.bak.home-controls-20261107102315`，完整性检查为 `ok`；现有部署脚本另保留程序备份。
+- 目标：`liuzhuo@10.0.0.6`，服务 `farm.service`，程序 `/opt/farm/farm-linux-amd64`；沿用源码版本标识 `v2026.11.5-2`，未创建 Release 或修改版本号。
+- 部署前 SQLite 一致性备份：`/opt/farm/data/farm.db.bak.home-controls-20261107102315`，完整性检查为 `ok`；现有部署脚本另保留程序备份。
 - 已核对远端服务为 `active`，页面 JavaScript 资源与构建产物一致；最终程序 SHA-256：`a6489bc2d8afeb2c270e02a33537d7e530886999597aefcc64966730e80470e3`。
 - 专项未验证：macOS/Windows 原生独立 WebView、HID/ADB 模式群控的真机操作、多设备断网重连、旋转切换及长时间/大规模真机性能。上述自动化检查和三台 Web 真机验收不替代这些专项。
 

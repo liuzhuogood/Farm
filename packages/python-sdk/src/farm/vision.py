@@ -95,7 +95,7 @@ class Vision:
             raise ConnectionError('Vision 连接失败') from error
         except (ValueError, TypeError) as error:
             raise ProtocolError('握手 JSON 不合法') from error
-        self._thread = threading.Thread(target=self._read, name='mywebscrcpy-vision', daemon=True)
+        self._thread = threading.Thread(target=self._read, name='farm-vision', daemon=True)
         self._thread.start()
         logger.info('Vision connected: serial=%s session=%s', serial, self.session_id)
 

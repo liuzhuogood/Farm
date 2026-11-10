@@ -3,9 +3,9 @@ package desktop
 import (
 	"context"
 	"errors"
+	"farm/internal/updater"
 	"io"
 	"log"
-	"mywebscrcpy/internal/updater"
 	"net"
 	"net/http"
 	"os"
@@ -47,7 +47,7 @@ func ServeDesktopWithMaintenance(addr, readyPath string, mux *http.ServeMux, han
 	}
 	defer os.Remove(readyPath)
 	defer os.Remove(EndpointFile)
-	if err = updater.PublishHealth(listener, false, "v"+os.Getenv("MYWEBSCRCPY_DESKTOP_VERSION")); err != nil {
+	if err = updater.PublishHealth(listener, false, "v"+os.Getenv("FARM_DESKTOP_VERSION")); err != nil {
 		return err
 	}
 	server := &http.Server{Handler: handler, ReadHeaderTimeout: 10 * time.Second}

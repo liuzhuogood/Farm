@@ -1,7 +1,7 @@
 package devicestate
 
 import (
-	"mywebscrcpy/internal/uipage"
+	"farm/internal/uipage"
 )
 
 // ScreenshotInfo 本轮截图信息

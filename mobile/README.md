@@ -1,6 +1,6 @@
-# MyWebScrcpy Mobile
+# Farm Mobile
 
-Android and iOS client for connecting to an existing MyWebScrcpy server. The app provides a small native server/device chooser and opens the existing `/player?serial=...` page in a WebView. Video decoding, WebSocket transport, and device control remain in the existing web client and Go server.
+Android and iOS client for connecting to an existing Farm server. The app provides a small native server/device chooser and opens the existing `/player?serial=...` page in a WebView. Video decoding, WebSocket transport, and device control remain in the existing web client and Go server.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ flutter pub get
 flutter run
 ```
 
-Enter the HTTPS base URL of a reachable MyWebScrcpy server, including its port when needed. The app requests `GET /api/devices`, then opens an online device at `/player?serial=<serial>`.
+Enter the HTTPS base URL of a reachable Farm server, including its port when needed. The app requests `GET /api/devices`, then opens an online device at `/player?serial=<serial>`.
 
 The configured server address is stored locally with SharedPreferences. Use HTTPS because the existing web player uses WebCodecs, which is available only in secure contexts (HTTPS or localhost). The app accepts certificate errors only for the configured server host and port, including self-signed certificates. The server currently exposes its device list without an app-specific login flow, so deploy it only on a network boundary you trust.
 

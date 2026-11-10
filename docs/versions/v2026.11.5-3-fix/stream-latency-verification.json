@@ -252,7 +252,7 @@
   },
   "deployment": {
     "target": "https://10.0.0.6:8080",
-    "service": "mywebscrcpy.service",
+    "service": "farm.service",
     "status": "active",
     "binary_sha256": "9f0bdbff534c701c001e101558a22e9bfd04c7e6ede4a3d902a9d60e2a251aa0",
     "sdk_wheel_sha256": "ae1ab1ef79669c2f59cddc88612e8be172f3f2a182a8a48fa215b29f5420da9b",
@@ -261,7 +261,7 @@
       "vision.py": "5ddf8a0e24a824a5e52204ed27264f78e514a8655b98bf9626280225b3dbed1b",
       "watch.py": "e39bff59365057f3777d2daac69c621a396efae7a17bb6333145af3e28738107"
     },
-    "backup": "/opt/mywebscrcpy/backups/perf-20261107124333",
+    "backup": "/opt/farm/backups/perf-20261107124333",
     "sqlite_backup_integrity": "ok",
     "frontend_index_matches_build": true,
     "matching": "running; actual target matching verified",

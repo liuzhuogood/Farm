@@ -2,7 +2,7 @@
 
 ## 背景
 
-MyWebScrcpy 已能通过 Go 启动设备端 scrcpy-server，经 ADB forward 读取 H.264/H.265/AV1 帧，并由浏览器 WebCodecs 解码到 Canvas；浏览器控制消息也能透传到 scrcpy control socket。当前媒体与控制生命周期绑定在单个 `/ws?serial=` 连接中，Python 无法安全订阅帧，检测结果也没有回传前端的通道。
+Farm 已能通过 Go 启动设备端 scrcpy-server，经 ADB forward 读取 H.264/H.265/AV1 帧，并由浏览器 WebCodecs 解码到 Canvas；浏览器控制消息也能透传到 scrcpy control socket。当前媒体与控制生命周期绑定在单个 `/ws?serial=` 连接中，Python 无法安全订阅帧，检测结果也没有回传前端的通道。
 
 ## 目标
 

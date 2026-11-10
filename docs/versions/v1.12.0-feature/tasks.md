@@ -24,7 +24,7 @@
 - ✅ 3.1 已通过 9222 端口 CDP 浏览器完成三项遗留问题的界面尺寸几何测量、拖拽交互、模板 API (200 OK) 及面板切换验证。
 - ⬜ 3.2 完成前端 v0.7 的真机录制/回放/截图/存模板闭环；其他专项验收见 [统一状态总览](../README.md)。
 - ✅ 3.3 重构代码、版本记录和五张 README 截图已提交为 `a7bb1e6` 并推送 main；附注标签 `v1.12.0` 的远端提交指向已核对一致。
-- ✅ 3.4 标签触发的 [GitHub Actions](https://github.com/liuzhuogood/MyWebScrcpy/actions/runs/37914234053) 全部成功；五个平台构建、Release 与 Docker 发布均通过，[v1.12.0 Release](https://github.com/liuzhuogood/MyWebScrcpy/releases/tag/v1.12.0) 已包含五个程序文件。
+- ✅ 3.4 标签触发的 [GitHub Actions](https://github.com/liuzhuogood/Farm/actions/runs/37914234053) 全部成功；五个平台构建、Release 与 Docker 发布均通过，[v1.12.0 Release](https://github.com/liuzhuogood/Farm/releases/tag/v1.12.0) 已包含五个程序文件。
 
 ## 4. 延期需求
 

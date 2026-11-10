@@ -34,7 +34,7 @@ const isConfigOpen = ref(false)
 // 投屏小窗按需加载，避免首页首屏加载完整投屏器代码
 const FloatingPlayer = defineAsyncComponent(() => import('@/components/player/FloatingPlayer.vue'))
 
-const VIEW_MODE_KEY = 'mywebscrcpy.view_mode'
+const VIEW_MODE_KEY = 'farm.view_mode'
 const viewMode = ref<ViewMode>(normalizeHomeViewMode(localStorage.getItem(VIEW_MODE_KEY)))
 
 function setViewMode(mode: ViewMode) {

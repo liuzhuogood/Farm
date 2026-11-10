@@ -2,7 +2,7 @@
 
 ## 背景
 
-MyWebScrcpy 目前的能力聚焦在设备投屏与控制（`index.html` 设备列表、`player.html` 单设备播放器、`dashboard.html` 大屏）。后端是 Go 单体程序（`main.go`），通过标准库 `net/http` 暴露若干 `/api/*` 接口并内嵌 `web/` 静态资源；项目无数据库，少量用户态数据（如设备别名）仅存在浏览器 localStorage。
+Farm 目前的能力聚焦在设备投屏与控制（`index.html` 设备列表、`player.html` 单设备播放器、`dashboard.html` 大屏）。后端是 Go 单体程序（`main.go`），通过标准库 `net/http` 暴露若干 `/api/*` 接口并内嵌 `web/` 静态资源；项目无数据库，少量用户态数据（如设备别名）仅存在浏览器 localStorage。
 
 用户希望新增「脚本管理」能力：把可复用的 Python 脚本按分类组织起来，支持在 Web 界面新增、编辑、删除脚本。本期为后续两个方向铺路——**脚本执行**（在服务端用 python3 跑脚本，可向设备发 adb 指令）和 **AI 生成脚本**。
 

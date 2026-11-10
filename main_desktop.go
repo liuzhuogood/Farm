@@ -1,11 +1,11 @@
 package main
 
 import (
+	"farm/internal/dependencies"
+	"farm/internal/desktop"
 	"flag"
 	"fmt"
 	"log"
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/desktop"
 	"os"
 )
 

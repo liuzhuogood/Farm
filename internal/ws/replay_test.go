@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/action"
+	"farm/internal/scrcpy"
 )
 
 // Real 64x64 baseline H.264 NALUs captured from libx264 (ultrafast).

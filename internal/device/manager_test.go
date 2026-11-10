@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"mywebscrcpy/internal/db"
+	"farm/internal/db"
 )
 
 func TestParseDevices(t *testing.T) {

@@ -14,10 +14,10 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/ocr"
-	"mywebscrcpy/internal/uipage"
-	"mywebscrcpy/internal/vision"
-	"mywebscrcpy/internal/visionframes"
+	"farm/internal/ocr"
+	"farm/internal/uipage"
+	"farm/internal/vision"
+	"farm/internal/visionframes"
 )
 
 func TestCollectStateWithoutUIDump(t *testing.T) {
@@ -237,4 +237,3 @@ func TestCollectStateSkipOCR(t *testing.T) {
 		t.Fatalf("expected ocr source status to be skipped, got: %+v", state.Sources["ocr"])
 	}
 }
-

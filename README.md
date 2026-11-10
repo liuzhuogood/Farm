@@ -1,6 +1,6 @@
-# MyWebScrcpy
+# Farm
 
-一个基于 Go 和 WebCodecs 的开源 Android 设备投屏与控制工具。通过浏览器即可实时查看设备画面、执行触控和键盘操作，并管理设备的共享存储。访问端无需安装专用应用，Android 设备通过 ADB 连接到运行 MyWebScrcpy 的主机后即可使用。
+一个基于 Go 和 WebCodecs 的开源 Android 设备投屏与控制工具。通过浏览器即可实时查看设备画面、执行触控和键盘操作，并管理设备的共享存储。访问端无需安装专用应用，Android 设备通过 ADB 连接到运行 Farm 的主机后即可使用。
 
 也可使用桌面客户端，支持独立投屏小窗、**窗口置顶、窗口透明度调节和鼠标穿透**，方便在使用其他应用时持续查看设备画面。
 
@@ -107,14 +107,14 @@ Vision 接口当前支持协议版本 `1`。显式发送未知版本会收到
 
 ```bash
 # 克隆项目
-git clone https://github.com/liuzhuogood/MyWebScrcpy.git
-cd MyWebScrcpy
+git clone https://github.com/liuzhuogood/Farm.git
+cd Farm
 
 # 构建（需要 Python 3.9+、Node.js 24 和 pnpm 11.7.0）
 bash scripts/build.sh
 
 # 运行
-./mywebscrcpy
+./farm
 ```
 
 浏览器打开 `http://localhost:8080`，点击设备即可投屏。
@@ -125,7 +125,7 @@ bash scripts/build.sh
 
 ### 桌面客户端
 
-桌面客户端基于 Tauri，复用现有 Vue/Go，提供独立投屏小窗、原生菜单、系统托盘与依赖管理。安装包见 [GitHub Releases](https://github.com/liuzhuogood/MyWebScrcpy/releases)，构建与启动详见 [桌面说明](desktop/README.md)。桌面便携包的 `mywebscrcpy` 默认检测 GUI，`--gui` 强制桌面窗口，`--no-gui` 仅运行服务；Linux 无图形库时使用 Go 入口。
+桌面客户端基于 Tauri，复用现有 Vue/Go，提供独立投屏小窗、原生菜单、系统托盘与依赖管理。安装包见 [GitHub Releases](https://github.com/liuzhuogood/Farm/releases)，构建与启动详见 [桌面说明](desktop/README.md)。桌面便携包的 `farm` 默认检测 GUI，`--gui` 强制桌面窗口，`--no-gui` 仅运行服务；Linux 无图形库时使用 Go 入口。
 
 #### 窗口置顶、透明度与鼠标穿透
 
@@ -145,10 +145,10 @@ bash scripts/build.sh
 
 #### macOS 首次打开
 
-将 DMG 中的 App 拖到“应用程序”后，若提示“Apple could not verify”，是因为当前版本尚未经过 Apple 公证。确认应用来自本项目 [Release](https://github.com/liuzhuogood/MyWebScrcpy/releases) 并信任它后，在终端执行：
+将 DMG 中的 App 拖到“应用程序”后，若提示“Apple could not verify”，是因为当前版本尚未经过 Apple 公证。确认应用来自本项目 [Release](https://github.com/liuzhuogood/Farm/releases) 并信任它后，在终端执行：
 
 ```bash
-sudo xattr -rd com.apple.quarantine "/Applications/MyWebScrcpy.app"
+sudo xattr -rd com.apple.quarantine "/Applications/Farm.app"
 ```
 
 ### 前端开发
@@ -166,7 +166,7 @@ sudo xattr -rd com.apple.quarantine "/Applications/MyWebScrcpy.app"
 
 默认访问 `http://127.0.0.1:5173/`，后端监听 `127.0.0.1:8080`。首次启动自动安装缺少的前端依赖；后端启动时编译当前 Go 代码，不弹出桌面窗口。进程记录、开发用后端程序及日志位于 `.cache/services/`，运行数据默认沿用项目目录。脚本可从任意目录调用，重复启动不会创建第二份进程，停止时只处理它启动的进程组。端口被其他服务占用时直接报错。
 
-使用 `MYWEBSCRCPY_FRONTEND_PORT` 和 `MYWEBSCRCPY_BACKEND_PORT` 修改端口，前端代理同步指向指定后端；使用 `MYWEBSCRCPY_SERVICE_DIR` 指定进程记录与日志目录，`MYWEBSCRCPY_SERVICE_DATA_DIR` 指定后端运行数据目录。管理同一组服务时须使用同一个 `MYWEBSCRCPY_SERVICE_DIR`。重启沿用已记录的端口和运行数据目录；先停止后重新启动时，需再次传入自定义配置。
+使用 `FARM_FRONTEND_PORT` 和 `FARM_BACKEND_PORT` 修改端口，前端代理同步指向指定后端；使用 `FARM_SERVICE_DIR` 指定进程记录与日志目录，`FARM_SERVICE_DATA_DIR` 指定后端运行数据目录。管理同一组服务时须使用同一个 `FARM_SERVICE_DIR`。重启沿用已记录的端口和运行数据目录；先停止后重新启动时，需再次传入自定义配置。
 
 仍可分别手动启动。在 Go 后端运行后，执行：
 
@@ -180,7 +180,7 @@ pnpm --dir frontend dev
 直接运行 `go build` 不会更新前端产物。跨平台构建示例：
 
 ```bash
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 bash scripts/build.sh -ldflags="-s -w -X main.distributionMode=cli" -o mywebscrcpy-linux-amd64-cli
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 bash scripts/build.sh -ldflags="-s -w -X main.distributionMode=cli" -o farm-linux-amd64-cli
 ```
 
 文件管理从投屏页面“更多”菜单打开，操作对象是当前选定手机的 `/storage/emulated/0` 共享存储。多手机场景下，每个投屏页面都会绑定自己的设备。
@@ -281,23 +281,23 @@ XML 快照来自 Android 的 UI Automator，属于获取瞬间的静态状态，
 
 ```bash
 # 拉取镜像
-docker pull liuzhuogood/mywebscrcpy:latest
+docker pull liuzhuogood/farm:latest
 
 # 运行（需要挂载 ADB 设备）
 docker run -d \
-  --name mywebscrcpy \
+  --name farm \
   --privileged \
   -p 8080:8080 \
   -v /dev/bus/usb:/dev/bus/usb \
-  liuzhuogood/mywebscrcpy:latest
+  liuzhuogood/farm:latest
 
 # 或者使用 host 网络（便于发现网络 ADB 设备）
 docker run -d \
-  --name mywebscrcpy \
+  --name farm \
   --privileged \
   --network host \
   -v /dev/bus/usb:/dev/bus/usb \
-  liuzhuogood/mywebscrcpy:latest
+  liuzhuogood/farm:latest
 ```
 
 浏览器打开 `https://IP:8080`（默认启用 HTTPS），点击设备即可投屏。
@@ -317,7 +317,7 @@ docker run -d \
 | `TLS_CERT` | 自定义 SSL 证书路径 | - |
 | `TLS_KEY` | 自定义 SSL 私钥路径 | - |
 | `FILES_MAX_UPLOAD_BYTES` | 单文件上传上限（字节） | `268435456` |
-| `RECORDINGS_DIR` | MP4 录像目录 | 用户缓存目录下的 `mywebscrcpy/recordings` |
+| `RECORDINGS_DIR` | MP4 录像目录 | 用户缓存目录下的 `farm/recordings` |
 | `RECORDINGS_MAX_BYTES` | 录像目录总配额（字节） | `10737418240` |
 | `RECORDINGS_RETENTION_HOURS` | 完成录像保留时长（小时） | `168` |
 | `ADB_MAX_TIMEOUT_MS` | 单条 ADB 命令最大超时（毫秒） | `600000` |
@@ -332,7 +332,7 @@ WebCodecs API 需要安全上下文（HTTPS 或 localhost）才能工作。如�
 **方式 1：使用内置证书（最简单）**
 
 ```bash
-./mywebscrcpy -https
+./farm -https
 ```
 
 访问 `https://IP:8080`，浏览器会提示证书不受信任，点击「高级」→「继续访问」即可。
@@ -343,7 +343,7 @@ WebCodecs API 需要安全上下文（HTTPS 或 localhost）才能工作。如�
 # 设置环境变量
 export TLS_CERT=/path/to/cert.pem
 export TLS_KEY=/path/to/key.pem
-./mywebscrcpy
+./farm
 ```
 
 **方式 3：Nginx 反向代理（推荐生产环境）**
@@ -386,7 +386,7 @@ server {
 ## 项目结构
 
 ```
-MyWebScrcpy/
+Farm/
 ├── main.go                    # 入口，HTTP 服务
 ├── frontend/                  # Vue 3、TypeScript 前端源码和版本记录
 ├── assets/

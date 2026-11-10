@@ -2,8 +2,8 @@
 
 ## 背景
 
-- 老项目 `MyWebScrcpy`：Go 后端 + 原生 JS 前端（`web/`：`index / player / dashboard / files / scripts / api-docs` + 19 个 JS 模块），最新版本 `v1.10.0-feature`。
-- 新项目 `MyWebScrcpyNew`：只做前端，Vue3 + Vite + TS + Tailwind v4 + shadcn-vue，后端继续沿用老 Go 服务（Vite 代理 `/api -> localhost:8080`）。
+- 老项目 `Farm`：Go 后端 + 原生 JS 前端（`web/`：`index / player / dashboard / files / scripts / api-docs` + 19 个 JS 模块），最新版本 `v1.10.0-feature`。
+- 新项目 `FarmNew`：只做前端，Vue3 + Vite + TS + Tailwind v4 + shadcn-vue，后端继续沿用老 Go 服务（Vite 代理 `/api -> localhost:8080`）。
 - 本版本已完成：框架骨架 + 首页（设备列表）。
 
 ## 目标与非目标
@@ -18,7 +18,7 @@
 - 不改后端接口与协议。
 - 不在本版实现投屏、大屏、文件等后续页面。
 
-## 老前端功能盘点（`MyWebScrcpy/web/`）
+## 老前端功能盘点（`Farm/web/`）
 
 | # | 老页面/模块 | 说明 | 拟迁入版本 |
 |---|-------------|------|-----------|

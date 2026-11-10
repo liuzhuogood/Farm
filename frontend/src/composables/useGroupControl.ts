@@ -312,7 +312,7 @@ function publishState() {
 
 function ensureBus() {
   if (bus || typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') return
-  bus = new BroadcastChannel('mywebscrcpy.group-control.v1')
+  bus = new BroadcastChannel('farm.group-control.v1')
   bus.onmessage = ({ data }) => {
     if (!data || typeof data !== 'object') return
     if (data.type === 'request-state') {

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.mywebscrcpy.mobile"
+    namespace = "com.farm.mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +16,7 @@ android {
     kotlinOptions { jvmTarget = JavaVersion.VERSION_17.toString() }
 
     defaultConfig {
-        applicationId = "com.mywebscrcpy.mobile"
+        applicationId = "com.farm.mobile"
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -24,23 +24,23 @@ function save(value: DependencyPaths) { paths.value = value; saved.value = true 
   <div class="space-y-3">
     <div class="flex h-9 justify-end rounded-md border bg-muted/40 px-2">
       <DropdownMenu>
-        <DropdownMenuTrigger as-child><Button variant="ghost" size="icon" aria-label="MyWebScrcpy 托盘菜单"><Monitor class="size-4" /></Button></DropdownMenuTrigger>
+        <DropdownMenuTrigger as-child><Button variant="ghost" size="icon" aria-label="Farm 托盘菜单"><Monitor class="size-4" /></Button></DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem @select="visible = true">打开主窗口</DropdownMenuItem>
           <DropdownMenuItem v-for="item in ['设备列表', '大屏监控', '脚本与任务', '依赖管理']" :key="item" @select="navigate(item)">{{ item }}</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem @select="visible = false">退出 MyWebScrcpy</DropdownMenuItem>
+          <DropdownMenuItem @select="visible = false">退出 Farm</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
     <div v-if="visible" class="overflow-hidden rounded-lg border bg-background shadow-sm">
       <div class="flex h-11 items-center gap-1 border-b px-2">
         <DropdownMenu>
-          <DropdownMenuTrigger as-child><Button size="sm" variant="ghost">MyWebScrcpy</Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger as-child><Button size="sm" variant="ghost">Farm</Button></DropdownMenuTrigger>
           <DropdownMenuContent align="start">
             <DropdownMenuItem @select="navigate('依赖管理')">依赖管理</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem @select="visible = false">退出 MyWebScrcpy</DropdownMenuItem>
+            <DropdownMenuItem @select="visible = false">退出 Farm</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <DropdownMenu>

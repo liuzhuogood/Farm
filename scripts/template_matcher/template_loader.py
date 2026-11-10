@@ -87,7 +87,7 @@ class TemplateLoader:
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
 
-        req = urllib.request.Request(list_url, headers={"User-Agent": "MyWebScrcpy-TemplateMatcher/1.0"})
+        req = urllib.request.Request(list_url, headers={"User-Agent": "Farm-TemplateMatcher/1.0"})
         with urllib.request.urlopen(req, context=ctx, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
 
@@ -124,7 +124,7 @@ class TemplateLoader:
             # 从接口下载图片二进制
             img_url = f"{http_base}/api/templates/{urllib.parse.quote(tmpl_id)}/image"
             try:
-                img_req = urllib.request.Request(img_url, headers={"User-Agent": "MyWebScrcpy-TemplateMatcher/1.0"})
+                img_req = urllib.request.Request(img_url, headers={"User-Agent": "Farm-TemplateMatcher/1.0"})
                 with urllib.request.urlopen(img_req, context=ctx, timeout=10) as img_resp:
                     img_bytes = img_resp.read()
 

@@ -175,7 +175,7 @@ fn main() {
  let popup_app=app.handle().clone();
             let popup_origin = url.clone();
             let mut builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(local_origin))
-                .title("MyWebScrcpy").inner_size(1280.0, 820.0)
+                .title("Farm").inner_size(1280.0, 820.0)
                 .transparent(true);
 
             #[cfg(target_os = "macos")]
@@ -195,7 +195,7 @@ fn main() {
                     }
                     tauri::webview::NewWindowResponse::Deny
                 })
-                .initialization_script(format!("Object.defineProperty(window,'__MYWEBSCRCPY_DESKTOP_TOKEN__',{{value:{token}}});"))
+                .initialization_script(format!("Object.defineProperty(window,'__FARM_DESKTOP_TOKEN__',{{value:{token}}});"))
                 .initialization_script(links::CLICK_SCRIPT)
                 .on_navigation(move |destination| {
                     if destination.as_str().starts_with(&(url.clone()+"/")) {return true;}

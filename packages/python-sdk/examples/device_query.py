@@ -1,16 +1,16 @@
 import argparse
 import os
-from mywebscrcpy import Client
+from farm import Client
 
 
 def main():
     parser = argparse.ArgumentParser(description="查询设备型号")
     parser.add_argument("serial", help="ADB 设备序列号")
-    parser.add_argument("--base-url", default=os.environ.get("MYWEBSCRCPY_API_URL", ""))
-    parser.add_argument("--token", default=os.environ.get("MYWEBSCRCPY_API_TOKEN", ""))
+    parser.add_argument("--base-url", default=os.environ.get("FARM_API_URL", ""))
+    parser.add_argument("--token", default=os.environ.get("FARM_API_TOKEN", ""))
     options = parser.parse_args()
     if not options.base_url:
-        raise SystemExit("请通过 --base-url 指定 MyWebScrcpy 服务地址")
+        raise SystemExit("请通过 --base-url 指定 Farm 服务地址")
     headers = {}
     if options.token:
         headers["Authorization"] = "Bearer " + options.token

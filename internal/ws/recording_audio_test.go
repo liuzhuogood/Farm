@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 func TestMP4RecordingMuxerWritesAACTrack(t *testing.T) {

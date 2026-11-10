@@ -9,19 +9,19 @@ import { fileURLToPath } from 'node:url'
 const script = readFileSync(fileURLToPath(new URL('./sync-version.mjs', import.meta.url)), 'utf8')
 for (const newline of ['\n', '\r\n']) {
   test(`version synchronization preserves ${newline === '\n' ? 'LF' : 'CRLF'}`, t => {
-    const root = mkdtempSync(path.join(os.tmpdir(), 'mywebscrcpy-version-'))
+    const root = mkdtempSync(path.join(os.tmpdir(), 'farm-version-'))
     t.after(() => rmSync(root, { recursive: true, force: true }))
     const files = {
       VERSION: 'v1.20.0\n',
       'scripts/sync-version.mjs': script,
       'frontend/package.json': '{\n  "version": "1.20.0"\n}\n',
       'desktop/package.json': '{\n  "version": "1.20.0"\n}\n',
-      'desktop/Cargo.toml': '[package]\nname = "mywebscrcpy-gui"\nversion = "1.20.0"\n',
-      'desktop/Cargo.lock': '[[package]]\nname = "mywebscrcpy-gui"\nversion = "1.20.0"\n',
+      'desktop/Cargo.toml': '[package]\nname = "farm-gui"\nversion = "1.20.0"\n',
+      'desktop/Cargo.lock': '[[package]]\nname = "farm-gui"\nversion = "1.20.0"\n',
       'desktop/tauri.conf.json': JSON.stringify({ version: '1.20.0', plugins: { updater: { pubkey: 'test-public-key' } } }, null, 2) + '\n',
       'desktop/updater.pub': 'test-public-key\n',
-      'packages/python-sdk/pyproject.toml': '[project]\nname = "mywebscrcpy-sdk"\nversion = "1.20.0"\n',
-      'packages/python-sdk/src/mywebscrcpy/__init__.py': '__version__ = "1.20.0"\n',
+      'packages/python-sdk/pyproject.toml': '[project]\nname = "farm-sdk"\nversion = "1.20.0"\n',
+      'packages/python-sdk/src/farm/__init__.py': '__version__ = "1.20.0"\n',
       'packages/python-sdk/version.go': 'package pythonsdk\nconst Version = "1.20.0"\n',
     }
     for (const [file, contents] of Object.entries(files)) {
@@ -36,7 +36,7 @@ for (const newline of ['\n', '\r\n']) {
     const updated = run()
     assert.equal(updated.status, 0, updated.stderr)
     assert.equal(run('--check').status, 0, 'all package and desktop versions must be updated')
-    for (const file of ['frontend/package.json', 'desktop/package.json', 'desktop/Cargo.toml', 'desktop/Cargo.lock', 'desktop/tauri.conf.json', 'packages/python-sdk/pyproject.toml', 'packages/python-sdk/src/mywebscrcpy/__init__.py', 'packages/python-sdk/version.go']) {
+    for (const file of ['frontend/package.json', 'desktop/package.json', 'desktop/Cargo.toml', 'desktop/Cargo.lock', 'desktop/tauri.conf.json', 'packages/python-sdk/pyproject.toml', 'packages/python-sdk/src/farm/__init__.py', 'packages/python-sdk/version.go']) {
       const contents = readFileSync(path.join(root, file), 'utf8')
       assert.ok(contents.includes('1.20.1'), file)
       if (newline === '\r\n') assert.ok(!/(?<!\r)\n/.test(contents), `${file} contains bare LF`)

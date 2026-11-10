@@ -1,6 +1,6 @@
 # OCR 并行选项验证
 
-2026-10-18，工作区 `/Users/liuzhuo/.codex/worktrees/ocr-consensus-v1-28/MyWebScrcpy`，分支 `lz/v1.28.0-feature`。本节记录浏览器验收时点，最终 Git 状态见版本会话；未部署。
+2026-10-18，工作区 `/Users/liuzhuo/.codex/worktrees/ocr-consensus-v1-28/Farm`，分支 `lz/v1.28.0-feature`。本节记录浏览器验收时点，最终 Git 状态见版本会话；未部署。
 
 ## 正式改动
 

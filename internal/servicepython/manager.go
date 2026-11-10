@@ -17,11 +17,11 @@ import (
 	"sync"
 	"time"
 
+	"farm/internal/dependencies"
+	indraocrserver "farm/packages/indraocr-server"
+	paddleocrserver "farm/packages/paddleocr-server"
+	pythonsdk "farm/packages/python-sdk"
 	"github.com/gofrs/flock"
-	"mywebscrcpy/internal/dependencies"
-	indraocrserver "mywebscrcpy/packages/indraocr-server"
-	paddleocrserver "mywebscrcpy/packages/paddleocr-server"
-	pythonsdk "mywebscrcpy/packages/python-sdk"
 )
 
 //go:embed probe.py
@@ -45,7 +45,7 @@ func requirements(profile string) ([]string, error) {
 	items := []string{"packaging>=24"}
 	switch profile {
 	case Matching:
-		return append(items, "mywebscrcpy-sdk[vision]=="+pythonsdk.Version), nil
+		return append(items, "farm-sdk[vision]=="+pythonsdk.Version), nil
 	case PaddleOCR, IndraOCR:
 		content := paddleocrserver.Requirements
 		if profile == IndraOCR {
@@ -165,16 +165,13 @@ func (m *Manager) Prepare(ctx context.Context, profile string, stage func(string
 		notify("installing")
 		log.Printf("[ServicePython] 安装或升级依赖 service=%s reason=%v", profile, err)
 		items, _ := requirements(profile)
-		// Source checkouts can install the exact local SDK before its PyPI release.
 		if profile == Matching {
-			local := filepath.Join(m.dataDir, "packages", "python-sdk")
-			if info, err := os.Stat(filepath.Join(local, "pyproject.toml")); err == nil && !info.IsDir() {
-				absolute, err := filepath.Abs(local)
-				if err != nil {
-					return "", nil, err
-				}
-				items[len(items)-1] = absolute + "[vision]"
+			local, cleanup, err := pythonsdk.ExtractSource()
+			if err != nil {
+				return "", nil, err
 			}
+			defer cleanup()
+			items[len(items)-1] = local + "[vision]"
 		}
 		args := append([]string{"-m", "pip", "install", "--disable-pip-version-check", "--no-input", "--upgrade", "--upgrade-strategy", "only-if-needed"}, items...)
 		if _, err := m.run(ctx, python, args...); err != nil {

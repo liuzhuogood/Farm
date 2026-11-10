@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
       try {
-        const mode = localStorage.getItem('mywebscrcpy-theme') || 'auto';
+        const mode = localStorage.getItem('farm-theme') || 'auto';
         document.documentElement.classList.toggle('dark', mode === 'dark' || mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
       } catch (_) { document.documentElement.classList.toggle('dark', matchMedia('(prefers-color-scheme: dark)').matches); }
     </script>
-    <title>MyWebScrcpy - 设备列表</title>
+    <title>Farm - 设备列表</title>
   </head>
   <body>
     <div id="app"></div>

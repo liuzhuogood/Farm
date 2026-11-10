@@ -228,7 +228,7 @@ func (m *Manager) download(ctx context.Context, id string, spec artifact, path s
 		if e != nil {
 			return e
 		}
-		req.Header.Set("User-Agent", "MyWebScrcpy-dependencies")
+		req.Header.Set("User-Agent", "Farm-dependencies")
 		if start > 0 {
 			req.Header.Set("Range", fmt.Sprintf("bytes=%d-", start))
 		}

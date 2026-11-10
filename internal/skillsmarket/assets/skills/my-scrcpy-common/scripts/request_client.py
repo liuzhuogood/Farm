@@ -53,12 +53,12 @@ class ApiClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.auth_headers: dict[str, str] = {}
-        token = os.environ.get("MYWEBSCRCPY_API_TOKEN", "")
+        token = os.environ.get("FARM_API_TOKEN", "")
         if token:
-            name = os.environ.get("MYWEBSCRCPY_API_TOKEN_HEADER", "")
+            name = os.environ.get("FARM_API_TOKEN_HEADER", "")
             if not name:
-                raise ValueError("配置 Token 时必须指定 MYWEBSCRCPY_API_TOKEN_HEADER")
-            prefix = os.environ.get("MYWEBSCRCPY_API_TOKEN_PREFIX", "")
+                raise ValueError("配置 Token 时必须指定 FARM_API_TOKEN_HEADER")
+            prefix = os.environ.get("FARM_API_TOKEN_PREFIX", "")
             value = f"{prefix} {token}" if prefix else token
             validate_header(name, value)
             self.auth_headers[name] = value
@@ -111,7 +111,7 @@ def read_body(filename: str) -> bytes:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path", help="从当前 OpenAPI 确认的接口路径")
-    parser.add_argument("--base-url", default=os.environ.get("MYWEBSCRCPY_API_URL"))
+    parser.add_argument("--base-url", default=os.environ.get("FARM_API_URL"))
     parser.add_argument("--method", default="GET")
     parser.add_argument("--query", type=key_value, action="append", default=[])
     parser.add_argument("--header", type=key_value, action="append", default=[])
@@ -124,7 +124,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, help="将原始响应体保存到文件")
     options = parser.parse_args()
     if not options.base_url:
-        parser.error("请配置 --base-url 或 MYWEBSCRCPY_API_URL")
+        parser.error("请配置 --base-url 或 FARM_API_URL")
     if options.body_file and not options.content_type:
         parser.error("--body-file 需要 --content-type")
     if options.json_file and options.content_type:

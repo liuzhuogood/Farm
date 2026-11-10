@@ -2,8 +2,8 @@ package device
 
 import (
 	"context"
+	"farm/internal/dependencies"
 	"fmt"
-	"mywebscrcpy/internal/dependencies"
 	"time"
 )
 

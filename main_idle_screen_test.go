@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/dependencies"
+	"farm/internal/dependencies"
 )
 
 func TestDeviceActivityRequestCoverage(t *testing.T) {
@@ -44,7 +44,7 @@ func TestDeviceActivityRequestCoverage(t *testing.T) {
 
 // Opt-in integration: exercise the production sleep command and its real power-state check.
 func TestIdleSleepRealDevices(t *testing.T) {
-	serials := os.Getenv("MYWEBSCRCPY_IDLE_TEST_SERIALS")
+	serials := os.Getenv("FARM_IDLE_TEST_SERIALS")
 	if serials == "" {
 		t.Skip("real-device test is opt-in")
 	}

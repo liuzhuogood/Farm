@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"mywebscrcpy/internal/apidocs"
-	"mywebscrcpy/internal/skillsmarket"
+	"farm/internal/apidocs"
+	"farm/internal/skillsmarket"
 )
 
 var automationAPIsManager *apidocs.Manager

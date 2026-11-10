@@ -1,7 +1,7 @@
 package ws
 
 import (
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 	"testing"
 )
 

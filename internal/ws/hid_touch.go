@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"mywebscrcpy/internal/scrcpy"
+	"farm/internal/scrcpy"
 )
 
 // hid_touch.go — HID 模式触摸注入。

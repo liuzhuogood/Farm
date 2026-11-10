@@ -1,6 +1,6 @@
 ---
 name: project-services
-description: 使用 scripts/services.sh 启动、停止、重启 MyWebScrcpy 前后端，或查看服务状态和日志。
+description: 使用 scripts/services.sh 启动、停止、重启 Farm 前后端，或查看服务状态和日志。
 ---
 
 # 项目服务

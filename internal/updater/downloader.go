@@ -144,7 +144,7 @@ func (d *Downloader) DownloadAsset(downloadURL string, totalSize int64, destPath
 		d.notify(ProgressInfo{State: StateError, Error: err.Error()})
 		return err
 	}
-	req.Header.Set("User-Agent", "MyWebScrcpy-Updater")
+	req.Header.Set("User-Agent", "Farm-Updater")
 
 	resp, err := d.httpClient.Do(req)
 	if err != nil {

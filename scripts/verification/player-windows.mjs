@@ -7,16 +7,16 @@ import assert from 'node:assert/strict'
 
 const binary = process.argv[2]
 assert.ok(binary, 'Usage: node scripts/verification/player-windows.mjs <native-verify GUI binary>')
-const directory = await mkdtemp(path.join(os.tmpdir(), 'mywebscrcpy-players-'))
+const directory = await mkdtemp(path.join(os.tmpdir(), 'farm-players-'))
 const report = process.argv[3] ? path.resolve(process.argv[3]) : path.join(directory, 'report.json')
 // A previous successful report must never satisfy this run's native watchdog.
 await rm(report, { force: true })
 const child = spawn(path.resolve(binary), [], {
   env: {
     ...process.env,
-    MYWEBSCRCPY_NATIVE_REPORT: report,
-    MYWEBSCRCPY_VERIFY_PLAYERS: '1',
-    MYWEBSCRCPY_DESKTOP_PORT: '21989',
+    FARM_NATIVE_REPORT: report,
+    FARM_VERIFY_PLAYERS: '1',
+    FARM_DESKTOP_PORT: '21989',
   },
   stdio: ['ignore', 'ignore', 'pipe'],
 })
@@ -29,7 +29,7 @@ try {
   const result = JSON.parse(await readFile(report, 'utf8')).player_windows
   for (const key of ['ok', 'settingsRetained', 'mainProtected', 'zeroAndHalfOpacity', 'transparentBody', 'clickThroughIPC', 'rangeGuard', 'independentRecovery', 'reopenRecovery', 'closeReopen', 'menuRecovery', 'borderlessDefault', 'controlsRemoved', 'overlayStable', 'aspectFit', 'toolbarRecovery', 'nativeDecorations'])
     assert.equal(result[key], true, `${key}: ${JSON.stringify(result)}\n${errors}`)
-  if (process.env.MYWEBSCRCPY_VERIFY_HOTKEY) assert.equal(result.globalHotkey, true, JSON.stringify(result))
+  if (process.env.FARM_VERIFY_HOTKEY) assert.equal(result.globalHotkey, true, JSON.stringify(result))
   console.log('PASS: native player IPC, 0%/50% rendering, range guard, main-window guard, independent recovery and reopening')
   console.log(JSON.stringify(result))
 }

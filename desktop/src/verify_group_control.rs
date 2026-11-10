@@ -11,8 +11,8 @@ pub fn start(app: &AppHandle) {
             return;
         };
         let config = serde_json::json!({
-            "source": std::env::var("MYWEBSCRCPY_VERIFY_GROUP_SOURCE").ok(),
-            "target": std::env::var("MYWEBSCRCPY_VERIFY_GROUP_TARGET").ok(),
+            "source": std::env::var("FARM_VERIFY_GROUP_SOURCE").ok(),
+            "target": std::env::var("FARM_VERIFY_GROUP_TARGET").ok(),
         });
         let script = format!(
             "window.__nativeGroupControlConfig = {config};\n{}",
@@ -23,7 +23,7 @@ pub fn start(app: &AppHandle) {
             app.exit(1);
             return;
         }
-        let report = std::env::var("MYWEBSCRCPY_NATIVE_REPORT").unwrap();
+        let report = std::env::var("FARM_NATIVE_REPORT").unwrap();
         for _ in 0..600 {
             for (label, window) in app.webview_windows() {
                 if label.starts_with("player-") {

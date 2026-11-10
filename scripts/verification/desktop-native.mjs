@@ -4,9 +4,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { once } from 'node:events'
 import assert from 'node:assert/strict'
-const directory=await mkdtemp(path.join(os.tmpdir(),'mywebscrcpy-native-test-'))
+const directory=await mkdtemp(path.join(os.tmpdir(),'farm-native-test-'))
 const report=path.join(directory,'report.json')
-const child=spawn(path.resolve('desktop/target/release/mywebscrcpy-gui'),[],{env:{...process.env,MYWEBSCRCPY_NATIVE_REPORT:report},stdio:['ignore','ignore','pipe']})
+const child=spawn(path.resolve('desktop/target/release/farm-gui'),[],{env:{...process.env,FARM_NATIVE_REPORT:report},stdio:['ignore','ignore','pipe']})
 let errors='';child.stderr.on('data',data=>{errors=(errors+data.toString()).slice(-4096)})
 const timer=setTimeout(()=>child.kill(),55000)
 try {

@@ -38,7 +38,7 @@ def get_ocr() -> Any:
     if _ocr is None:
         from paddleocr import PaddleOCR
 
-        profile = os.environ.get("MYWEBSCRCPY_OCR_PROFILE", "default")
+        profile = os.environ.get("FARM_OCR_PROFILE", "default")
         model_options = {"lang": "ch"}
         if profile == "cpu":
             model_options = {

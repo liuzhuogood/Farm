@@ -172,8 +172,8 @@ func checkDirectoryOwnershipAndIntegrity(ctx context.Context, root *os.Root, tar
 	}
 	defer targetRoot.Close()
 
-	// 4. Read .mywebscrcpy-manifest.json safely
-	manifestBytes, err := readRegularFileBounded(targetRoot, ".mywebscrcpy-manifest.json", maxManifestSize)
+	// 4. Read .farm-manifest.json safely
+	manifestBytes, err := readRegularFileBounded(targetRoot, ".farm-manifest.json", maxManifestSize)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return false, "目标目录已存在非本应用创建的文件，已保留原文件", nil
@@ -192,7 +192,7 @@ func checkDirectoryOwnershipAndIntegrity(ctx context.Context, root *os.Root, tar
 		return false, "", fmt.Errorf("获取内置技能文件失败: %w", err)
 	}
 
-	if manifest.ManagedBy != "mywebscrcpy" || manifest.SkillID != string(skillID) {
+	if manifest.ManagedBy != "farm" || manifest.SkillID != string(skillID) {
 		return false, "目标目录所有者或技能标识不匹配，已保留原文件", nil
 	}
 
@@ -272,7 +272,7 @@ func checkDirectoryOwnershipAndIntegrity(ctx context.Context, root *os.Root, tar
 						return fmt.Errorf("发现非普通文件: %s", cleanP)
 					}
 
-					if cleanP == ".mywebscrcpy-manifest.json" {
+					if cleanP == ".farm-manifest.json" {
 						foundFiles[cleanP] = true
 						continue
 					}
@@ -317,8 +317,8 @@ func checkDirectoryOwnershipAndIntegrity(ctx context.Context, root *os.Root, tar
 			return false, fmt.Sprintf("目标目录中清单文件缺失，已保护用户文件: %s", expectedRel), nil
 		}
 	}
-	if !foundFiles[".mywebscrcpy-manifest.json"] {
-		return false, "缺少清单文件: .mywebscrcpy-manifest.json", nil
+	if !foundFiles[".farm-manifest.json"] {
+		return false, "缺少清单文件: .farm-manifest.json", nil
 	}
 
 	// 8. 确认该安装完全未被用户修改。检查是否与当前最新内置版本完全一致：
@@ -617,7 +617,7 @@ func (m *Manager) InstallSkill(ctx context.Context, skillID SkillID, targets []A
 			}
 
 			// Write manifest into stageRel
-			manifestRel := filepath.Join(stageRel, ".mywebscrcpy-manifest.json")
+			manifestRel := filepath.Join(stageRel, ".farm-manifest.json")
 			if err := root.WriteFile(manifestRel, manifestData, 0644); err != nil {
 				return fmt.Errorf("写入清单失败: %w", err)
 			}

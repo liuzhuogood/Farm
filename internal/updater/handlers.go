@@ -105,7 +105,7 @@ func (s *Service) handleUpgrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if receipt := os.Getenv("MYWEBSCRCPY_UPDATE_RECEIPT"); receipt != "" && !fileExists(receipt+".confirmed") {
+	if receipt := os.Getenv("FARM_UPDATE_RECEIPT"); receipt != "" && !fileExists(receipt+".confirmed") {
 		http.Error(w, "新版启动验证尚未完成", http.StatusConflict)
 		return
 	}

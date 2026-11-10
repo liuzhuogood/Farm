@@ -13,7 +13,7 @@ defineEmits<{ install: []; cancel: [] }>()
   <div class="space-y-2 border-t pt-3">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex min-w-0 flex-wrap items-center gap-2">
-        <span class="text-xs font-medium">mywebscrcpy-sdk</span>
+        <span class="text-xs font-medium">farm-sdk</span>
         <Badge variant="outline">{{ runtime?.python?.sdk_version || '未就绪' }}</Badge>
       </div>
       <Button v-if="task?.stage === 'installing'" variant="ghost" size="sm" @click="$emit('cancel')"><Loader2 class="size-3.5 animate-spin" />取消</Button>

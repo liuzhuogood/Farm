@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/db"
+	"farm/internal/action"
+	"farm/internal/db"
 )
 
 func openTestDB(t *testing.T) *db.DB {

@@ -25,4 +25,4 @@
 
 
 环境：
-UV Python:/Users/liuzhuo/code/MyWebScrcpy/.venv
+UV Python:/Users/liuzhuo/code/Farm/.venv

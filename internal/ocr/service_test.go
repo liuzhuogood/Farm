@@ -326,7 +326,7 @@ with socketserver.TCPServer(('127.0.0.1', port), Handler) as httpd:
 		t.Fatal(err)
 	}
 	shim := createMockPythonShim(t, scratch, "python-fixture")
-	t.Setenv("MYWEBSCRCPY_PYTHON", shim)
+	t.Setenv("FARM_PYTHON", shim)
 
 	service := NewService(nil, nil)
 	service.SetPaddlePort(port)
@@ -578,7 +578,7 @@ with socketserver.TCPServer(('127.0.0.1', port), Handler) as httpd:
 	}
 
 	shim := createMockPythonShim(t, scratch, "python-shim")
-	t.Setenv("MYWEBSCRCPY_PYTHON", shim)
+	t.Setenv("FARM_PYTHON", shim)
 
 	service := NewService(nil, nil)
 	service.SetPaddlePort(port)
@@ -627,7 +627,7 @@ func TestStartPaddle_RejectsWhenDependenciesMissing(t *testing.T) {
 	}
 
 	shim := createMockPythonShim(t, scratch, "python-missing")
-	t.Setenv("MYWEBSCRCPY_PYTHON", shim)
+	t.Setenv("FARM_PYTHON", shim)
 
 	service := NewService(nil, nil)
 	service.SetPaddlePort(getFreePort(t))
@@ -663,7 +663,7 @@ func TestStartPaddle_ProcessExitsBeforeReady(t *testing.T) {
 	}
 
 	shim := createMockPythonShim(t, scratch, "python-exit")
-	t.Setenv("MYWEBSCRCPY_PYTHON", shim)
+	t.Setenv("FARM_PYTHON", shim)
 
 	service := NewService(nil, nil)
 	service.SetPaddlePort(getFreePort(t))
@@ -716,7 +716,7 @@ with socketserver.TCPServer(('127.0.0.1', port), Handler) as httpd:
 	}
 
 	shim := createMockPythonShim(t, scratch, "python-timeout-shim")
-	t.Setenv("MYWEBSCRCPY_PYTHON", shim)
+	t.Setenv("FARM_PYTHON", shim)
 
 	service := NewService(nil, nil)
 	service.SetPaddlePort(port)

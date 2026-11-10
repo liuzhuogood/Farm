@@ -5,13 +5,13 @@
 - **时间**：2026-10-17
 - **分支**：`lz/v1.27.1-feature`
 - **基线 Commit**：`c23788794343bee22e08c28d748495b129e5f51f`
-- **工作区**：`/Users/liuzhuo/.codex/worktrees/v1271-task-state/MyWebScrcpy`（隔离 worktree）
+- **工作区**：`/Users/liuzhuo/.codex/worktrees/v1271-task-state/Farm`（隔离 worktree）
 - **实施授权**：仙人模式直接派发，执行全量已批准设计。
 
 ## 关键约束记录
 
 1. 保持独立判断，严格按批准稿执行，执行前复述理解。
-2. 保护主工作区 `/Users/liuzhuo/code/MyWebScrcpy`，不进入不改动。
+2. 保护主工作区 `/Users/liuzhuo/code/Farm`，不进入不改动。
 3. 不提交、不推送、不合并、不打 tag、不发布、不触发部署，不修改全局配置及用户真实环境。
 4. 明确授权删除旧任务注册/上报链路、`TaskReporter` 及旧任务表与数据；保留设备、系统配置、操作日志、模板和用户文件。
 5. 任务目录严格按 `~/.mywebscrcppy/tasks/`，通用技能名称按 `my-scrcpy-common`。

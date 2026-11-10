@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"mywebscrcpy/internal/action"
-	"mywebscrcpy/internal/adbcommand"
-	"mywebscrcpy/internal/devicegate"
+	"farm/internal/action"
+	"farm/internal/adbcommand"
+	"farm/internal/devicegate"
 )
 
 type mockADBManager struct {

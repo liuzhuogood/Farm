@@ -1,4 +1,4 @@
-# MyWebScrcpy
+# Farm
 
 基于 Go + WebCodecs 的浏览器端 Android 投屏工具。无需安装客户端，打开浏览器即可投屏和操控 Android 设备。
 
@@ -17,11 +17,11 @@
 
 ```bash
 docker run -d \
-  --name mywebscrcpy \
+  --name farm \
   --privileged \
   -p 8080:8080 \
   -v /dev/bus/usb:/dev/bus/usb \
-  liuzhuogood/mywebscrcpy:latest
+  liuzhuogood/farm:latest
 ```
 
 浏览器打开 `https://localhost:8080`（默认启用 HTTPS），点击设备即可投屏。
@@ -32,11 +32,11 @@ docker run -d \
 
 ```bash
 docker run -d \
-  --name mywebscrcpy \
+  --name farm \
   --privileged \
   --network host \
   -v /dev/bus/usb:/dev/bus/usb \
-  liuzhuogood/mywebscrcpy:latest
+  liuzhuogood/farm:latest
 ```
 
 ## 命令行参数
@@ -72,8 +72,8 @@ Canvas 渲染             视频编码 + 控制注入
 
 ## 相关链接
 
-- [GitHub 仓库](https://github.com/liuzhuogood/MyWebScrcpy)
-- [完整文档](https://github.com/liuzhuogood/MyWebScrcpy#readme)
+- [GitHub 仓库](https://github.com/liuzhuogood/Farm)
+- [完整文档](https://github.com/liuzhuogood/Farm#readme)
 
 ## License
 
@@ -88,4 +88,4 @@ docker compose pull
 docker compose up -d
 ```
 
-数据库应持久化挂载到 `/app/data`；脚本、模板和录制目录也应按实际使用路径挂载。未挂载的数据会随容器删除而丢失。自定义镜像应保留 `MYWEBSCRCPY_RUNTIME=docker`；若关闭默认 HTTPS，请相应覆盖镜像的健康检查。
+数据库应持久化挂载到 `/app/data`；脚本、模板和录制目录也应按实际使用路径挂载。未挂载的数据会随容器删除而丢失。自定义镜像应保留 `FARM_RUNTIME=docker`；若关闭默认 HTTPS，请相应覆盖镜像的健康检查。

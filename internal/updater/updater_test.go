@@ -36,19 +36,19 @@ func TestCompareVersions(t *testing.T) {
 
 func TestMatchAsset(t *testing.T) {
 	assets := []ReleaseAsset{
-		{Name: "mywebscrcpy-linux-amd64", BrowserDownloadURL: "https://example.com/linux-amd64"},
-		{Name: "mywebscrcpy-linux-arm64", BrowserDownloadURL: "https://example.com/linux-arm64"},
-		{Name: "mywebscrcpy-macos-arm64", BrowserDownloadURL: "https://example.com/macos-arm64"},
-		{Name: "mywebscrcpy-windows-amd64.exe", BrowserDownloadURL: "https://example.com/windows-amd64.exe"},
+		{Name: "farm-linux-amd64", BrowserDownloadURL: "https://example.com/linux-amd64"},
+		{Name: "farm-linux-arm64", BrowserDownloadURL: "https://example.com/linux-arm64"},
+		{Name: "farm-macos-arm64", BrowserDownloadURL: "https://example.com/macos-arm64"},
+		{Name: "farm-windows-amd64.exe", BrowserDownloadURL: "https://example.com/windows-amd64.exe"},
 	}
 
 	matched := MatchAsset(assets, "darwin", "arm64")
-	if matched == nil || matched.Name != "mywebscrcpy-macos-arm64" {
+	if matched == nil || matched.Name != "farm-macos-arm64" {
 		t.Fatalf("expected macos-arm64, got %+v", matched)
 	}
 
 	matchedWin := MatchAsset(assets, "windows", "amd64")
-	if matchedWin == nil || matchedWin.Name != "mywebscrcpy-windows-amd64.exe" {
+	if matchedWin == nil || matchedWin.Name != "farm-windows-amd64.exe" {
 		t.Fatalf("expected windows-amd64.exe, got %+v", matchedWin)
 	}
 }
@@ -61,13 +61,13 @@ func TestMatchAssetPrefersCLIAndRejectsGUI(t *testing.T) {
 		{"darwin", "arm64", "macos-arm64-cli", "macos-arm64"},
 		{"windows", "amd64", "windows-cli-amd64.exe", "windows-amd64.exe"},
 	} {
-		gui := []ReleaseAsset{{Name: "mywebscrcpy-windows-gui-amd64.exe"}, {Name: "mywebscrcpy-v1.20.1-windows-x86_64-gui-setup.exe"}}
+		gui := []ReleaseAsset{{Name: "farm-windows-gui-amd64.exe"}, {Name: "farm-v1.20.1-windows-x86_64-gui-setup.exe"}}
 		if MatchAsset(gui, target.os, target.arch) != nil {
 			t.Fatal("GUI asset selected for CLI")
 		}
-		assets := append(gui, ReleaseAsset{Name: "mywebscrcpy-" + target.legacy}, ReleaseAsset{Name: "mywebscrcpy-" + target.cli})
+		assets := append(gui, ReleaseAsset{Name: "farm-" + target.legacy}, ReleaseAsset{Name: "farm-" + target.cli})
 		matched := MatchAsset(assets, target.os, target.arch)
-		if matched == nil || matched.Name != "mywebscrcpy-"+target.cli {
+		if matched == nil || matched.Name != "farm-"+target.cli {
 			t.Fatalf("%s/%s: expected CLI, got %+v", target.os, target.arch, matched)
 		}
 	}
@@ -87,7 +87,7 @@ func TestDownloaderAndApplier(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	fakeExec := filepath.Join(tempDir, "mywebscrcpy")
+	fakeExec := filepath.Join(tempDir, "farm")
 	if err := os.WriteFile(fakeExec, []byte("fake binary content v1.12.0"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -132,8 +132,8 @@ func TestUpdaterHandlers(t *testing.T) {
 		Body:        "## 自动更新特性发布",
 		PublishedAt: time.Now(),
 		Assets: []ReleaseAsset{
-			{Name: "mywebscrcpy-darwin-arm64", Size: 1024, BrowserDownloadURL: "https://example.com/asset"},
-			{Name: "mywebscrcpy-linux-amd64", Size: 1024, BrowserDownloadURL: "https://example.com/asset-linux"},
+			{Name: "farm-darwin-arm64", Size: 1024, BrowserDownloadURL: "https://example.com/asset"},
+			{Name: "farm-linux-amd64", Size: 1024, BrowserDownloadURL: "https://example.com/asset-linux"},
 		},
 	}
 
@@ -148,7 +148,7 @@ func TestUpdaterHandlers(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	fakeExec := filepath.Join(tempDir, "mywebscrcpy")
+	fakeExec := filepath.Join(tempDir, "farm")
 	_ = os.WriteFile(fakeExec, []byte("bin"), 0755)
 
 	svc := &Service{

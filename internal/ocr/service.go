@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"mywebscrcpy/internal/db"
-	"mywebscrcpy/internal/dependencies"
-	"mywebscrcpy/internal/servicepython"
-	"mywebscrcpy/internal/vision"
-	"mywebscrcpy/internal/ws"
+	"farm/internal/db"
+	"farm/internal/dependencies"
+	"farm/internal/servicepython"
+	"farm/internal/vision"
+	"farm/internal/ws"
 )
 
 const (

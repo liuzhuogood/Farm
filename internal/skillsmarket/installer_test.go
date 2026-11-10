@@ -55,7 +55,7 @@ func TestSkillZipArchiveContentAndStructure(t *testing.T) {
 			if relName == "scripts/request_client.py" {
 				foundRequestClient = true
 			}
-			if relName == ".mywebscrcpy-manifest.json" {
+			if relName == ".farm-manifest.json" {
 				foundManifest = true
 				rc, err := f.Open()
 				if err != nil {
@@ -67,7 +67,7 @@ func TestSkillZipArchiveContentAndStructure(t *testing.T) {
 				if err := json.Unmarshal(content, &m); err != nil {
 					t.Fatalf("invalid manifest in zip: %v", err)
 				}
-				if m.SkillID != string(skillID) || m.ManagedBy != "mywebscrcpy" {
+				if m.SkillID != string(skillID) || m.ManagedBy != "farm" {
 					t.Fatalf("unexpected manifest values: %+v", m)
 				}
 			}

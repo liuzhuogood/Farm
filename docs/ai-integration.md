@@ -4,7 +4,7 @@
 
 ## 概述与边界
 
-MyWebScrcpy 本身专注于提供稳定高效的 Android 设备连接、实时投屏、UI 控件结构分析（UIAutomator XML 与 PageInfo）以及拟人化输入执行能力。AI 对话、多模态视觉理解与流程编排由外部 AI 助手（如 Codex、Claude Code、WorkBuddy）负责。
+Farm 本身专注于提供稳定高效的 Android 设备连接、实时投屏、UI 控件结构分析（UIAutomator XML 与 PageInfo）以及拟人化输入执行能力。AI 对话、多模态视觉理解与流程编排由外部 AI 助手（如 Codex、Claude Code、WorkBuddy）负责。
 
 本模块提供：
 1. **AI 助手接入指引**：覆盖 Codex、Claude Code、WorkBuddy 三种主流 AI 助手，展示接入步骤、任务示例提示词与宿主机上的实际安装目录。
@@ -24,7 +24,7 @@ flowchart TD
 
 ## 支持的 AI 助手与安装契约
 
-> **重要**：所有安装操作的目标均为**运行 MyWebScrcpy 服务的宿主机电脑**，而非远程通过浏览器访问的前端客户端机器。
+> **重要**：所有安装操作的目标均为**运行 Farm 服务的宿主机电脑**，而非远程通过浏览器访问的前端客户端机器。
 
 1. **Codex**
    - 官方契约：`$HOME/.agents/skills/<skill-dir>/SKILL.md`
@@ -42,22 +42,22 @@ flowchart TD
 
 ## 技能包内容与规范
 
-所有技能目录以 `mywebscrcpy-` 为前缀命名，避免与用户已有自定义技能发生重名冲突。每个技能包包含：
+所有技能目录以 `farm-` 为前缀命名，避免与用户已有自定义技能发生重名冲突。每个技能包包含：
 - `SKILL.md`：符合规范的合法 YAML frontmatter（包含 `name` 与 `description`）及针对当前任务的提示词指令。
-- `scripts/request_client.py`：完全独立的通用 HTTP 请求客户端（基于 Python 标准库，无外部三方依赖），用于与当前 MyWebScrcpy 服务的 REST API 交互。
-- `.mywebscrcpy-manifest.json`：由本应用生成的内容完整性校验清单，记录管理权属及各文件的 SHA256 校验和。
+- `scripts/request_client.py`：完全独立的通用 HTTP 请求客户端（基于 Python 标准库，无外部三方依赖），用于与当前 Farm 服务的 REST API 交互。
+- `.farm-manifest.json`：由本应用生成的内容完整性校验清单，记录管理权属及各文件的 SHA256 校验和。
 
 ### 市场收录技能
 
-1. **手机操作基础 (`mywebscrcpy-device-base`)**
+1. **手机操作基础 (`farm-device-base`)**
    - 适配应用：通用设备
    - 能力：屏幕捕获、UI 控件结构分析 (`/api/ui/xml`, `/api/ui/page-info`)、ADB 发送按键与手势输入 (`/api/sendkey`, `/api/adb/commands`)。
 
-2. **快手日常助手 (`mywebscrcpy-kuaishou-daily`)**
+2. **快手日常助手 (`farm-kuaishou-daily`)**
    - 适配应用：快手
    - 能力：快手推荐流自动滑动浏览、页面状态识别、日常签到与打卡任务辅助流转。不宣称已实机回归。
 
-3. **微信消息助手 (`mywebscrcpy-wechat-helper`)**
+3. **微信消息助手 (`farm-wechat-helper`)**
    - 适配应用：微信
    - 核心原则：**仅读取与草拟回复，绝不自动向外发送任何消息**。所有外发内容必须由人工在微信端审阅并手动点击发送。
 

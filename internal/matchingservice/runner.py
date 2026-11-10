@@ -9,15 +9,15 @@ import time
 import urllib.parse
 import urllib.request
 
-from mywebscrcpy import Client, FrameTimeout, SDKError
-from mywebscrcpy.contracts import Deadline
-from mywebscrcpy.dependencies import vision_dependencies
+from farm import Client, FrameTimeout, SDKError
+from farm.contracts import Deadline
+from farm.dependencies import vision_dependencies
 
 STOP = threading.Event()
 OUTPUT = threading.Lock()
 logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
-URL = os.environ['MYWEBSCRCPY_MATCHING_URL']
-TOKEN = os.environ['MYWEBSCRCPY_MATCHING_TOKEN']
+URL = os.environ['FARM_MATCHING_URL']
+TOKEN = os.environ['FARM_MATCHING_TOKEN']
 HEADERS = {'Authorization': 'Bearer ' + TOKEN}
 FRAME_UPLOAD_URL = URL.rstrip('/') + '/api/vision/frame'
 

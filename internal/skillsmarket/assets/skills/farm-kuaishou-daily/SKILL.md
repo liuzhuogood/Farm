@@ -1,6 +1,6 @@
 ---
-name: mywebscrcpy-kuaishou-daily
-description: 快手客户端的界面识别、滑动浏览与日常活动打卡辅助流程，需要结合 MyWebScrcpy 设备控制。
+name: farm-kuaishou-daily
+description: 快手客户端的界面识别、滑动浏览与日常活动打卡辅助流程，需要结合 Farm 设备控制。
 ---
 
 # 快手日常助手 (Kuaishou Daily)
@@ -11,7 +11,7 @@ description: 快手客户端的界面识别、滑动浏览与日常活动打卡�
 
 每次设备动作前先进行只读采集：`page-info → XML → page-info`。按当前 Schema 核对前后包名、Activity 与页面状态；不稳定则有界重采（最多 3 次），仍不稳定则停止。XML 中的节点必须唯一、启用、可操作，且 bounds 位于当前可视区域。动作后重新采集页面并核对预期业务结果，不能把 HTTP 200 当作动作成功。
 
-1. 服务地址与设备确认：必须从环境变量 `MYWEBSCRCPY_API_URL` 或用户指令中读取已确认的服务地址。若缺失则立即停止确认，严禁回退到 `http://127.0.0.1:8080` 或任何默认端口。目标设备 `SERIAL` 必须通过 `GET /api/devices` 确认可用状态并经用户确认后明确指定，严禁假定默认设备。
+1. 服务地址与设备确认：必须从环境变量 `FARM_API_URL` 或用户指令中读取已确认的服务地址。若缺失则立即停止确认，严禁回退到 `http://127.0.0.1:8080` 或任何默认端口。目标设备 `SERIAL` 必须通过 `GET /api/devices` 确认可用状态并经用户确认后明确指定，严禁假定默认设备。
 2. 必须先读取当前服务 `/api/openapi.json` 确认接口契约，不猜测字段。
 3. 动态验证与容错：严禁硬编码屏幕坐标（如不可硬编码 `540 1600` 等绝对像素）或假设固定组件位置。必须先执行 `page-info` 确认快手前台运行，再通过 `xml` 抓取节点并解析 `bounds` 动态计算中心坐标，完成边界检查后再执行动作。
 4. 点击操作安全规范：
@@ -23,7 +23,7 @@ description: 快手客户端的界面识别、滑动浏览与日常活动打卡�
 ## 脚本调用与标准流程
 
 在任意工作目录下调用前，先确定脚本路径与目标设备。
-助手在执行命令前，必须将 `<CONFIRMED_ABSOLUTE_SKILL_DIR>` 替换为实际刚读取的 `SKILL.md` 所在目录的绝对路径（例如 `/Users/.../.agents/skills/mywebscrcpy-kuaishou-daily`）。
+助手在执行命令前，必须将 `<CONFIRMED_ABSOLUTE_SKILL_DIR>` 替换为实际刚读取的 `SKILL.md` 所在目录的绝对路径（例如 `/Users/.../.agents/skills/farm-kuaishou-daily`）。
 严禁使用 `BASH_SOURCE` 或 `$0` 进行自动推导（在交互式终端粘贴或临时脚本执行时会指向错误目录）。
 
 ```bash
@@ -32,15 +32,15 @@ SKILL_DIR="<CONFIRMED_ABSOLUTE_SKILL_DIR>"
 CLIENT_PY="${SKILL_DIR}/scripts/request_client.py"
 
 # 服务地址与设备检查（缺失时必须停止并向用户确认，禁止使用任何 8080 默认或硬编码）
-if [ -z "${MYWEBSCRCPY_API_URL:-}" ]; then
-  echo "错误: 未配置 MYWEBSCRCPY_API_URL。请先确认服务地址并导出环境变量，禁止预设任何默认地址。" >&2
+if [ -z "${FARM_API_URL:-}" ]; then
+  echo "错误: 未配置 FARM_API_URL。请先确认服务地址并导出环境变量，禁止预设任何默认地址。" >&2
   exit 1
 fi
 if [ -z "${SERIAL:-}" ]; then
   echo "错误: 未指定设备 SERIAL。请先执行 /api/devices 查询可用设备并向用户确认后导出 SERIAL。" >&2
   exit 1
 fi
-API_URL="${MYWEBSCRCPY_API_URL}"
+API_URL="${FARM_API_URL}"
 ```
 
 ### 1. 确认前台应用与屏幕就绪

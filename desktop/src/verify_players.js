@@ -18,7 +18,7 @@
   const result = {};
   const report = value => fetch('/api/desktop/native-verification', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + window.__MYWEBSCRCPY_DESKTOP_TOKEN__ },
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + window.__FARM_DESKTOP_TOKEN__ },
     body: JSON.stringify({ player_windows: value }),
   });
   let frameRequest = 0;
