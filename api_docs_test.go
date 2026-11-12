@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"farm/internal/apidocs"
 )
 
 func TestOpenAPISpecDocumentsRegisteredAPIs(t *testing.T) {
@@ -184,19 +186,37 @@ func TestAPIDocsPageGuardsScriptTagGrouping(t *testing.T) {
 }
 
 func TestAutomationAPIDocsPage(t *testing.T) {
-	pageBytes, err := webFS.ReadFile("web/api-docs-automation.html")
+	pageTemplate, err := webFS.ReadFile("web/api-docs-automation.html")
 	if err != nil {
 		t.Fatalf("read embedded automation API docs page: %v", err)
 	}
-	page := string(pageBytes)
-	if !strings.Contains(page, "if(tag==='脚本')continue") {
-		t.Errorf("automation API docs page is missing %q", "if(tag==='脚本')continue")
+	spec, err := automationAPIsManager.GetAutomationSpec()
+	if err != nil {
+		t.Fatalf("get filtered automation spec: %v", err)
 	}
-	if !strings.Contains(page, "/api/openapi-automation.json") {
-		t.Errorf("automation API docs page should fetch /api/openapi-automation.json")
+	page, err := apidocs.RenderAutomationHTML(pageTemplate, spec)
+	if err != nil {
+		t.Fatalf("render automation API docs page: %v", err)
 	}
-	if !strings.Contains(page, "api-docs.html") {
-		t.Errorf("automation API docs page is missing link back to full docs")
+	rendered := string(page)
+	for _, want := range []string{
+		"# Farm AI 自动化接口",
+		"### GET /api/automation/observe",
+		"### POST /api/automation/observe",
+		"### GET /api/automation/logs",
+		"### POST /api/v1/actions/tap",
+		"### POST /api/v1/actions/swipe",
+		`"serial":{"type":"string"}`,
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Errorf("server-rendered automation docs are missing %q", want)
+		}
+	}
+	if strings.Contains(rendered, "<script") || strings.Contains(rendered, "fetch(") {
+		t.Error("server-rendered automation docs must not require client-side JavaScript or follow-up fetches")
+	}
+	if strings.Contains(rendered, "SERVER_RENDERED_MARKDOWN") {
+		t.Error("server-rendered automation docs contain an unexpanded template marker")
 	}
 }
 
@@ -227,18 +247,20 @@ func TestAutomationOpenAPISpecFiltering(t *testing.T) {
 		t.Errorf("expected title to mention 自动化, got %q", spec.Info.Title)
 	}
 
-	// 必须包含核心自动化接口
+	// 必须包含自动化核心、动作控制与必要设备上下文接口
 	mustInclude := []string{
+		"/api/automation/observe",
+		"/api/automation/logs",
 		"/api/devices",
-		"/api/screen-state",
-		"/api/rotate",
-		"/api/sendkey",
-		"/api/adb/commands",
-		"/api/ui/xml",
-		"/api/ui/page-info",
+		"/api/devices/{serial}/latest-frame",
+		"/api/v1/device-status",
 		"/api/v1/actions/tap",
-		"/api/vision/ocr",
-		"/api/templates",
+		"/api/v1/actions/swipe",
+		"/api/v1/actions/send-key",
+		"/api/v1/actions/events",
+		"/api/v1/vision/check",
+		"/api/v1/vision/wait",
+		"/api/v1/vision/actions/tap-when",
 	}
 	for _, p := range mustInclude {
 		if _, ok := spec.Paths[p]; !ok {
@@ -246,9 +268,17 @@ func TestAutomationOpenAPISpecFiltering(t *testing.T) {
 		}
 	}
 
-	// 必须排除非自动化运维/元接口
+	// 自动化文档移除历史设备管理、调试、文件、模板与 OCR 运维接口
 	mustExclude := []string{
-		"/api/task-runs",
+		"/api/screen-state",
+		"/api/rotate",
+		"/api/sendkey",
+		"/api/adb/commands",
+		"/api/ui/xml",
+		"/api/ui/page-info",
+		"/api/vision/ocr",
+		"/api/templates",
+		"/api/files",
 		"/api/dependencies",
 		"/api/version/upgrade",
 		"/api/version/status",

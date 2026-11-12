@@ -9,6 +9,11 @@ import (
 
 // RegisterRoutes 在 mux 上注册所有自动化与视觉接口
 func (s *Service) RegisterRoutes(mux *http.ServeMux) {
+	// 现代化统一感知与控制接口
+	mux.HandleFunc("POST /api/automation/observe", s.handleObserve)
+	mux.HandleFunc("GET /api/automation/observe", s.handleObserve)
+	mux.HandleFunc("GET /api/automation/logs", s.handleAutomationLogs)
+
 	// 动作控制路由
 	mux.HandleFunc("POST /api/v1/actions/tap", s.handleTap)
 	mux.HandleFunc("POST /api/v1/actions/swipe", s.handleSwipe)

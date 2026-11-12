@@ -277,6 +277,8 @@ func main() {
 		img, raw, _, err := deviceStateService.GetLatestFrame(ctx, serial)
 		return img, raw, err
 	})
+	auxiliary.automation.SetUIXMLProvider(uiXML)
+	auxiliary.automation.SetUIPageProvider(uiPage)
 
 	// API: 设备管理
 	mux.HandleFunc("/api/devices", func(w http.ResponseWriter, r *http.Request) {
@@ -474,7 +476,14 @@ func main() {
 		log.Fatalf("初始化前端资源失败: %v", err)
 	}
 	mux.Handle("/api-docs.html", http.FileServer(http.FS(webRoot)))
-	mux.Handle("/api-docs-automation.html", http.FileServer(http.FS(webRoot)))
+	mux.HandleFunc("/api-docs-automation.html", func(w http.ResponseWriter, r *http.Request) {
+		pageTemplate, err := fs.ReadFile(webRoot, "api-docs-automation.html")
+		if err != nil {
+			http.Error(w, "automation API page template unavailable", http.StatusInternalServerError)
+			return
+		}
+		automationAPIsManager.ServeAutomationHTML(w, r, pageTemplate)
+	})
 	mux.Handle("/automation-api-docs.html", http.RedirectHandler("/api-docs-automation.html", http.StatusMovedPermanently))
 	mux.Handle("/", newAppHandler(appRoot))
 

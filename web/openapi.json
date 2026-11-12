@@ -33,6 +33,239 @@
         }
       }
     },
+    "/api/automation/observe": {
+      "post": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "统一感知接口 (Observe)",
+        "description": "以紧凑感知协议返回当前屏幕状态。融合 Accessibility 节点与 OCR 视觉文字，并支持增量 Diff 对比输出。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "serial"
+                ],
+                "properties": {
+                  "serial": {
+                    "type": "string",
+                    "description": "设备序列号"
+                  },
+                  "formats": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "ref",
+                        "ocr",
+                        "xml"
+                      ]
+                    },
+                    "default": [
+                      "ref",
+                      "ocr"
+                    ],
+                    "description": "输出格式清单，支持 ref (原生树)、ocr (视觉文字) 或 xml (调试快照)"
+                  },
+                  "diff": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "是否优先返回增量差异 (+/-/~)"
+                  },
+                  "settle_ms": {
+                    "type": "integer",
+                    "default": 300,
+                    "description": "等待画面静止延时 (毫秒)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "紧凑感知协议文本或 XML",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "缺少参数或请求体错误"
+          },
+          "502": {
+            "description": "设备操作或感知失败"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "统一感知接口（GET）",
+        "description": "读取设备当前屏幕的紧凑感知文本。formats 使用逗号分隔，例如 ref,ocr；默认 ref,ocr。",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "设备序列号"
+          },
+          {
+            "name": "formats",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "ref,ocr"
+            },
+            "description": "逗号分隔的输出格式：ref、ocr 或 xml"
+          },
+          {
+            "name": "diff",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            },
+            "description": "是否优先返回增量差异"
+          },
+          {
+            "name": "settle_ms",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 300
+            },
+            "description": "等待画面静止延时（毫秒）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "紧凑感知协议文本或 XML",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "缺少参数或请求体错误"
+          },
+          "502": {
+            "description": "设备操作或感知失败"
+          }
+        }
+      }
+    },
+    "/api/automation/logs": {
+      "get": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "自动化接口调用日志 (Automation Logs)",
+        "description": "返回自动化感知与动作接口的调用日志（内存环形缓冲，最近 1024 条）。用于接口自省、问题定位与自动化链路取证。",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "按设备序列号过滤，留空返回全部设备"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "按事件类型过滤，如 automation.request / automation.observe / automation.observe.stage / automation.diff / automation.action / automation.response / automation.error"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "maximum": 1024
+            },
+            "description": "返回条数上限，按时间倒序"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "调用日志列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "serial": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "logs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "serial": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/devices": {
       "get": {
         "tags": [

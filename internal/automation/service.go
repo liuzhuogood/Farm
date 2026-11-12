@@ -13,9 +13,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"farm/internal/action"
+	debuglog "farm/internal/debug"
 	"farm/internal/dependencies"
 	"farm/internal/inputconfig"
 	"farm/internal/ocr"
@@ -48,6 +50,10 @@ type Service struct {
 	inputConfig     *inputconfig.Store
 	adbPath         string
 	frameFetcher    FrameFetcher
+	uiXML           UIXMLProvider
+	uiPage          UIPageProvider
+	screenCache     sync.Map       // map[string]*Screen
+	logRing         *debuglog.Ring // 自动化接口调用日志环形缓冲
 }
 
 // NewService 创建自动化服务实例
@@ -64,6 +70,7 @@ func NewService(
 		ocrService:      ocrService,
 		inputConfig:     inputConfig,
 		adbPath:         adbPath,
+		logRing:         debuglog.New(logRingCapacity),
 	}
 }
 
@@ -178,6 +185,20 @@ func (s *Service) executeAction(ctx context.Context, serial string, req action.R
 		cancel()
 		if err == nil {
 			elapsed := time.Since(started).Milliseconds()
+			s.recordAutomationLog(AutomationLog{
+				Type:    LogTypeAction,
+				Serial:  serial,
+				Message: "动作经投屏会话执行完成",
+				Fields: AutomationLogFields(
+					"action", req.Action,
+					"transport", "hub",
+					"mode", mode,
+					"executed", res.Executed,
+					"error_code", res.ErrorCode,
+					"request_id", requestID,
+					"elapsed_ms", elapsed,
+				),
+			})
 			return ActionResult{
 				RequestID: requestID,
 				Status:    map[bool]string{true: "executed", false: "failed"}[res.Executed],
@@ -187,12 +208,36 @@ func (s *Service) executeAction(ctx context.Context, serial string, req action.R
 				ElapsedMS: elapsed,
 			}, nil
 		}
+		s.recordAutomationLog(AutomationLog{
+			Type:    LogTypeAction,
+			Serial:  serial,
+			Message: "投屏会话不可用，降级到 ADB 执行",
+			Fields: AutomationLogFields(
+				"action", req.Action,
+				"transport", "hub",
+				"error", err.Error(),
+				"request_id", requestID,
+			),
+		})
 	}
 
 	// 2. 没有投屏会话时，通过 ADB 命令行保底执行
 	status, err := s.executeActionViaADB(serial, req)
 	elapsed := time.Since(started).Milliseconds()
 	if err != nil {
+		s.recordAutomationLog(AutomationLog{
+			Type:    LogTypeError,
+			Serial:  serial,
+			Message: "动作执行失败",
+			Fields: AutomationLogFields(
+				"action", req.Action,
+				"transport", "adb",
+				"mode", mode,
+				"error", err.Error(),
+				"request_id", requestID,
+				"elapsed_ms", elapsed,
+			),
+		})
 		return ActionResult{
 			RequestID: requestID,
 			Status:    "failed",
@@ -202,6 +247,20 @@ func (s *Service) executeAction(ctx context.Context, serial string, req action.R
 			ElapsedMS: elapsed,
 		}, err
 	}
+
+	s.recordAutomationLog(AutomationLog{
+		Type:    LogTypeAction,
+		Serial:  serial,
+		Message: "动作经 ADB 执行完成",
+		Fields: AutomationLogFields(
+			"action", req.Action,
+			"transport", "adb",
+			"mode", mode,
+			"executed", status == "executed",
+			"request_id", requestID,
+			"elapsed_ms", elapsed,
+		),
+	})
 
 	return ActionResult{
 		RequestID: requestID,
