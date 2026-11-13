@@ -1,0 +1,337 @@
+{
+  "created_at": "2026-11-13T22:25:38+08:00",
+  "rounds": 12,
+  "samples": [
+    {
+      "method": "adb",
+      "phase": "first",
+      "round": 0,
+      "ms": 859.524,
+      "bytes": 478052,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "first",
+      "round": 0,
+      "ms": 17.297,
+      "bytes": 187551,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "warmup",
+      "round": 1,
+      "ms": 13.355,
+      "bytes": 187551,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "warmup",
+      "round": 2,
+      "ms": 15.331,
+      "bytes": 187551,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 1,
+      "ms": 1138.69,
+      "bytes": 478052,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 1,
+      "ms": 17.207,
+      "bytes": 187588,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 2,
+      "ms": 15.507,
+      "bytes": 187588,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 2,
+      "ms": 771.085,
+      "bytes": 478052,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 3,
+      "ms": 652.105,
+      "bytes": 477980,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 3,
+      "ms": 14.727,
+      "bytes": 187552,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 4,
+      "ms": 12.94,
+      "bytes": 187552,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 4,
+      "ms": 723.149,
+      "bytes": 477980,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 5,
+      "ms": 651.199,
+      "bytes": 477980,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 5,
+      "ms": 12.859,
+      "bytes": 187621,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 6,
+      "ms": 12.376,
+      "bytes": 187621,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 6,
+      "ms": 684.833,
+      "bytes": 477980,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 7,
+      "ms": 721.184,
+      "bytes": 478224,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 7,
+      "ms": 13.412,
+      "bytes": 187558,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 8,
+      "ms": 13.437,
+      "bytes": 187558,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 8,
+      "ms": 632.859,
+      "bytes": 478224,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 9,
+      "ms": 720.693,
+      "bytes": 478224,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 9,
+      "ms": 12.645,
+      "bytes": 187651,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 10,
+      "ms": 12.855,
+      "bytes": 187651,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 10,
+      "ms": 688.172,
+      "bytes": 478224,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 11,
+      "ms": 656.629,
+      "bytes": 477829,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 11,
+      "ms": 29.788,
+      "bytes": 187632,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "latest_frame",
+      "phase": "paired",
+      "round": 12,
+      "ms": 19.928,
+      "bytes": 187632,
+      "format": "jpeg",
+      "width": 976,
+      "height": 2176,
+      "non_black": true
+    },
+    {
+      "method": "adb",
+      "phase": "paired",
+      "round": 12,
+      "ms": 617.168,
+      "bytes": 477829,
+      "format": "png",
+      "width": 1080,
+      "height": 2400,
+      "non_black": true
+    }
+  ],
+  "serial": "10.0.0.104:5555",
+  "statistics": {
+    "adb": {
+      "formats": {
+        "png": 12
+      },
+      "max_ms": 1138.69,
+      "mean_ms": 721.4805000000001,
+      "median_ms": 686.5025,
+      "min_ms": 617.168,
+      "p95_ms": 1138.69
+    },
+    "latest_frame": {
+      "formats": {
+        "jpeg": 12
+      },
+      "max_ms": 29.788,
+      "mean_ms": 15.640083333333335,
+      "median_ms": 13.4245,
+      "min_ms": 12.376,
+      "p95_ms": 29.788
+    }
+  }
+}

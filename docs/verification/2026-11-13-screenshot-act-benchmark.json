@@ -1,0 +1,28 @@
+{
+  "task_id": "task_f4a57f41fdbe55c7bb3793e1",
+  "title": "截图速度对比",
+  "serial": "10.0.0.104:5555",
+  "directory": "benchmark-screenshot-20261113",
+  "baseline_act_ms": [
+    890.2616669947747,
+    808.4290420083562,
+    840.6152080133324
+  ],
+  "new_task_id": "task_008b7458d1e355bb85beb111",
+  "new_act_ms": [
+    293.33591599424835,
+    299.39054099668283,
+    288.12508400005754
+  ],
+  "device_jpeg_sha256": "a75ed657a881223de94f4e69c52d739c506bcd39bf87c05c21457edd5a333919",
+  "device_jpeg_bytes": 68288,
+  "new_artifact": {
+    "id": "artifact_7f4fdd92bcb58631b1810577",
+    "serial": "10.0.0.104:5555",
+    "relative_path": "benchmark-screenshot-20261113/farm-screenshot-act_e791e8e3a9a76a2c44b583a8.jpg",
+    "kind": "image",
+    "size": 68288,
+    "download_url": "http://127.0.0.1:1989/api/automation/artifacts/download?directory=benchmark-screenshot-20261113&file=farm-screenshot-act_e791e8e3a9a76a2c44b583a8.jpg&serial=10.0.0.104%3A5555",
+    "preview_url": "http://127.0.0.1:1989/api/automation/artifacts/download?directory=benchmark-screenshot-20261113&file=farm-screenshot-act_e791e8e3a9a76a2c44b583a8.jpg&preview=1&serial=10.0.0.104%3A5555"
+  }
+}

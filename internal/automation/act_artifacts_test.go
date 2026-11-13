@@ -66,6 +66,11 @@ if kind=='adb':
     script=' '.join(remote).replace('/sdcard/Farm',os.path.join(base,'device'))
     if mode=='cleanup_fail' and script.startswith('cleanup_rc=0;') and 'record.pid' in script:
         print('cleanup failed',file=sys.stderr);sys.exit(7)
+    if script.startswith('umask 077; cat > '):
+        if mode=='upload_fail': print('upload failed',file=sys.stderr);sys.exit(8)
+        if mode=='upload_cancel': time.sleep(10)
+        if mode=='upload_short':
+            script=script.replace('cat > ', 'head -c 1 > ', 1)
     if args[2]=='exec-out':
         # ADB exec-out merges remote stderr and loses its exit code. Binary
         # readers must use shell v2 or missing files look like successful data.
@@ -85,6 +90,9 @@ if kind=='screenrecord':
     if mode=='fail': print('device recorder failed',file=sys.stderr);sys.exit(4)
     if mode=='cancel': time.sleep(10)
 source='screen.png' if kind=='screencap' else 'movie.mp4'
+if kind=='screencap' and sys.argv[-1]=='-p':
+    sys.stdout.buffer.write(b'invalid artifact' if mode=='invalid' else open(os.path.join(base,source),'rb').read())
+    sys.exit(0)
 with open(sys.argv[-1],'wb') as target:
     if mode=='invalid': target.write(b'invalid artifact')
     else:

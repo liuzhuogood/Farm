@@ -27,7 +27,7 @@
 | 自动化接口文档 | 自动化 API 文档、自动化文档 | 静态页 `/fram.skill` · 自动化专用核心接口规范页，源文件 `/api/openapi-automation.json`，配置位于 `configs/automation-apis.json`；技能执行前必须读取的权威接口契约，地址由 `GET /api/ai-integrations` 的 `contractUrl` 返回 |
 | 自动化接口契约 | 接口契约、技能契约、契约地址 | `/fram.skill` · 技能包 `SKILL.md` 声明的唯一接口来源；公布 `/api/automation/devices`、`observe`、`act`、调用日志、最后帧图片流和产物目录下载，技能不再读取完整 OpenAPI |
 | AI 设备列表 | 自动化设备列表、自然语言设备列表 | `GET /api/automation/devices` · 纯文本，一行一台在线设备（标识名、serial、状态）；原 `/api/devices` JSON 接口保留不变 |
-| 统一自动化操作 | 自动化操作接口、act | `POST /api/automation/act` · 设备由 `serial` 查询参数指定，必填 `title` 由 AI 生成完整任务标题，`task_id` 跨批次归入明确开始和结束的任务并在日志中返回，请求正文为“操作 参数”，请求与响应使用格式化文本；支持 tap、keyevent、sendkey、set-copy（设置手机剪贴板）、copy（复制手机选中文字）、paste（粘贴手机剪贴板）、clear（清空当前聚焦输入框）、swipe、check（默认 observe 的页面文字包含检查）、wait（按同样文字范围条件等待）、sleep（固定延时）、adb（ADB 子命令）、mkdir（设备产物根目录下的相对目录）、screenshot（当前屏幕 PNG 到目录）、record（1..30 秒无音频 MP4 到设备相对目录）、rm（删除设备产物根内指定相对文件或目录）；支持多行按序执行，失败立即停止；点击滑动直接传 `@X,Y` 屏幕像素坐标 |
+| 统一自动化操作 | 自动化操作接口、act | `POST /api/automation/act` · 设备由 `serial` 查询参数指定，必填 `title` 由 AI 生成完整任务标题，`task_id` 跨批次归入明确开始和结束的任务并在日志中返回，请求正文为“操作 参数”，请求与响应使用格式化文本；支持 tap、keyevent、sendkey、set-copy（设置手机剪贴板）、copy（复制手机选中文字）、paste（粘贴手机剪贴板）、clear（清空当前聚焦输入框）、swipe、check（默认 observe 的页面文字包含检查）、wait（按同样文字范围条件等待）、sleep（固定延时）、adb（ADB 子命令）、mkdir（设备产物根目录下的相对目录）、screenshot（同最后帧接口取帧，原 JPEG/PNG 保留格式到设备目录）、record（1..30 秒无音频 MP4 到设备相对目录）、rm（删除设备产物根内指定相对文件或目录）；支持多行按序执行，失败立即停止；点击滑动直接传 `@X,Y` 屏幕像素坐标 |
 
 ## 界面区域与面板
 
@@ -82,6 +82,7 @@
 | 动作执行 | 拟人化注入、input 执行 | 两种模式:SDK 拟人化注入(贝塞尔曲线/落点微抖动)与 ADB Shell input 系统级穿透 |
 | 投屏右键返回 | 右键返回、右键返回键 | `frontend/src/scrcpy/usePlayer.ts`；投屏画面右键点击发送一次完整返回键按下/抬起，复用工具条返回操作与群控同步；检查模式开启时由检查器接管，不向设备派发返回 |
 | 最新帧图片流接口 | 最新帧、最后帧、最新截图、投屏截图流 | 接口 `GET/POST /api/v1/vision/latest-frame?serial=...`、`GET/POST /api/devices/{serial}/latest-frame` 与 `GET/POST /api/device-state/{serial}/screenshot`；优先从服务端视频流提取最新解码帧并返回图片流，供所有视觉相关接口统一消费 |
+| 设备截图保存 | screenshot、截图指令 | `POST /api/automation/act` 的 `screenshot 相对目录`；复用最后帧接口同一取帧来源及现有回退，保留原 JPEG/PNG 字节，按实际格式保存 `.jpg`/`.png`，不额外转 PNG，上限 20 MiB；产物保留在设备 `/sdcard/Farm/automation` 下。最后帧可能滞后，不能保证对应刚完成的操作，截图前先通过 observe/wait 确认业务状态 |
 | 像素点取色接口 | 获取像素点、像素颜色接口、坐标取色 | 接口 `GET/POST /api/v1/vision/pixel`；支持归一化坐标(0~1)与绝对像素坐标，基于最新帧画面快速提取像素并返回详细颜色信息(RGB/RGBA/HEX) |
 | 投屏拖拽安装 | 拖拽安装、APK 拖拽安装、投屏文件投放 | 投屏详情页与小窗投屏画面支持直接拖入文件；APK 文件弹出安装确认弹窗（支持保留数据覆盖、自动授权、允许降级），其他文件弹出保存到设备 Downloads 目录（`/storage/emulated/0/Download/`）确认弹窗 |
 | 快手短视频技能 | 快手技能、快手极速版任务、观看视频模式 | `skills/kuaishou-short-video/SKILL.md`；红包守护、连续打卡白拿手机、连续签到的视频观看流程 |

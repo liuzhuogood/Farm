@@ -6,7 +6,6 @@ import (
 	"farm/internal/dependencies"
 	"fmt"
 	"github.com/Eyevinn/mp4ff/mp4"
-	"image/png"
 	"io"
 	"path"
 	"strings"
@@ -35,9 +34,13 @@ func (w *actLimitedWriter) Write(p []byte) (int, error) {
 // Artifacts remain on Android; only bounded validation buffers reach the host.
 func (s *Service) runActArtifact(ctx context.Context, serial, action, directory string, seconds int64) (saved string, err error) {
 	started := time.Now()
+	frameFields := AutomationLogFields()
 	defer func() {
 		kind := LogTypeAction
 		fields := AutomationLogFields("action", action, "directory", directory, "path", saved)
+		for key, value := range frameFields {
+			fields[key] = value
+		}
 		if err != nil {
 			kind = LogTypeError
 			fields["error"] = err.Error()
@@ -88,16 +91,26 @@ func (s *Service) runActArtifact(ctx context.Context, serial, action, directory 
 		s.recordTaskDirectory(ctx, directory)
 		return directory, ctx.Err()
 	}
+	var data []byte
+	ext := ".mp4"
+	if action == "screenshot" {
+		frame, captureErr := s.captureActScreenshot(ctx, serial)
+		frameFields = frame.fields
+		if captureErr != nil {
+			return "", fmt.Errorf("获取最后帧截图: %w", captureErr)
+		}
+		data, ext = frame.data, frame.ext
+	}
 	id := newActionID()
 	private := path.Join(directory, ".farm-"+id+".partial")
 	privateName := path.Base(private)
+	stageStarted := time.Now()
 	// Nonrecursive mkdir proves staging ownership before installing cleanup.
 	if err = s.writeArtifactADB(ctx, serial, io.Discard, 8192, "shell", prefix+"mkdir -- "+quoteDeviceArtifact(privateName)); err != nil {
 		return "", fmt.Errorf("创建设备暂存目录: %w", deviceArtifactCommandError(err))
 	}
-	ext := ".png"
-	if action == "record" {
-		ext = ".mp4"
+	if action == "screenshot" {
+		frameFields["frame_stage_ms"] = time.Since(stageStarted).Milliseconds()
 	}
 	partial := path.Join(private, "capture"+ext)
 	final := path.Join(directory, "farm-"+action+"-"+id+ext)
@@ -120,7 +133,9 @@ func (s *Service) runActArtifact(ctx context.Context, serial, action, directory 
 		}
 	}()
 	if action == "screenshot" {
-		err = s.writeArtifactADB(ctx, serial, io.Discard, 8192, "shell", "screencap -p "+quoteDeviceArtifact(deviceArtifactPath(partial)))
+		uploadStarted := time.Now()
+		err = s.uploadActScreenshot(ctx, serial, deviceArtifactPath(partial), data)
+		frameFields["frame_upload_ms"] = time.Since(uploadStarted).Milliseconds()
 	} else {
 		script := fmt.Sprintf("screenrecord --bit-rate 2000000 --time-limit %d %s & p=$!; echo $p > %s; wait $p; rc=$?; rm -f -- %s; exit $rc", seconds, quoteDeviceArtifact(deviceArtifactPath(partial)), quoteDeviceArtifact(deviceArtifactPath(pidfile)), quoteDeviceArtifact(deviceArtifactPath(pidfile)))
 		err = s.writeArtifactADB(ctx, serial, io.Discard, 8192, "shell", script)
@@ -128,27 +143,29 @@ func (s *Service) runActArtifact(ctx context.Context, serial, action, directory 
 	if err != nil {
 		return "", fmt.Errorf("设备%s采集: %w", action, err)
 	}
-	limit := actScreenshotLimit
 	if action == "record" {
-		limit = actRecordingLimit
-	}
-	data, err := s.readDeviceArtifact(ctx, serial, directory, path.Join(privateName, "capture"+ext), limit)
-	if err != nil {
-		return "", fmt.Errorf("读回设备产物以校验: %w", err)
-	}
-	if err = validateActArtifact(action, data); err != nil {
-		return "", fmt.Errorf("校验设备产物内容: %w", err)
+		data, err = s.readDeviceArtifact(ctx, serial, directory, path.Join(privateName, "capture"+ext), actRecordingLimit)
+		if err != nil {
+			return "", fmt.Errorf("读回设备产物以校验: %w", err)
+		}
+		if err = validateActArtifact(action, data); err != nil {
+			return "", fmt.Errorf("校验设备产物内容: %w", err)
+		}
 	}
 	if err = ctx.Err(); err != nil {
 		return "", fmt.Errorf("发布设备产物前已取消: %w", err)
 	}
 	// A skipped no-clobber move leaves its source and must not report success.
 	pub := prefix + "test -f " + quoteDeviceArtifact(path.Join(privateName, "capture"+ext)) + " && test ! -L " + quoteDeviceArtifact(path.Join(privateName, "capture"+ext)) + " && printf '1' > " + quoteDeviceArtifact(path.Join(privateName, "publication.attempt")) + " && mv -nT -- " + quoteDeviceArtifact(path.Join(privateName, "capture"+ext)) + " " + quoteDeviceArtifact(path.Base(final)) + " && test ! -e " + quoteDeviceArtifact(path.Join(privateName, "capture"+ext)) + " && test -f " + quoteDeviceArtifact(path.Base(final)) + " && test ! -L " + quoteDeviceArtifact(path.Base(final))
+	publishStarted := time.Now()
 	if err = s.writeArtifactADB(ctx, serial, io.Discard, 8192, "shell", pub); err != nil {
 		return "", fmt.Errorf("发布设备产物: %w", err)
 	}
 	if err = ctx.Err(); err != nil {
 		return "", fmt.Errorf("发布设备产物后已取消: %w", err)
+	}
+	if action == "screenshot" {
+		frameFields["frame_publish_ms"] = time.Since(publishStarted).Milliseconds()
 	}
 	keepFinal = true
 	kind := "image"
@@ -161,14 +178,8 @@ func (s *Service) runActArtifact(ctx context.Context, serial, action, directory 
 
 func validateActArtifact(action string, data []byte) error {
 	if action == "screenshot" {
-		cfg, err := png.DecodeConfig(bytes.NewReader(data))
-		if err != nil || cfg.Width <= 0 || cfg.Height <= 0 || cfg.Width > 16384 || cfg.Height > 16384 || int64(cfg.Width)*int64(cfg.Height) > 64<<20 {
-			return fmt.Errorf("ADB did not return a valid bounded PNG: %v", err)
-		}
-		if _, err = png.Decode(bytes.NewReader(data)); err != nil {
-			return fmt.Errorf("decode screenshot: %w", err)
-		}
-		return nil
+		_, _, _, err := validateActScreenshot(data)
+		return err
 	}
 	movie, err := mp4.DecodeFile(bytes.NewReader(data), mp4.WithDecodeMode(mp4.DecModeLazyMdat))
 	if err != nil {
