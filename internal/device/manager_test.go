@@ -3,6 +3,7 @@ package device
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"farm/internal/db"
@@ -107,6 +108,9 @@ func TestDeviceIdentifierNameAndSnapshotDoNotUseModel(t *testing.T) {
 }
 
 func TestAutoDeviceIdentifierPersistsAndReloadsWithoutChangingSource(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fixture uses a POSIX shell executable")
+	}
 	dir := t.TempDir()
 	database, err := db.Open(filepath.Join(dir, "test.db"))
 	if err != nil {

@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -323,6 +324,9 @@ func TestArtifactsMalformedDeviceListingFailsExplicitly(t *testing.T) {
 }
 
 func TestArtifactsDeviceListUsesShellV2AndNULFormat(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fixture uses a POSIX executable")
+	}
 	svc, _ := newActTestService()
 	adb := filepath.Join(t.TempDir(), "adb")
 	// shell -T keeps binary stdout separate from stderr and preserves remote

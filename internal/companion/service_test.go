@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -223,7 +224,7 @@ func TestInstallVerifiesPackageAndDoesNotUninstallOnFailure(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "package is absent") {
 		t.Fatalf("false install success accepted: %v", err)
 	}
-	if f.installedFileMode != 0600 {
+	if runtime.GOOS != "windows" && f.installedFileMode != 0600 {
 		t.Fatalf("APK permissions %o", f.installedFileMode)
 	}
 	f.installSuccess = true
