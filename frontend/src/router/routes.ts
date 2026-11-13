@@ -2,6 +2,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 
 const routes: RouteRecordRaw[] = [
+  { path: '/approval', name: 'approval', component: () => import('@/views/ApprovalView.vue'), meta: { title: 'Farm - 安全审核' } },
   { path: '/', name: 'home', component: HomeView, meta: { title: 'Farm - 设备列表' } },
   { path: '/player', name: 'player', component: () => import('@/views/PlayerView.vue'), meta: { title: 'Farm - 投屏操控' } },
   { path: '/dashboard', name: 'dashboard', component: () => import('@/views/DashboardView.vue'), meta: { title: 'Farm - 大屏监控' } },

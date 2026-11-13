@@ -20,6 +20,7 @@
 | 文件管理页 | 文件页、文件管理器 | 路由 `/files?serial=<序列号>` · `frontend/src/views/FilesView.vue`;亦内嵌于投屏详情页抽屉(`DevicePlayer.vue`,embedded) |
 | 依赖管理页 | 依赖页 | 路由 `/dependencies` · `frontend/src/views/DependenciesView.vue` |
 | AI 集成页 | 与 AI 集成、AI 集成、接入指南 | 路由 `/ai-integration` · `frontend/src/views/AiIntegrationView.vue` |
+| MCP 接入 | MCP 安装、MCP 卸载、MCP 配置 | AI 集成页内 `frontend/src/components/ai-integration/McpPanel.vue`；后端 `internal/mcpconfig`，接口 `/api/ai-integrations/mcp` |
 | 技能详情页 | 技能详情、技能二级页面 | 路由 `/ai-integration/skills/:id` · `frontend/src/views/SkillDetailView.vue` |
 | 手机客户端 | Flutter 手机端、移动 App | `mobile/`；Flutter Android/iOS 客户端，原生设备列表并以 WebView 打开现有投屏详情页 |
 | 全量接口文档 | 全量 API 文档、接口文档 | 静态页 `/api-docs.html` · 完整 OpenAPI 3.1.0 接口规范页，源文件 `/api/openapi.json` |
@@ -120,3 +121,9 @@
 | 术语 | 指向 |
 | --- | --- |
 | 统一设备采集与图标缓存 | [v1.35.0-feature](versions/v1.35.0-feature/design.md)；温度、电量、当前应用与图标更新共用调度，图标按全局包名共享并有 TTL，当前仅设计 |
+
+| 安全审核面板 | 审核策略、待审核、任务审计 | AI 集成页 `frontend/src/components/ai-integration/SafetyPanel.vue`；配置策略、处理人工审批、查看任务步骤并导出报告 |
+
+| 安全审核小窗 | 审核弹窗、审核置顶窗口 | 全局 `ApprovalPopup.vue`；桌面端独立原生置顶窗 `/approval`，Web 端右下角浮动卡片；待审请求自动弹出，允许一次/拒绝/接管，队列为空关闭原生窗 |
+
+| 审核小窗 | 置顶审核窗、单条审核弹窗 | `ApprovalPopup.vue` 与 `desktop/src/links.rs`；每个审核 ID 独立原生置顶窗口 `/approval?approval=<ID>`，多请求错位打开，处理后仅关闭对应窗口；Web 为各请求独立浮层 |

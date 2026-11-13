@@ -18,6 +18,8 @@ import AiGuidePanel from '@/components/ai-integration/AiGuidePanel.vue'
 import AiToolSelector from '@/components/ai-integration/AiToolSelector.vue'
 import InstallDialog from '@/components/ai-integration/InstallDialog.vue'
 import SkillMarket from '@/components/ai-integration/SkillMarket.vue'
+import McpPanel from '@/components/ai-integration/McpPanel.vue'
+import SafetyPanel from '@/components/ai-integration/SafetyPanel.vue'
 import { fetchAiIntegrations, fetchSkills, installSkill } from '@/api/aiIntegrations'
 
 const route = useRoute()
@@ -316,6 +318,9 @@ onUnmounted(() => {
             :tool="currentAiTool"
             @install-base="handleOpenInstallBase"
           />
+
+          <McpPanel />
+      <SafetyPanel />
 
           <!-- 下半区：技能市场 -->
           <SkillMarket

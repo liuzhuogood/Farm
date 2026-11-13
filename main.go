@@ -25,6 +25,7 @@ import (
 	"farm/internal/files"
 	"farm/internal/inputconfig"
 	"farm/internal/matchingservice"
+	"farm/internal/mcpconfig"
 	"farm/internal/operationlog"
 	"farm/internal/skillsmarket"
 	"farm/internal/uipage"
@@ -165,6 +166,7 @@ func main() {
 			log.Printf("警告: 初始化 AI 技能市场管理器失败: %v", err)
 		} else {
 			skillsmarket.RegisterRoutes(mux, skillsMgr)
+			mcpconfig.RegisterRoutes(mux, mcpconfig.New(userHome, mcpconfig.Endpoint(addr, *httpsFlag)))
 		}
 	}
 

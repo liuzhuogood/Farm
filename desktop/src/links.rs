@@ -134,3 +134,48 @@ pub fn fit_player_window(window: tauri::WebviewWindow, video_width: f64, video_h
     }
     Ok(())
 }
+
+/// One approval window for the entire application. Existing windows are not
+/// focused again by polling; only a new request restores a dismissed window.
+#[tauri::command]
+pub fn open_approval_window(app: AppHandle, approval_id: String) -> Result<(), String> {
+    if !approval_id.starts_with("ap_") || !approval_id[3..].chars().all(|c| c.is_ascii_hexdigit()) || approval_id.len() > 64 || approval_id.len() < 4 {
+        return Err("审核请求 ID 无效".into());
+    }
+    let label = format!("safety-approval-{approval_id}");
+    if let Some(window) = app.get_webview_window(&label) {
+        window.set_always_on_top(true).map_err(|e| e.to_string())?;
+        window.show().map_err(|e| e.to_string())?;
+        window.unminimize().map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+    let state = app.state::<State>();
+    let mut dest = tauri::Url::parse(&format!("{}/approval", state.url)).map_err(|e| e.to_string())?;
+    dest.query_pairs_mut().append_pair("approval", &approval_id);
+    let offset = (app.webview_windows().keys().filter(|key| key.starts_with("safety-approval-")).count() % 6) as i32 * 32;
+    let token_script = {
+        let guard = state.backend.lock().map_err(|e| e.to_string())?;
+        match guard.as_ref() {
+            Some(backend) => format!("Object.defineProperty(window,'__FARM_DESKTOP_TOKEN__',{{value:{}}});", serde_json::to_string(&backend.ready.token).map_err(|e| e.to_string())?),
+            None => String::new(),
+        }
+    };
+    let window = tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::External(dest))
+        .title("安全审核")
+        .inner_size(420.0, 200.0)
+        .min_inner_size(340.0, 200.0)
+        .always_on_top(true)
+        .center()
+        .initialization_script(&token_script)
+        .build()
+        .map_err(|error| {
+            eprintln!("[Desktop] 创建安全审核小窗失败: {error}");
+            error.to_string()
+        })?;
+    if offset > 0 {
+        let position = window.outer_position().map_err(|e| e.to_string())?;
+        window.set_position(tauri::PhysicalPosition::new(position.x + offset, position.y + offset)).map_err(|e| e.to_string())?;
+    }
+    eprintln!("[Desktop] 安全审核小窗已创建 always_on_top={}", window.is_always_on_top().map_err(|e| e.to_string())?);
+    Ok(())
+}

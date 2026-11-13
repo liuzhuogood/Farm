@@ -266,6 +266,255 @@
         }
       }
     },
+    "/mcp": {
+      "post": {
+        "tags": [
+          "AI 自动化核心 (MCP & Safety)"
+        ],
+        "summary": "原生 Model Context Protocol (MCP) 端点",
+        "description": "提供符合 Anthropic 标准的 Streamable HTTP / SSE 原生 MCP 协议端点。包含 phone_connect, phone_observe, phone_tap, phone_type, phone_swipe, phone_key, phone_launch, phone_handoff, phone_request_approval, phone_release 等工具。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JSON-RPC 响应或 SSE 事件流"
+          }
+        }
+      }
+    },
+    "/api/safety/approvals": {
+      "get": {
+        "tags": [
+          "AI 自动化核心 (MCP & Safety)"
+        ],
+        "summary": "获取待人工审批的单据列表",
+        "description": "返回当前处于 open 状态、等待人工决策的安全审批请求。包含触发规则、应用名称、意图说明和倒计时时限。",
+        "responses": {
+          "200": {
+            "description": "待办审批列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/safety/approvals/{id}/decide": {
+      "post": {
+        "tags": [
+          "AI 自动化核心 (MCP & Safety)"
+        ],
+        "summary": "提交人工审批决策",
+        "description": "人工批准或拒绝指定审批单。支持 allow_once（仅本次）、allow_task（本任务免审）、allow_always（永久白名单）、deny（拒绝）或 take_over（人工接管）。",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "审批单据 ID (如 ap_xxxx)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "decision"
+                ],
+                "properties": {
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "allow_once",
+                      "allow_task",
+                      "allow_always",
+                      "deny",
+                      "take_over"
+                    ],
+                    "description": "决策类型"
+                  },
+                  "note": {
+                    "type": "string",
+                    "description": "审批批注说明"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "决策已成功提交"
+          },
+          "400": {
+            "description": "单据不存在或已失效"
+          }
+        }
+      }
+    },
+    "/api/safety/policy": {
+      "get": {
+        "tags": [
+          "AI 自动化核心 (MCP & Safety)"
+        ],
+        "summary": "获取当前安全审核策略配置",
+        "responses": {
+          "200": {
+            "description": "当前安全预设与豁免规则"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "AI 自动化核心 (MCP & Safety)"
+        ],
+        "summary": "修改安全预设等级",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "preset"
+                ],
+                "properties": {
+                  "preset": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      1,
+                      2,
+                      3
+                    ],
+                    "description": "0:无, 1:关键操作审批, 2:仅支付审批(推荐), 3:每步审批"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "预设已生效"
+          }
+        }
+      }
+    },
+    "/api/safety/history/tasks": {
+      "get": {
+        "tags": [
+          "AI 自动化核心 (MCP & Safety)"
+        ],
+        "summary": "获取历史任务审计流水",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50
+            },
+            "description": "返回记录数上限"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "历史任务列表"
+          }
+        }
+      }
+    },
+    "/api/safety/history/tasks/{id}": {
+      "get": {
+        "tags": [
+          "AI 自动化核心 (MCP & Safety)"
+        ],
+        "summary": "获取单个任务详细步骤与快照",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "任务 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "任务信息与详细步骤时间线"
+          },
+          "404": {
+            "description": "任务不存在"
+          }
+        }
+      }
+    },
+    "/api/safety/history/tasks/{id}/export": {
+      "get": {
+        "tags": [
+          "AI 自动化核心 (MCP & Safety)"
+        ],
+        "summary": "导出单任务自包含完整 HTML 审计报告",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "任务 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "自包含 HTML 报表文件 (内嵌截图与步骤)",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "任务不存在"
+          }
+        }
+      }
+    },
     "/api/devices": {
       "get": {
         "tags": [

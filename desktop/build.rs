@@ -17,6 +17,7 @@ fn main() {
             "desktop_check_update",
             "desktop_upgrade",
             "open_device_window",
+            "open_approval_window",
             "fit_player_window",
             "open_main_device_detail",
             "set_window_always_on_top",

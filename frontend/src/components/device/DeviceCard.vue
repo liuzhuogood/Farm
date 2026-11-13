@@ -1,25 +1,15 @@
 <script setup lang="ts">
+import AppGlyph from './AppGlyph.vue'
 import {
   Battery,
   BatteryCharging,
-  Camera,
   Check,
-  Film,
-  Globe,
-  Image,
-  Layers,
-  LayoutGrid,
   Loader2,
   Lock,
-  MapPin,
   MonitorPlay,
-  Music,
   Pencil,
-  Phone,
   RefreshCw,
   RotateCcw,
-  Settings,
-  ShoppingBag,
   Smartphone,
   Thermometer,
   Trash2,
@@ -416,27 +406,7 @@ async function openFloatingWindow(e?: Event) {
             class="relative flex items-center justify-center border shadow-lg transition-transform duration-200 group-hover/screen:scale-102 rounded-2xl h-15 w-15"
             :class="getAppVisual(foregroundApp.iconType)"
           >
-            <!-- 微信图标 -->
-            <svg
-              v-if="foregroundApp.iconType === 'wechat'"
-              class="h-7.5 w-7.5 text-[#07C160]"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M8.5 2C4.36 2 1 4.91 1 8.5c0 2.05 1.07 3.88 2.76 5.11L3 17.5l4.28-1.43c.4.08.8.13 1.22.13.23 0 .45-.02.67-.04-.26-.67-.42-1.39-.42-2.16 0-3.59 3.36-6.5 7.5-6.5.64 0 1.26.07 1.84.2C16.84 4.54 13.06 2 8.5 2zm-2.25 4a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zm4.5 0a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM15.5 8.5c-3.59 0-6.5 2.46-6.5 5.5s2.91 5.5 6.5 5.5c.36 0 .71-.03 1.05-.09L20 20.5l-.9-3.08C20.9 16.38 22 14.8 22 13c0-3.04-2.91-5.5-6.5-5.5zm-2 3.5a1 1 0 110 2 1 1 0 010-2zm4 0a1 1 0 110 2 1 1 0 010-2z" />
-            </svg>
-            <Settings v-else-if="foregroundApp.iconType === 'settings'" class="h-7.5 w-7.5" />
-            <LayoutGrid v-else-if="foregroundApp.iconType === 'launcher'" class="h-7.5 w-7.5" />
-            <Camera v-else-if="foregroundApp.iconType === 'camera'" class="h-7.5 w-7.5" />
-            <Image v-else-if="foregroundApp.iconType === 'gallery'" class="h-7.5 w-7.5" />
-            <Phone v-else-if="foregroundApp.iconType === 'phone'" class="h-7.5 w-7.5" />
-            <Globe v-else-if="foregroundApp.iconType === 'browser'" class="h-7.5 w-7.5" />
-            <Film v-else-if="foregroundApp.iconType === 'kuaishou' || foregroundApp.iconType === 'douyin'" class="h-7.5 w-7.5" />
-            <Tv v-else-if="foregroundApp.iconType === 'bilibili' || foregroundApp.iconType === 'iqiyi' || foregroundApp.iconType === 'qqvideo' || foregroundApp.iconType === 'youku'" class="h-7.5 w-7.5" />
-            <ShoppingBag v-else-if="foregroundApp.iconType === 'alipay' || foregroundApp.iconType === 'taobao' || foregroundApp.iconType === 'jd' || foregroundApp.iconType === 'pinduoduo' || foregroundApp.iconType === 'market'" class="h-7.5 w-7.5" />
-            <Music v-else-if="foregroundApp.iconType === 'neteasemusic' || foregroundApp.iconType === 'qqmusic'" class="h-7.5 w-7.5" />
-            <MapPin v-else-if="foregroundApp.iconType === 'amap' || foregroundApp.iconType === 'baidumap'" class="h-7.5 w-7.5" />
-            <Layers v-else class="h-7.5 w-7.5" />
+            <AppGlyph :icon-type="foregroundApp.iconType" />
           </div>
 
           <!-- 运行应用文字信息 -->

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"farm/internal/automation"
@@ -15,7 +16,9 @@ import (
 	"farm/internal/dependencies"
 	"farm/internal/inputconfig"
 	"farm/internal/matchingservice"
+	"farm/internal/mcp"
 	"farm/internal/ocr"
+	"farm/internal/safety"
 	"farm/internal/serviceprefs"
 	"farm/internal/servicepython"
 	"farm/internal/template"
@@ -31,6 +34,10 @@ type auxiliaryServices struct {
 	preferences  *serviceprefs.Manager
 	automation   *automation.Service
 	visionFrames *visionframes.Store
+	policy       *safety.PolicyEngine
+	approvals    *safety.ApprovalCenter
+	history      *safety.HistoryStore
+	mcpServer    *mcp.Server
 }
 
 func configureAuxiliaryServices(dataDir string, database *db.DB, hub *ws.Hub, mux *http.ServeMux) *auxiliaryServices {
@@ -101,6 +108,23 @@ func configureAuxiliaryServices(dataDir string, database *db.DB, hub *ws.Hub, mu
 	automationService := automation.NewService(hub, templateStorage, ocrService, inputConfig, dependencies.ManagedADB)
 	automationService.RegisterRoutes(mux)
 
+	// 安全审核与任务历史审计系统
+	safetyDir := filepath.Join(dataDir, "data", "safety")
+	historyDBPath := filepath.Join(safetyDir, "history.db")
+	historyMediaDir := filepath.Join(safetyDir, "media")
+	historyStore, err := safety.OpenHistoryStore(historyDBPath, historyMediaDir)
+	if err != nil {
+		log.Printf("警告: 初始化安全历史数据库失败: %v，将降级运行", err)
+	}
+	policyEngine := safety.NewEngine(safety.PresetPayments)
+	approvalCenter := safety.NewApprovalCenter(60 * time.Second)
+	automationService.SetSafetyProviders(policyEngine, approvalCenter)
+	safety.RegisterRoutes(mux, policyEngine, approvalCenter, historyStore)
+
+	// 原生 MCP 协议端点
+	mcpServer := mcp.NewServer(automationService, policyEngine, approvalCenter, historyStore, strings.TrimSpace(string(versionBytes)))
+	mux.Handle("/mcp", mcpServer.HTTPHandler())
+
 	return &auxiliaryServices{
 		templates:    templateService,
 		storage:      templateStorage,
@@ -109,6 +133,10 @@ func configureAuxiliaryServices(dataDir string, database *db.DB, hub *ws.Hub, mu
 		preferences:  serviceSettings,
 		automation:   automationService,
 		visionFrames: visionFrames,
+		policy:       policyEngine,
+		approvals:    approvalCenter,
+		history:      historyStore,
+		mcpServer:    mcpServer,
 	}
 }
 
@@ -138,6 +166,9 @@ func (s *auxiliaryServices) restore() {
 }
 
 func (s *auxiliaryServices) Close() {
+	if s.history != nil {
+		_ = s.history.Close()
+	}
 	s.preferences.Close()
 	s.matching.Close()
 	if err := s.ocr.StopPaddle(); err != nil {

@@ -251,6 +251,10 @@ func TestAutomationOpenAPISpecFiltering(t *testing.T) {
 	mustInclude := []string{
 		"/api/automation/observe",
 		"/api/automation/logs",
+		"/mcp",
+		"/api/safety/approvals",
+		"/api/safety/policy",
+		"/api/safety/history/tasks",
 		"/api/devices",
 		"/api/devices/{serial}/latest-frame",
 		"/api/v1/device-status",

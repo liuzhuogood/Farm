@@ -104,6 +104,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             links::open_browser_link,
             links::open_device_window,
+            links::open_approval_window,
             links::fit_player_window,
             links::open_main_device_detail,
             links::set_window_always_on_top,
@@ -134,10 +135,12 @@ fn main() {
                 tauri::ipc::CapabilityBuilder::new("browser-links")
                     .window("main")
                     .window("player-*")
+                    .window("safety-approval-*")
                     .local(false)
                     .remote(format!("{url}/*"))
                     .permission("allow-open-browser-link")
                     .permission("allow-open-device-window")
+                    .permission("allow-open-approval-window")
                     .permission("allow-fit-player-window")
                     .permission("allow-open-main-device-detail")
                     .permission("allow-set-window-always-on-top")

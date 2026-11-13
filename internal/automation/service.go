@@ -21,6 +21,7 @@ import (
 	"farm/internal/dependencies"
 	"farm/internal/inputconfig"
 	"farm/internal/ocr"
+	"farm/internal/safety"
 	"farm/internal/template"
 	"farm/internal/ws"
 )
@@ -54,6 +55,8 @@ type Service struct {
 	uiPage          UIPageProvider
 	screenCache     sync.Map       // map[string]*Screen
 	logRing         *debuglog.Ring // 自动化接口调用日志环形缓冲
+	policyEngine    *safety.PolicyEngine
+	approvalCenter  *safety.ApprovalCenter
 }
 
 // NewService 创建自动化服务实例
@@ -72,6 +75,12 @@ func NewService(
 		adbPath:         adbPath,
 		logRing:         debuglog.New(logRingCapacity),
 	}
+}
+
+// SetSafetyProviders 注入安全策略引擎与审批中心
+func (s *Service) SetSafetyProviders(engine *safety.PolicyEngine, center *safety.ApprovalCenter) {
+	s.policyEngine = engine
+	s.approvalCenter = center
 }
 
 // SetFrameFetcher 设置自定义最新帧获取函数（如使用服务端视频流最新帧）
