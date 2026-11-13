@@ -80,3 +80,90 @@ func TestManagerManualDevices(t *testing.T) {
 		t.Errorf("expected 0 devices after remove, got %d", len(all))
 	}
 }
+
+func TestDeviceIdentifierNameAndSnapshotDoNotUseModel(t *testing.T) {
+	for _, tc := range []struct {
+		device Device
+		want   string
+	}{
+		{Device{Serial: "s", Alias: "  Desk phone  ", Brand: "Redmi", Model: "Pixel"}, "Desk phone"},
+		{Device{Serial: "s", Alias: "  ", Brand: " Redmi "}, "Redmi"},
+		{Device{Serial: "s", Brand: " ", Model: "Pixel"}, "s"},
+	} {
+		if got := tc.device.IdentifierName(); got != tc.want {
+			t.Fatalf("identifier=%q want %q", got, tc.want)
+		}
+	}
+	mgr := NewManager("false", nil)
+	mgr.devices = []Device{{Serial: "s", Brand: "Redmi"}}
+	copy := mgr.Devices()
+	if copy[0].Identifier != "Redmi" || mgr.devices[0].Identifier != "" {
+		t.Fatalf("snapshot derivation changed storage: %#v %#v", copy, mgr.devices)
+	}
+	copy[0].Alias = "Changed"
+	if mgr.devices[0].Alias != "" {
+		t.Fatal("returned snapshot mutates registry")
+	}
+}
+
+func TestAutoDeviceIdentifierPersistsAndReloadsWithoutChangingSource(t *testing.T) {
+	dir := t.TempDir()
+	database, err := db.Open(filepath.Join(dir, "test.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	adbPath := filepath.Join(dir, "adb")
+	if err := os.WriteFile(adbPath, []byte("#!/bin/sh\nprintf 'List of devices attached\\nauto-one device model:Pixel\\n'\n"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	mgr := NewManager(adbPath, database)
+	mgr.hardwareCache["auto-one"] = HardwareInfo{Brand: "Redmi"}
+	mgr.refresh()
+	if err := mgr.UpdateAlias("auto-one", "  Desk phone  "); err != nil {
+		t.Fatal(err)
+	}
+	if got := mgr.Devices()[0]; got.Identifier != "Desk phone" || got.Alias != "Desk phone" || got.Source != "auto" {
+		t.Fatalf("rename: %#v", got)
+	}
+	mgr.refresh()
+	if got := mgr.Devices()[0]; got.Identifier != "Desk phone" || got.Source != "auto" {
+		t.Fatalf("reload: %#v", got)
+	}
+	manual, err := database.ListManualDevices()
+	if err != nil || len(manual) != 0 {
+		t.Fatalf("auto rename became manual: %#v %v", manual, err)
+	}
+	if err := mgr.UpdateAlias("auto-one", "  "); err != nil {
+		t.Fatal(err)
+	}
+	mgr.refresh()
+	if got := mgr.Devices()[0]; got.Identifier != "Redmi" || got.Alias != "" {
+		t.Fatalf("clear alias: %#v", got)
+	}
+	if err := mgr.UpdateAlias("unknown", "Another"); err == nil {
+		t.Fatal("unknown device persisted")
+	}
+	aliases, err := database.ListDeviceAliases()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := aliases["unknown"]; ok {
+		t.Fatal("unknown alias created in DB")
+	}
+}
+
+func TestAliasReadFailureRetainsCurrentSnapshot(t *testing.T) {
+	database, err := db.Open(filepath.Join(t.TempDir(), "farm.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	mgr := NewManager("false", database)
+	mgr.devices = []Device{{Serial: "phone", State: "device", Source: "auto", Alias: "自定义手机", Brand: "Redmi"}}
+	database.Close()
+	mgr.refresh()
+	devices := mgr.Devices()
+	if len(devices) != 1 || devices[0].Identifier != "自定义手机" {
+		t.Fatalf("failed DB read changed identifier: %+v", devices)
+	}
+}

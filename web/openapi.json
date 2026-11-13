@@ -39,7 +39,7 @@
           "现代化自动化核心 (Modern Automation)"
         ],
         "summary": "统一感知接口 (Observe)",
-        "description": "以紧凑感知协议返回当前屏幕状态。融合 Accessibility 节点与 OCR 视觉文字，并支持增量 Diff 对比输出。",
+        "description": "以紧凑感知协议返回当前屏幕状态。融合 Accessibility 节点与 OCR 视觉文字，并支持增量 Diff 对比输出。 ref优先使用用户已启用的Farm Companion，无可用快通道则回退uiautomator dump；不会自动安装或启用。",
         "requestBody": {
           "required": true,
           "content": {
@@ -68,7 +68,7 @@
                       "ref",
                       "ocr"
                     ],
-                    "description": "输出格式清单，支持 ref (原生树)、ocr (视觉文字) 或 xml (调试快照)"
+                    "description": "ref 优先通过已启用的Farm Companion直接读取无障碍树，失败时回退uiautomator dump；仅 ocr 跳过树读取；仅 xml 返回当前树提供者的原始快照。默认 ref+ocr 保持。检查器 /api/ui/xml 始终使用uiautomator dump。"
                   },
                   "diff": {
                     "type": "boolean",
@@ -114,7 +114,7 @@
           "现代化自动化核心 (Modern Automation)"
         ],
         "summary": "统一感知接口（GET）",
-        "description": "读取设备当前屏幕的紧凑感知文本。formats 使用逗号分隔，例如 ref,ocr；默认 ref,ocr。",
+        "description": "读取当前屏幕紧凑感知文本。formats逗号分隔，默认ref,ocr；ref优先使用已启用Companion并保留dump回退，仅ocr跳过树读取。",
         "parameters": [
           {
             "name": "serial",
@@ -154,6 +154,17 @@
               "default": 300
             },
             "description": "等待画面静止延时（毫秒）"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "设为 text 时包含错误信息在内使用格式化文本；原有默认行为保留",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text"
+              ]
+            }
           }
         ],
         "responses": {
@@ -173,10 +184,34 @@
             }
           },
           "400": {
-            "description": "缺少参数或请求体错误"
+            "description": "缺少参数或请求体错误",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
           },
           "502": {
-            "description": "设备操作或感知失败"
+            "description": "设备操作或感知失败",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
           }
         }
       }
@@ -187,7 +222,7 @@
           "现代化自动化核心 (Modern Automation)"
         ],
         "summary": "自动化接口调用日志 (Automation Logs)",
-        "description": "返回自动化感知与动作接口的调用日志（内存环形缓冲，最近 1024 条）。用于接口自省、问题定位与自动化链路取证。",
+        "description": "返回自动化感知与动作接口的调用日志（内存环形缓冲，最近 1024 条）。用于接口自省、问题定位与自动化链路取证。act任务日志在每条记录顶层返回title，format=text也输出title；独立observe等无任务上下文的日志可不带title。",
         "parameters": [
           {
             "name": "serial",
@@ -217,6 +252,17 @@
               "maximum": 1024
             },
             "description": "返回条数上限，按时间倒序"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "设为 text 时包含错误信息在内使用格式化文本；原有默认行为保留",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text"
+              ]
+            }
           }
         ],
         "responses": {
@@ -254,11 +300,20 @@
                           "fields": {
                             "type": "object",
                             "additionalProperties": true
+                          },
+                          "title": {
+                            "type": "string",
+                            "description": "act任务标题，由调用AI生成；独立观察等非任务日志可省略"
                           }
                         }
                       }
                     }
                   }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -520,8 +575,8 @@
         "tags": [
           "设备与控制"
         ],
-        "summary": "列出在线设备",
-        "description": "查询当前由 ADB 发现的所有在线设备列表，包含设备 serial、状态、型号、产品名与 transport_id。",
+        "summary": "列出设备",
+        "description": "查询设备注册表，包括在线与保留的离线设备，返回 serial、identifier（标识名）、状态、型号等。界面默认隐藏离线设备，可在“设备”卡开启显示；MCP phone_devices 只返回在线设备。",
         "responses": {
           "200": {
             "description": "在线设备列表",
@@ -1713,7 +1768,7 @@
     "/api/files": {
       "get": {
         "tags": [
-          "文件"
+          "文件管理"
         ],
         "summary": "列出设备文件",
         "description": "浏览 Android 外部共享存储（/storage/emulated/0）下的目录与文件列表，支持按关键字搜索、类型过滤、字段排序与分页，并返回整体存储容量使用情况。",
@@ -1837,7 +1892,7 @@
     "/api/files/download": {
       "get": {
         "tags": [
-          "文件"
+          "文件管理"
         ],
         "summary": "下载文件",
         "description": "从 Android 设备流式下载指定相对路径的文件，响应头提供文件名编码的 Content-Disposition 下载头。",
@@ -1893,7 +1948,7 @@
     "/api/files/upload": {
       "post": {
         "tags": [
-          "文件"
+          "文件管理"
         ],
         "summary": "上传文件",
         "description": "通过 multipart/form-data 将文件推送到 Android 设备的指定目录下，支持 rename、overwrite、skip 等冲突策略。",
@@ -1966,7 +2021,7 @@
     "/api/files/folders": {
       "post": {
         "tags": [
-          "文件"
+          "文件管理"
         ],
         "summary": "创建文件夹",
         "description": "在 Android 设备的指定目录下创建新的文件夹。",
@@ -2014,7 +2069,7 @@
     "/api/files/move": {
       "post": {
         "tags": [
-          "文件"
+          "文件管理"
         ],
         "summary": "移动文件",
         "description": "将设备上的指定文件或文件夹移动到目标目录下，支持重名冲突处理策略。",
@@ -2062,7 +2117,7 @@
     "/api/files/rename": {
       "post": {
         "tags": [
-          "文件"
+          "文件管理"
         ],
         "summary": "重命名文件",
         "description": "重命名设备上的指定文件或文件夹。",
@@ -2110,7 +2165,7 @@
     "/api/files/delete": {
       "post": {
         "tags": [
-          "文件"
+          "文件管理"
         ],
         "summary": "删除文件",
         "description": "批量删除指定的文件或目录（移入设备端 .farm-trash 回收站），并返回用于撤销的 undo_token。",
@@ -2158,7 +2213,7 @@
     "/api/files/undo": {
       "post": {
         "tags": [
-          "文件"
+          "文件管理"
         ],
         "summary": "撤销文件操作",
         "description": "使用删除操作生成的 undo_token 撤销文件删除，将文件从回收站还原到原路径。",
@@ -4567,6 +4622,43 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "自动化与视觉 (Automation & Vision)"
+        ],
+        "summary": "获取最后帧图片（POST）",
+        "description": "优先从服务端自主保活视频流提取最新解码帧，若流未就绪则通过 ADB screencap 保底截取，直接返回 JPEG/PNG 图片二进制流。",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "path",
+            "required": true,
+            "description": "目标设备序列号",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "图片流响应",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/devices/{serial}": {
@@ -4585,8 +4677,8 @@
         "tags": [
           "设备与控制"
         ],
-        "summary": "修改设备别名",
-        "description": "更新指定设备的自定义备注别名（保存在系统数据库中）",
+        "summary": "修改设备标识名",
+        "description": "通过 alias 字段保存设备标识名（持久化到系统数据库，自动发现与手动设备均支持）。空字符串清除自定义标识名，恢复品牌名；品牌未取得时使用 serial。",
         "requestBody": {
           "required": true,
           "content": {
@@ -5977,6 +6069,851 @@
           }
         }
       }
+    },
+    "/api/devices/{serial}/companion": {
+      "parameters": [
+        {
+          "name": "serial",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "在线设备真实serial"
+        }
+      ],
+      "get": {
+        "tags": [
+          "设备与控制"
+        ],
+        "summary": "读取设备助手状态",
+        "description": "返回Farm Companion安装、启用、心跳通信状态及update_available。ready表示服务已启用且协议v2可达，当前页面树是否可读取由observe负责。未安装返回installed=false；旧版返回update_available=true并明确提示更新，不猜测兼容。",
+        "responses": {
+          "200": {
+            "description": "实际状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionStatus"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "设备不在线"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "设备与控制"
+        ],
+        "summary": "安装或启停设备助手",
+        "description": "install安装或更新内置只读APK并核实实际版本；enable只添加Farm无障碍服务并用独立心跳核实存活；disable只移除Farm服务。保留其他无障碍服务。安装不会自动启用，启用后持续至用户停用；旧版助手需要显式更新。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "install",
+                      "enable",
+                      "disable"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作后实际状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效请求"
+          },
+          "502": {
+            "description": "操作或结果验证失败，message携带实际原因；可再次GET确认状态"
+          }
+        }
+      }
+    },
+    "/api/automation/devices": {
+      "get": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "AI 设备列表（一行一台）",
+        "description": "只返回在线设备，按设备注册顺序逐行输出标识名、真实 serial 和状态。标识名与 serial 以 JSON 字符串转义，保证每台设备恰占一行。无在线设备时返回明确提示。原 /api/devices 保留其现有 JSON 契约。",
+        "responses": {
+          "200": {
+            "description": "一行一台在线设备；无在线设备返回“当前没有在线设备。”",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "设备 \"Redmi\" · serial \"10.0.0.30:5555\" · 在线\n"
+              }
+            }
+          },
+          "503": {
+            "description": "设备注册表不可用",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/automation/act": {
+      "post": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "统一自动化操作（格式化文本）",
+        "description": "serial查询参数指定在线Android设备；title查询参数必填，由调用AI根据本批次动作生成，去首尾空格后1..120字符，禁止控制字符与重复参数。正文每行“操作 参数”，最多32行，全部预校验后按序执行，总时限60秒。支持tap、keyevent、sendkey、set-copy、copy、paste、clear、swipe、check、wait、sleep、adb、mkdir、screenshot、record、rm。check/wait匹配默认observe(ref,ocr)的本轮可见标签和OCR文字，不搜索元数据/坐标/原始XML、不消费公共diff缓存；读取页面统一用observe。set-copy仅设置手机剪贴板；copy复制手机选中文字；paste粘贴至当前输入框。mkdir/screenshot/record目录是设备/sdcard/Farm/automation下的相对路径，拒绝绝对路径或..越界。截图/录屏成功文件保留在设备指定目录，返回设备路径及含serial的产物浏览URL，不自动保存为电脑产物。record录制1..30秒无音频MP4，拒绝零时长/无效视频；PNG20MiB、MP4 32MiB上限，失败或取消清理本次临时文件。check未命中、wait超时或操作失败停止后续，响应与任务日志返回title。clear无参数，须有聚焦可编辑输入框，选全文再删除，不改变剪贴板；rm相对路径删除设备产物根内指定文件或目录，目录递归，禁止删除根/..越界/绝对路径/symlink，缺失报错。 完整任务先POST /api/automation/tasks，再将返回id以task_id携带至每次act，标题保持一致；多批次步骤累积，显式finish结束。批次失败后任务仍可修正或标记failed；同设备任务隔离，任务最多500步。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              },
+              "examples": {
+                "tap": {
+                  "value": "tap @540,960"
+                },
+                "keyevent": {
+                  "value": "keyevent home｜back"
+                },
+                "sendkey": {
+                  "value": "sendkey 你好 Farm"
+                },
+                "swipe": {
+                  "value": "swipe @540,1800 @540,500 300"
+                },
+                "check": {
+                  "value": "check 设置"
+                },
+                "wait": {
+                  "value": "wait 10000 WLAN"
+                },
+                "sleep": {
+                  "value": "sleep 500"
+                },
+                "sequence": {
+                  "value": "tap @540,960\nsleep 500\nwait 10000 设置\ncheck WLAN"
+                },
+                "adb": {
+                  "value": "adb shell getprop ro.product.model"
+                },
+                "mkdir": {
+                  "value": "mkdir task-output"
+                },
+                "screenshot": {
+                  "value": "screenshot task-output"
+                },
+                "record": {
+                  "value": "record 5 task-output"
+                },
+                "copy": {
+                  "value": "copy"
+                },
+                "paste": {
+                  "value": "paste"
+                },
+                "set-copy": {
+                  "value": "set-copy 你好 Farm"
+                },
+                "clear": {
+                  "value": "clear"
+                },
+                "rm": {
+                  "value": "rm task-output"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "全部操作行成功通过；响应列出完成行数与每行的子操作数量",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "命令格式或坐标无效；全部语法在执行前校验，坐标边界按该行执行时屏幕尺寸校验",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "serial对应设备不存在或离线",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "设备动作、截图或OCR服务失败；可能已有部分操作完成",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "设备注册表不可用",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "请求取消或批次超时，停止后续操作",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "等待目标文字超时，停止后续操作",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "文字检查未命中或同一设备已有执行中批次",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "全局批次容量已满，不排队",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "description": "在线设备真实序列号",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "required": true,
+            "description": "AI生成完整任务标题；1..120个Unicode字符，无控制字符；同一task_id每次传相同标题",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "example": "核对钉钉下班打卡"
+          },
+          {
+            "name": "task_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "完整任务必传创建返回的id；serial和title必须匹配。未传则旧调用独立自动开始/结束，但不得绕过已有任务。"
+          }
+        ]
+      }
+    },
+    "/api/automation/artifacts": {
+      "get": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "浏览设备产物目录（HTML）",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "产物所在的在线Android设备序列号"
+          },
+          {
+            "name": "directory",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "指定设备 /sdcard/Farm/automation 下的相对目录，禁止绝对路径及..越界"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTML文件目录，每个文件包含完整下载URL",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "目录参数无效"
+          },
+          "404": {
+            "description": "目录不存在"
+          }
+        },
+        "description": "从serial指定的设备读取相对directory产物目录，各设备即使相对目录同名也互相隔离。返回HTML文件名/大小和包含serial的完整文件URL。单次读取30秒时限，并发上限4；最多展示1000文件，文件下载上限32MiB，超量/超时/设备不可用明确失败。"
+      }
+    },
+    "/api/automation/artifacts/download": {
+      "get": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "直接下载设备目录产物",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "产物所在的在线Android设备序列号"
+          },
+          {
+            "name": "directory",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "指定设备 /sdcard/Farm/automation 下的相对目录，禁止绝对路径及..越界"
+          },
+          {
+            "name": "file",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "目录内相对文件路径，禁止越界或符号链接"
+          },
+          {
+            "name": "preview",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "1时仅PNG/JPEG/GIF/WebP/有效MP4可inline预览，其他文件仍附件下载"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "原文件附件下载流",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数或文件路径无效"
+          },
+          "404": {
+            "description": "文件不存在"
+          }
+        },
+        "description": "直接从指定Android设备读取文件，返回附件下载流；不读取Farm服务器的本地文件。单次读取30秒时限，并发上限4；最多展示1000文件，文件下载上限32MiB，超量/超时/设备不可用明确失败。"
+      }
+    },
+    "/api/device-state/{serial}/screenshot": {
+      "get": {
+        "tags": [
+          "自动化与视觉 (Automation & Vision)"
+        ],
+        "summary": "获取设备最新帧图片流",
+        "description": "优先从服务端自主保活视频流提取最新解码帧，若流未就绪则通过 ADB screencap 保底截取，直接返回 JPEG/PNG 图片二进制流。",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "path",
+            "required": true,
+            "description": "目标设备序列号",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "图片流响应",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "自动化与视觉 (Automation & Vision)"
+        ],
+        "summary": "获取最后帧图片（POST）",
+        "description": "优先从服务端自主保活视频流提取最新解码帧，若流未就绪则通过 ADB screencap 保底截取，直接返回 JPEG/PNG 图片二进制流。",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "path",
+            "required": true,
+            "description": "目标设备序列号",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "图片流响应",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vision/latest-frame": {
+      "get": {
+        "tags": [
+          "自动化与视觉 (Automation & Vision)"
+        ],
+        "summary": "获取设备最新帧图片流",
+        "description": "优先从服务端自主保活视频流提取最新解码帧，若流未就绪则通过 ADB screencap 保底截取，直接返回 JPEG/PNG 图片二进制流。 POST与GET参数相同，通过serial查询参数指定设备，POST无需正文。",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "description": "目标设备序列号",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "图片流响应",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "自动化与视觉 (Automation & Vision)"
+        ],
+        "summary": "获取最后帧图片（POST）",
+        "description": "优先从服务端自主保活视频流提取最新解码帧，若流未就绪则通过 ADB screencap 保底截取，直接返回 JPEG/PNG 图片二进制流。 POST与GET参数相同，通过serial查询参数指定设备，POST无需正文。",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "description": "目标设备序列号",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "图片流响应",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/automation/tasks": {
+      "post": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "开始完整自动化任务",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "设备真实序列号，任务与设备严格绑定"
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "required": true,
+            "description": "AI生成完整任务标题；1..120个Unicode字符，无控制字符；同一task_id每次传相同标题",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "example": "核对钉钉下班打卡"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "任务快照",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "task": {
+                      "$ref": "#/components/schemas/AutomationTask"
+                    }
+                  },
+                  "required": [
+                    "task"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数无效"
+          },
+          "404": {
+            "description": "设备或任务不存在"
+          },
+          "409": {
+            "description": "状态冲突或设备已有完整任务"
+          },
+          "429": {
+            "description": "任务或元数据容量已满"
+          }
+        },
+        "description": "正文必须为空。同一设备仅一个未结束自动化任务；使用返回task.id跨多次act，显式finish结束。建议directory尚未创建。"
+      },
+      "get": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "按设备查看完整任务及MCP只读审计",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "设备真实序列号，任务与设备严格绑定"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "任务快照",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tasks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AutomationTask"
+                      }
+                    }
+                  },
+                  "required": [
+                    "tasks"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数无效"
+          },
+          "404": {
+            "description": "设备或任务不存在"
+          },
+          "409": {
+            "description": "状态冲突或设备已有完整任务"
+          },
+          "429": {
+            "description": "任务或元数据容量已满"
+          }
+        }
+      }
+    },
+    "/api/automation/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "查看单个设备任务详情",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "设备真实序列号，任务与设备严格绑定"
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "任务快照",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "task": {
+                      "$ref": "#/components/schemas/AutomationTask"
+                    }
+                  },
+                  "required": [
+                    "task"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数无效"
+          },
+          "404": {
+            "description": "设备或任务不存在"
+          },
+          "409": {
+            "description": "状态冲突或设备已有完整任务"
+          },
+          "429": {
+            "description": "任务或元数据容量已满"
+          }
+        }
+      }
+    },
+    "/api/automation/tasks/{task_id}/finish": {
+      "post": {
+        "tags": [
+          "现代化自动化核心 (Modern Automation)"
+        ],
+        "summary": "结束任务或停止执行中的act",
+        "parameters": [
+          {
+            "name": "serial",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "设备真实序列号，任务与设备严格绑定"
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "任务快照",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "task": {
+                      "$ref": "#/components/schemas/AutomationTask"
+                    }
+                  },
+                  "required": [
+                    "task"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数无效"
+          },
+          "404": {
+            "description": "设备或任务不存在"
+          },
+          "409": {
+            "description": "状态冲突或设备已有完整任务"
+          },
+          "429": {
+            "description": "任务或元数据容量已满"
+          },
+          "504": {
+            "description": "停止清理尚未完成，重新查询任务状态"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "outcome": {
+                    "type": "string",
+                    "enum": [
+                      "done",
+                      "failed",
+                      "stopped"
+                    ]
+                  },
+                  "summary": {
+                    "type": "string",
+                    "description": "最多4096 UTF-8字节"
+                  }
+                },
+                "required": [
+                  "outcome"
+                ]
+              }
+            }
+          }
+        },
+        "description": "done/failed要求act已执行完毕；stopped取消当前act并等清理最多5秒，504需后续查询。MCP任务只读。"
+      }
     }
   },
   "components": {
@@ -6071,11 +7008,17 @@
             "type": "boolean",
             "description": "手动设备是否开启断线自动重连",
             "example": true
+          },
+          "identifier": {
+            "type": "string",
+            "description": "设备标识名：已保存的非空 alias，否则使用设备品牌 brand，品牌未取得时使用 serial。MCP 支持按标识名忽略大小写选择在线列表中的第一台。",
+            "example": "Redmi"
           }
         },
         "required": [
           "serial",
-          "state"
+          "state",
+          "identifier"
         ]
       },
       "RotateResponse": {
@@ -9822,6 +10765,222 @@
             "description": "仅创建扫码任务时返回的配对二维码内容；不写入日志"
           }
         }
+      },
+      "CompanionStatus": {
+        "type": "object",
+        "required": [
+          "serial",
+          "installed",
+          "enabled",
+          "ready",
+          "update_available"
+        ],
+        "properties": {
+          "serial": {
+            "type": "string"
+          },
+          "installed": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "配置已启用且协议v2心跳可达；不保证当前页面的树可读，树读取状态由observe返回。"
+          },
+          "version": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string",
+            "description": "服务未就绪或读取失败的实际原因"
+          },
+          "update_available": {
+            "type": "boolean",
+            "description": "已安装的设备助手版本不等于内置版本，需要用户显式更新"
+          }
+        }
+      },
+      "AutomationTaskArtifact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "relative_path": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video",
+              "file"
+            ]
+          },
+          "size": {
+            "type": "integer"
+          },
+          "download_url": {
+            "type": "string"
+          },
+          "preview_url": {
+            "type": "string"
+          },
+          "removed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "serial",
+          "relative_path",
+          "kind",
+          "download_url"
+        ]
+      },
+      "AutomationTaskStep": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer"
+          },
+          "line": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "failed",
+              "skipped"
+            ]
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ended_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "elapsed_ms": {
+            "type": "integer"
+          },
+          "result": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AutomationTaskArtifact"
+            }
+          }
+        },
+        "required": [
+          "index",
+          "title",
+          "command",
+          "status",
+          "elapsed_ms",
+          "artifacts"
+        ]
+      },
+      "AutomationTask": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "automation",
+              "mcp"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "running",
+              "done",
+              "failed",
+              "stopped"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ended_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "act执行中；running且false表示等待下一批"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AutomationTaskStep"
+            }
+          },
+          "steps_truncated": {
+            "type": "boolean"
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AutomationTaskArtifact"
+            }
+          },
+          "directory": {
+            "type": "string",
+            "description": "建议的设备相对目录，不会自动创建"
+          }
+        },
+        "required": [
+          "id",
+          "serial",
+          "title",
+          "source",
+          "state",
+          "summary",
+          "started_at",
+          "updated_at",
+          "active",
+          "steps",
+          "artifacts"
+        ]
       }
     }
   },
@@ -9875,7 +11034,7 @@
       "description": "Android 页面层次 XML 快照转储及前台 Activity / 屏幕规格读取"
     },
     {
-      "name": "文件",
+      "name": "文件管理",
       "description": "设备共享存储目录浏览、文件上传下载、重命名、移动与删除"
     },
     {

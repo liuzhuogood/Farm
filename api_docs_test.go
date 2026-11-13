@@ -201,15 +201,41 @@ func TestAutomationAPIDocsPage(t *testing.T) {
 	rendered := string(page)
 	for _, want := range []string{
 		"# Farm AI 自动化接口",
-		"### GET /api/automation/observe",
-		"### POST /api/automation/observe",
-		"### GET /api/automation/logs",
-		"### POST /api/v1/actions/tap",
-		"### POST /api/v1/actions/swipe",
-		`"serial":{"type":"string"}`,
+		"GET /api/automation/observe?serial=",
+		"GET /api/automation/logs?format=text",
+		"POST /api/automation/act?serial=",
+		"POST /api/automation/tasks?serial=",
+		"task_id",
+		"outcome",
+		"title：必填，由调用的 AI",
+		"title=检查设置",
+		"GET /api/automation/devices",
+		"tap @540,960",
+		"keyevent home｜back",
+		"sendkey 你好 Farm",
+		"set-copy 你好 Farm",
+		"复制选中文字：copy",
+		"粘贴到输入框：paste",
+		"清空输入框：  clear",
+		"rm task-output",
+		"serial 必填，选择产物所在的在线设备",
+		"默认 observe（ref,ocr）",
+		"GET /api/v1/vision/latest-frame?serial=",
+		"POST /api/v1/vision/latest-frame?serial=",
+		"adb shell getprop ro.product.model",
+		"mkdir task-output",
+		"screenshot task-output",
+		"record 5 task-output",
+		"GET /api/automation/artifacts?serial=",
+		"GET /api/automation/artifacts/download?serial=",
 	} {
 		if !strings.Contains(rendered, want) {
 			t.Errorf("server-rendered automation docs are missing %q", want)
+		}
+	}
+	for _, unwanted := range []string{"识别屏幕文字：ocr", "ocr 无需参数", "更多能力", "全量接口规范", "MCP &amp; Safety", "Automation &amp; Vision", "### GET /api/devices", "### POST /api/v1/", "尚未实现", "Content-Type", "application/json", "\"type\":", "### POST /api/automation/observe"} {
+		if strings.Contains(rendered, unwanted) {
+			t.Errorf("automation contract still contains withdrawn content %q", unwanted)
 		}
 	}
 	if strings.Contains(rendered, "<script") || strings.Contains(rendered, "fetch(") {
@@ -230,7 +256,7 @@ func TestAutomationOpenAPISpecFiltering(t *testing.T) {
 	}
 
 	var spec struct {
-		OpenAPI string                     `json:"openapi"`
+		OpenAPI string `json:"openapi"`
 		Info    struct {
 			Title string `json:"title"`
 		} `json:"info"`
@@ -247,24 +273,18 @@ func TestAutomationOpenAPISpecFiltering(t *testing.T) {
 		t.Errorf("expected title to mention 自动化, got %q", spec.Info.Title)
 	}
 
-	// 必须包含自动化核心、动作控制与必要设备上下文接口
+	// 技能契约仅公布 AI 专用紧凑接口。
 	mustInclude := []string{
 		"/api/automation/observe",
 		"/api/automation/logs",
-		"/mcp",
-		"/api/safety/approvals",
-		"/api/safety/policy",
-		"/api/safety/history/tasks",
-		"/api/devices",
-		"/api/devices/{serial}/latest-frame",
-		"/api/v1/device-status",
-		"/api/v1/actions/tap",
-		"/api/v1/actions/swipe",
-		"/api/v1/actions/send-key",
-		"/api/v1/actions/events",
-		"/api/v1/vision/check",
-		"/api/v1/vision/wait",
-		"/api/v1/vision/actions/tap-when",
+		"/api/automation/devices",
+		"/api/automation/act",
+		"/api/v1/vision/latest-frame",
+		"/api/automation/artifacts",
+		"/api/automation/artifacts/download",
+		"/api/automation/tasks",
+		"/api/automation/tasks/{task_id}",
+		"/api/automation/tasks/{task_id}/finish",
 	}
 	for _, p := range mustInclude {
 		if _, ok := spec.Paths[p]; !ok {
@@ -274,6 +294,20 @@ func TestAutomationOpenAPISpecFiltering(t *testing.T) {
 
 	// 自动化文档移除历史设备管理、调试、文件、模板与 OCR 运维接口
 	mustExclude := []string{
+		"/api/devices",
+		"/api/devices/{serial}/latest-frame",
+		"/mcp",
+		"/api/safety/approvals",
+		"/api/safety/policy",
+		"/api/safety/history/tasks",
+		"/api/v1/device-status",
+		"/api/v1/actions/tap",
+		"/api/v1/actions/swipe",
+		"/api/v1/actions/events",
+		"/api/v1/actions/send-key",
+		"/api/v1/vision/check",
+		"/api/v1/vision/wait",
+		"/api/v1/vision/actions/tap-when",
 		"/api/screen-state",
 		"/api/rotate",
 		"/api/sendkey",

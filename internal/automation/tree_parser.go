@@ -11,6 +11,7 @@ import (
 // RawNode 代表 XML 反序列化时的原始节点
 type RawNode struct {
 	Index       int        `xml:"index,attr"`
+	Editable    string     `xml:"editable,attr"`
 	Text        string     `xml:"text,attr"`
 	ResourceID  string     `xml:"resource-id,attr"`
 	Class       string     `xml:"class,attr"`
@@ -75,6 +76,8 @@ func isGenericContainerClass(cls string) bool {
 func resolveRole(node *RawNode) string {
 	cls := strings.ToLower(node.Class)
 	switch {
+	case parseBoolAttr(node.Editable):
+		return "input"
 	case strings.Contains(cls, "edittext") || strings.Contains(cls, "input"):
 		return "input"
 	case strings.Contains(cls, "switch") || strings.Contains(cls, "toggle"):
@@ -134,7 +137,7 @@ func resolveLabel(node *RawNode) string {
 		return d
 	}
 	cls := strings.ToLower(node.Class)
-	isInput := strings.Contains(cls, "edittext") || strings.Contains(cls, "input")
+	isInput := parseBoolAttr(node.Editable) || strings.Contains(cls, "edittext") || strings.Contains(cls, "input")
 	// 如果是可点击容器或输入框但本身无文字，聚合子树文本
 	if parseBoolAttr(node.Clickable) || isInput {
 		childTexts := collectChildText(node)
@@ -159,7 +162,7 @@ func isMeaningful(node *RawNode, label string, w, h int) bool {
 	}
 
 	cls := strings.ToLower(node.Class)
-	interactive := parseBoolAttr(node.Clickable) ||
+	interactive := parseBoolAttr(node.Editable) || parseBoolAttr(node.Clickable) ||
 		parseBoolAttr(node.Checkable) ||
 		parseBoolAttr(node.Scrollable) ||
 		parseBoolAttr(node.LongClick) ||
@@ -227,7 +230,7 @@ func ParseHierarchyXML(xmlData []byte, displayWidth, displayHeight int) (element
 			}
 
 			cls := strings.ToLower(node.Class)
-			isInput := strings.Contains(cls, "edittext") || strings.Contains(cls, "input")
+			isInput := parseBoolAttr(node.Editable) || strings.Contains(cls, "edittext") || strings.Contains(cls, "input")
 
 			if inScreen && (!insideInput || isInput) {
 				label := resolveLabel(node)
@@ -266,7 +269,11 @@ func ParseHierarchyXML(xmlData []byte, displayWidth, displayHeight int) (element
 						}
 
 						// editable: EditText 或 input 角色
-						if isInput || elem.Role == "input" {
+						if node.Editable != "" {
+							// Companion supplies the actual AccessibilityNodeInfo state.
+							elem.Editable = parseBoolAttr(node.Editable)
+						} else if isInput || elem.Role == "input" {
+							// UIAutomator XML has no editable attribute; retain its class mapping.
 							elem.Editable = true
 						}
 

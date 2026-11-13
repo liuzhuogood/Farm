@@ -241,8 +241,31 @@ func (d *DB) UpdateAlias(serial, alias string) error {
 	defer d.mu.Unlock()
 
 	now := time.Now().UnixMilli()
-	_, err := d.db.Exec("UPDATE devices SET alias = ?, updated_at = ? WHERE serial = ?", alias, now, serial)
+	_, err := d.db.Exec(`INSERT INTO devices (serial, source, alias, state, auto_reconnect, created_at, updated_at)
+		VALUES (?, 'auto', ?, 'offline', 0, ?, ?)
+		ON CONFLICT(serial) DO UPDATE SET alias = excluded.alias, updated_at = excluded.updated_at`, serial, alias, now, now)
 	return err
+}
+
+// ListDeviceAliases includes automatically discovered devices without promoting
+// them to manual entries or enabling reconnect as a side effect of renaming.
+func (d *DB) ListDeviceAliases() (map[string]string, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	rows, err := d.db.Query("SELECT serial, alias FROM devices")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	aliases := make(map[string]string)
+	for rows.Next() {
+		var serial, alias string
+		if err := rows.Scan(&serial, &alias); err != nil {
+			return nil, err
+		}
+		aliases[serial] = alias
+	}
+	return aliases, rows.Err()
 }
 
 // DeleteManualDevice 删除手动设备记录

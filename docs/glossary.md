@@ -25,7 +25,9 @@
 | 手机客户端 | Flutter 手机端、移动 App | `mobile/`；Flutter Android/iOS 客户端，原生设备列表并以 WebView 打开现有投屏详情页 |
 | 全量接口文档 | 全量 API 文档、接口文档 | 静态页 `/api-docs.html` · 完整 OpenAPI 3.1.0 接口规范页，源文件 `/api/openapi.json` |
 | 自动化接口文档 | 自动化 API 文档、自动化文档 | 静态页 `/fram.skill` · 自动化专用核心接口规范页，源文件 `/api/openapi-automation.json`，配置位于 `configs/automation-apis.json`；技能执行前必须读取的权威接口契约，地址由 `GET /api/ai-integrations` 的 `contractUrl` 返回 |
-| 自动化接口契约 | 接口契约、技能契约、契约地址 | `/fram.skill` · 技能包 `SKILL.md` 声明的唯一接口来源；只公布 `observe`、`/api/v1/actions/*`、`/api/v1/device-status`、MCP 与安全审核等精简接口，技能不再读取完整 OpenAPI |
+| 自动化接口契约 | 接口契约、技能契约、契约地址 | `/fram.skill` · 技能包 `SKILL.md` 声明的唯一接口来源；公布 `/api/automation/devices`、`observe`、`act`、调用日志、最后帧图片流和产物目录下载，技能不再读取完整 OpenAPI |
+| AI 设备列表 | 自动化设备列表、自然语言设备列表 | `GET /api/automation/devices` · 纯文本，一行一台在线设备（标识名、serial、状态）；原 `/api/devices` JSON 接口保留不变 |
+| 统一自动化操作 | 自动化操作接口、act | `POST /api/automation/act` · 设备由 `serial` 查询参数指定，必填 `title` 由 AI 生成完整任务标题，`task_id` 跨批次归入明确开始和结束的任务并在日志中返回，请求正文为“操作 参数”，请求与响应使用格式化文本；支持 tap、keyevent、sendkey、set-copy（设置手机剪贴板）、copy（复制手机选中文字）、paste（粘贴手机剪贴板）、clear（清空当前聚焦输入框）、swipe、check（默认 observe 的页面文字包含检查）、wait（按同样文字范围条件等待）、sleep（固定延时）、adb（ADB 子命令）、mkdir（设备产物根目录下的相对目录）、screenshot（当前屏幕 PNG 到目录）、record（1..30 秒无音频 MP4 到设备相对目录）、rm（删除设备产物根内指定相对文件或目录）；支持多行按序执行，失败立即停止；点击滑动直接传 `@X,Y` 屏幕像素坐标 |
 
 ## 界面区域与面板
 
@@ -39,7 +41,8 @@
 | 原生菜单设备列表 | 菜单设备列表、视图设备列表 | 原生菜单栏“视图 → 设备列表”二级菜单；每 5 秒刷新 `GET /api/devices`（3 秒超时），仅列出 `state == "device"` 的在线设备，点击直接打开该设备投屏小窗（`desktop/src/menu_devices.rs`、`desktop/src/links.rs` 的 `open_device_window_internal`） |
 | 无边框 | 隐藏系统标题栏 | 原生投屏小窗默认无系统边框；窗口、设置与菜单中的切换入口已移除。小窗工具栏为半透明覆盖层，显隐不改变视频尺寸；主窗口保持原有系统标题栏覆盖外观 |
 | 投屏设置 | 播放器设置 | 系统设置页签 `frontend/src/components/system/PlayerSettingsContent.vue` 保存默认配置;投屏详情页侧栏 `frontend/src/components/player/PlayerSettingsPanel.vue` 调整当前投屏 |
-| 右侧抽屉 | 抽屉、侧栏、侧边栏 | 投屏详情页右侧自适应面板,收纳检查器、文件管理、模板管理、ADB 终端(`frontend/src/components/player/DevicePlayer.vue`) |
+| 右侧抽屉 | 抽屉、侧栏、侧边栏 | 投屏详情页右侧自适应面板,默认展示设备任务，收纳检查器、文件管理、模板管理、ADB 终端(`frontend/src/components/player/DevicePlayer.vue`) |
+| 设备任务面板 | 任务面板、任务情况、Pinky任务界面 | 投屏详情页默认右侧 `frontend/src/components/player/DeviceTasksPanel.vue`；小窗默认不展开，工具栏可打开；按当前serial展示完整任务、已提交步骤进度、指令与结果、错误、截图录像产物及结束摘要，不推算完整任务百分比 |
 | 播放器检查器 | 检查器、取色器、放大镜 | 右侧抽屉内:取色坐标、像素放大镜、XML 树、XPath 与元素定位联动 |
 | 检查模式 | 拾取模式、检查开关 | 检查器顶栏的显式开关,仅开启后拦截画面输入;打开面板默认可操控设备,完成取色、元素选择或 OCR 框选后自动退出 |
 | ADB 终端 | Web Shell、交互式终端 | 右侧抽屉内 xterm.js 终端,真实 PTY 分配 |
@@ -50,7 +53,7 @@
 | 首页手机视图 | 手机视图、第三视图、手机样式视图、手机墙、首页多设备投屏、紧密设备墙 | `frontend/src/components/home/HomePhoneView.vue`；首页卡片与手机两种视图之一，以紧密设备墙规格挂载实时画面（同档位同宽同高，相邻横纵间距统一 8px，画面黑底 contain 等比居中黑边填充、不拉伸不裁图；首页为实时预览，左键拖动框选、单击打开小窗，直接操控在小窗/详情页进行），设备显隐由 iOS 悬浮底栏的编号小方块控制，支持页面全屏 |
 | 手机视图统一格 | 统一格、同宽同高手机格子、紧密设备格 | `frontend/src/utils/phoneGrid.ts` 与 `frontend/src/components/home/HomePhoneView.vue`；首页手机视图在小/中/大/铺满各档位所使用的等宽等高规格与 2px 间隙体系，横屏、长屏与旋转均保持卡片尺寸恒定，视口内黑底等比 contain 居中显示 |
 | iOS 悬浮底栏 | 悬浮底栏、底栏、操作栏、Dock栏、浮动药丸栏、控制中心、操作面板、批量操作面板、批量面板、右侧面板 | `frontend/src/components/home/HomeIosDockBar.vue`；首页底部居中悬浮 Liquid Glass 胶囊操作栏，整合操作、视图、设备（支持鼠标原生框选）与更多服务四组 iOS 浮动卡片 Sheet，支持最小化、设备编号区域紧凑展开、滚动框选；无遮罩、点击外部或操作手机保持展开，关闭按钮/胶囊切换/Esc 可收起；群控作为独立模式开关，系统导航指令及锁屏/解锁分段按钮作用于已选在线设备，取代原右侧固定操作侧栏（ActionPanel） |
-| 首页在线设备展示 | 显示离线设备、显示离线、离线过滤 | `frontend/src/views/HomeView.vue` 与 `HomeIosDockBar.vue`；首页卡片和编号区域均只展示 `state === 'device'` 的在线设备，离线记录保留但不提供展示开关；在线且被隐藏的设备保留编号恢复入口 |
+| 首页在线设备展示 | 显示离线设备、显示离线、离线过滤 | `frontend/src/views/HomeView.vue` 与 `HomeIosDockBar.vue`；底栏“设备”卡提供“显示离线设备”开关，默认关闭，开启后首页卡片及编号区域显示保留的离线记录；偏好本地持久化，离线设备不能参与设备操作，连接记录与自动重连保留 |
 | 设备编号小方块选择器 | 编号小方块、编号显隐、数字网格、设备矩阵 | `frontend/src/components/home/HomeIosDockBar.vue`（【设备】浮动卡片）；与卡片共用设备 Store 的全量 serial→编号映射（全量映射保留离线编号空位，区域只列在线设备）；拖动重排持久化后重新编号，选择身份仍为 serial；支持点选、拉框、Ctrl/Cmd 增量选择、全选/取消全选；隐藏编号用灰色虚线显示并可右键“显示”恢复 |
 | 设备添加与发现 | 扫码配对、范围扫描、常态扫描 | `frontend/src/components/home/AddDeviceDialog.vue` 与 `internal/device/discovery.go`；二维码按 Android 无线调试机制由电脑生成、手机扫码，弹窗打开预生成真实会话二维码，终止/过期清空；IP 起止各四段输入，真实网卡地址与掩码给出默认范围，最多8个范围/合计1024个地址/8个端口，原单范围API保留，持续扫描可停止、关闭对话框或租约断开后停止；`/api/device-discovery/*` |
 | 设备可见性 | 只显示已选、显示全部、隐藏、显示隐藏设备 | `useHomePhoneView.ts`；“只显示已选”为开关，实时跟随选择；取消选择隐藏卡片，再点编号同时选中并显示；选择范围不受卡片显隐限制，右键“隐藏/显示”写入本地持久偏好，“显示隐藏设备”恢复持久隐藏；删除仅移除手动设备条目，不删除手机数据，自动发现设备不开放删除 |
@@ -62,10 +65,13 @@
 
 | 术语 | 别名 | 含义与指向 |
 |---|---|---|
+| 完整自动化任务 | task、任务执行、任务时间线 | `internal/automation/tasks*.go`；POST `/api/automation/tasks`开始、act通过`task_id`追加、POST `/api/automation/tasks/{task_id}/finish`结束；ID和serial为身份，title仅为标题；GET列表/详情供设备任务面板读取，MCP旧审计只读保留 |
 | 序列号 serial | 设备号、设备 ID | ADB 设备序列号;路由与接口统一用 `serial` 参数定位设备 |
+| 设备标识名 | 标识名、设备名称、设备别名 | 设备接口 `identifier`；服务端按非空持久化 `alias` → `brand` → `serial` 生成，右键设备/编号“修改标识名”经 PATCH `/api/devices/{serial}` 的 alias 保存；MCP 先按 serial，再按标识名忽略大小写匹配在线列表第一台，内部会话保存真实 serial；`phone_devices` 列出在线标识名及 serial |
 | 模板 / 模板匹配 | 识图、找图、模板图 | 选区截图存为模板,交 Python 匹配服务执行;不参与投屏视频处理,见 `docs/python-matching-service.md` |
 | 页面信息 | UI Package、uipage | 前台应用包名、Activity、焦点窗口、分辨率、DPI、旋转;接口 `/api/ui/page-info`,后端 `internal/uipage` |
-| UI XML | XML 树、UI dump | UIAutomator XML 快照;接口 `/api/ui/xml`,后端 `internal/uixml`,用于 XPath 与元素定位 |
+| UI XML | XML 树、UI dump | UIAutomator XML 快照；接口 `/api/ui/xml`，后端 `internal/uixml`；自动化 observe 的 ref 优先使用已启用的 Farm Companion，失败回退 dump；单独 OCR 跳过树读取 |
+| 设备助手 | Farm Companion、Companion、无障碍快通道 | 设备/编号右键“设备助手”，`DeviceCompanionDialog.vue`；`packages/android-companion`设备端只读无障碍服务，`internal/companion`通过ADB转发读取树；GET/POST `/api/devices/{serial}/companion`查询、安装/更新、启停；ready以独立心跳确认通信，当前树由observe采集；显式安装/启用后自动化优先使用，失败回退dump；当前非按任务自动启停 |
 | OCR | 识文字、文字识别 | 接口 `POST /api/vision/ocr`；支持文件上传与设备截图，`auto` 按 Indra OCR → macOCR → PaddleOCR 串行降级，`parallel` 为独立的三引擎并发融合模式；见 `docs/system-config.md` |
 | OCR 连续采样 | OCR 防抖、稳定识别 | `internal/ocr/detect.go`；设备请求的 `stabilization_ms=1..5000` 启用服务端连续截图，轮次启动间隔至少 50 ms、最多 101 轮；省略或 0 保持单次，上传文件不启用 |
 | OCR 文本画 | 文字图片、text-art | 接口 `POST /api/vision/ocr-text-art`；按 OCR 文字框位置渲染纯文本布局，共用 OCR 引擎与采样规则，支持 JSON、multipart 和 query；JSON 返回 `samples`、`engines_used` 等识别信息，`Accept: text/plain` 返回文本画 |
@@ -75,11 +81,13 @@
 | 通用操作技能 | 通用技能、my-scrcpy-common | `skills/my-scrcpy-common`；共享规则、Wiki 与通用操作脚本（观察、刷视频、返回、启动/重启应用、解锁屏幕） |
 | 动作执行 | 拟人化注入、input 执行 | 两种模式:SDK 拟人化注入(贝塞尔曲线/落点微抖动)与 ADB Shell input 系统级穿透 |
 | 投屏右键返回 | 右键返回、右键返回键 | `frontend/src/scrcpy/usePlayer.ts`；投屏画面右键点击发送一次完整返回键按下/抬起，复用工具条返回操作与群控同步；检查模式开启时由检查器接管，不向设备派发返回 |
-| 最新帧图片流接口 | 最新帧、最新截图、投屏截图流 | 接口 `GET /api/devices/{serial}/latest-frame` 与 `GET /api/device-state/{serial}/screenshot`；优先从服务端视频流提取最新解码帧并返回图片流，供所有视觉相关接口统一消费 |
+| 最新帧图片流接口 | 最新帧、最后帧、最新截图、投屏截图流 | 接口 `GET/POST /api/v1/vision/latest-frame?serial=...`、`GET/POST /api/devices/{serial}/latest-frame` 与 `GET/POST /api/device-state/{serial}/screenshot`；优先从服务端视频流提取最新解码帧并返回图片流，供所有视觉相关接口统一消费 |
 | 像素点取色接口 | 获取像素点、像素颜色接口、坐标取色 | 接口 `GET/POST /api/v1/vision/pixel`；支持归一化坐标(0~1)与绝对像素坐标，基于最新帧画面快速提取像素并返回详细颜色信息(RGB/RGBA/HEX) |
 | 投屏拖拽安装 | 拖拽安装、APK 拖拽安装、投屏文件投放 | 投屏详情页与小窗投屏画面支持直接拖入文件；APK 文件弹出安装确认弹窗（支持保留数据覆盖、自动授权、允许降级），其他文件弹出保存到设备 Downloads 目录（`/storage/emulated/0/Download/`）确认弹窗 |
 | 快手短视频技能 | 快手技能、快手极速版任务、观看视频模式 | `skills/kuaishou-short-video/SKILL.md`；红包守护、连续打卡白拿手机、连续签到的视频观看流程 |
 | 群控 | 群控同步、同步操作、多机同步、同屏同步 | 操作任意一台手机（无需勾选为源）时，将点击、触控轨迹、按键与手势按归一化坐标同步至所有已勾选在线且可见的受控手机；首页协调页通过 BroadcastChannel 接收独立投屏页输入，每台目标只派发一次，后台 `/ws?control_only=1` 不订阅音视频；`frontend/src/composables/useGroupControl.ts` |
+
+| 产物目录下载 | 下载目录接口、产物目录、产物下载 | `GET /api/automation/artifacts?serial=...&directory=<相对目录>` 返回指定设备 `/sdcard/Farm/automation` 下的 HTML 文件列表和下载 URL；`GET /api/automation/artifacts/download?serial=...&directory=...&file=...` 下载该设备目录内文件 |
 
 ## 后端模块速查(`internal/`)
 

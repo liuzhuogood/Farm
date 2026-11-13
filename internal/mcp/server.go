@@ -2,7 +2,9 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -12,17 +14,20 @@ import (
 	sdk "github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"farm/internal/automation"
+	"farm/internal/device"
 	"farm/internal/safety"
 )
 
 // Server Farm 原生 MCP 服务
 type Server struct {
-	autoService *automation.Service
-	policy      *safety.PolicyEngine
-	approvals   *safety.ApprovalCenter
-	history     *safety.HistoryStore
-	sdkServer   *sdk.Server
-	version     string
+	autoService    *automation.Service
+	policy         *safety.PolicyEngine
+	approvals      *safety.ApprovalCenter
+	history        *safety.HistoryStore
+	sdkServer      *sdk.Server
+	version        string
+	deviceProvider func() []device.Device
+	launchApp      func(context.Context, string, string) error
 
 	mu          sync.Mutex
 	tasks       map[string]string // sessionID -> taskID
@@ -54,7 +59,7 @@ func NewServer(
 
 const Instructions = `Farm 让 AI Agent 可以像真人一样操作连接的真实 Android 设备。
 操作约定：
-1. 使用 phone_connect 开始一个任务并指定 device serial 和任务目标。
+1. 使用 phone_devices 获取设备标识名、serial 和状态，再用 phone_connect 开始任务。device 支持精确 serial 或标识名；同名按列表顺序取第一台。
 2. 每个动作执行后会自动返回最新紧凑屏幕文本（或差异变化行），无需频繁重复 phone_observe。
 3. 遇到涉及财产支付、转账、发送敏感信息或破坏性删除等动作时，安全网关会返回 approval_pending 并携带 approval_id，请以相同参数附带该 approval_id 再次调用重试，等待人类审批。
 4. 严禁向密码框输入真实密码或验证码，遇到密码输入或滑块验证请调用 phone_handoff 交由人类完成。
@@ -92,20 +97,20 @@ func (s *Server) HTTPHandler() http.Handler {
 // 工具输入契约结构体定义
 
 type ConnectInput struct {
-	Device   string `json:"device" jsonschema:"目标 Android 设备序列号 (如 emulator-5554)"`
+	Device   string `json:"device" jsonschema:"目标 Android 设备的 serial 或标识名（如 Redmi；同名取列表第一台）"`
 	Task     string `json:"task" jsonschema:"当前任务描述 (如 帮我检查设置项)"`
 	ReadOnly bool   `json:"read_only,omitempty" jsonschema:"是否以只读模式运行"`
 }
 
 type ObserveInput struct {
-	Device   string   `json:"device,omitempty" jsonschema:"设备序列号"`
+	Device   string   `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
 	Formats  []string `json:"formats,omitempty" jsonschema:"输出格式清单，如 [\"ref\", \"ocr\"]"`
 	Diff     *bool    `json:"diff,omitempty" jsonschema:"是否优先返回增量差异，默认 true"`
 	SettleMS int      `json:"settle_ms,omitempty" jsonschema:"等待画面静止延时毫秒数"`
 }
 
 type TapInput struct {
-	Device     string `json:"device,omitempty" jsonschema:"设备序列号"`
+	Device     string `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
 	Ref        int    `json:"ref,omitempty" jsonschema:"最新屏幕感知中的元素编号 [ref]"`
 	X          *int   `json:"x,omitempty" jsonschema:"绝对像素坐标 X（当没有 ref 时使用）"`
 	Y          *int   `json:"y,omitempty" jsonschema:"绝对像素坐标 Y（当没有 ref 时使用）"`
@@ -115,7 +120,7 @@ type TapInput struct {
 }
 
 type TypeInput struct {
-	Device     string `json:"device,omitempty" jsonschema:"设备序列号"`
+	Device     string `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
 	Text       string `json:"text" jsonschema:"需要输入的文本内容"`
 	Ref        int    `json:"ref,omitempty" jsonschema:"目标输入框元素 ref"`
 	Submit     bool   `json:"submit,omitempty" jsonschema:"输入完成后是否敲回车发送/提交"`
@@ -124,41 +129,55 @@ type TypeInput struct {
 }
 
 type SwipeInput struct {
-	Device    string `json:"device,omitempty" jsonschema:"设备序列号"`
+	Device    string `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
 	Direction string `json:"direction" jsonschema:"滑动方向: up, down, left, right"`
 	Intent    string `json:"intent,omitempty" jsonschema:"滑动意图说明"`
 }
 
 type KeyInput struct {
-	Device string `json:"device,omitempty" jsonschema:"设备序列号"`
+	Device string `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
 	Key    string `json:"key" jsonschema:"按键名称: home, back, app_switch, enter, power"`
 }
 
 type LaunchInput struct {
-	Device string `json:"device,omitempty" jsonschema:"设备序列号"`
-	App    string `json:"app" jsonschema:"应用包名或名称 (如 com.android.settings)"`
+	Device string `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
+	App    string `json:"app" jsonschema:"明确的 Android 应用包名 (如 com.android.settings)"`
 }
 
 type HandoffInput struct {
-	Device string `json:"device,omitempty" jsonschema:"设备序列号"`
+	Device string `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
 	Reason string `json:"reason" jsonschema:"需要人类接管的原因 (如 请输入支付密码或解锁屏幕)"`
 }
 
 type RequestApprovalInput struct {
-	Device  string `json:"device,omitempty" jsonschema:"设备序列号"`
+	Device  string `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
 	Summary string `json:"summary" jsonschema:"向用户提问的简明内容"`
 	Details string `json:"details,omitempty" jsonschema:"提问详细说明"`
 }
 
 type ReleaseInput struct {
-	Device  string `json:"device,omitempty" jsonschema:"设备序列号"`
+	Device  string `json:"device,omitempty" jsonschema:"设备 serial 或标识名；省略使用已绑定设备"`
 	Outcome string `json:"outcome,omitempty" jsonschema:"任务结果: done, failed, stopped"`
 	Summary string `json:"summary,omitempty" jsonschema:"最终完成总结"`
 	Export  bool   `json:"export,omitempty" jsonschema:"是否导出单文件自包含 HTML 审计报告"`
 }
 
 // 注册所有核心 MCP 工具
+type DevicesInput struct{}
+
+type DeviceListEntry struct {
+	Identifier string `json:"identifier"`
+	Serial     string `json:"serial"`
+	State      string `json:"state"`
+}
+
 func (s *Server) registerTools(srv *sdk.Server) {
+	sdk.AddTool(srv, &sdk.Tool{
+		Name:        "phone_devices",
+		Title:       "列出设备",
+		Description: "只读列出在线设备标识名、serial 和状态。device 参数支持精确 serial 或标识名；同名按在线列表顺序选第一台。",
+	}, s.handleDevices)
+
 	// 1. phone_connect
 	sdk.AddTool(srv, &sdk.Tool{
 		Name:        "phone_connect",
@@ -205,7 +224,7 @@ func (s *Server) registerTools(srv *sdk.Server) {
 	sdk.AddTool(srv, &sdk.Tool{
 		Name:        "phone_launch",
 		Title:       "启动应用",
-		Description: "启动指定的应用包名或别名，并自动等待返回其打开后的最新屏幕画面。",
+		Description: "启动指定 Android 应用包名，确认前台应用后返回最新屏幕画面。",
 	}, s.handleLaunch)
 
 	// 8. phone_handoff
@@ -230,19 +249,98 @@ func (s *Server) registerTools(srv *sdk.Server) {
 	}, s.handleRelease)
 }
 
-// 辅助方法：获取会话上下文绑定的设备与任务 ID
-func (s *Server) resolveContext(sessionID, deviceArg string) (serial, taskID string, err error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+// SetDeviceProvider supplies the ordered device registry snapshot.
+// Configure before serving MCP requests; all device inputs resolve to serials.
+func (s *Server) SetDeviceProvider(provider func() []device.Device) {
+	s.deviceProvider = provider
+}
 
+func (s *Server) deviceList() ([]device.Device, error) {
+	if s.deviceProvider == nil {
+		return nil, fmt.Errorf("device registry is unavailable")
+	}
+	return s.deviceProvider(), nil
+}
+
+func deviceSelectionError(input string, devices []device.Device) error {
+	var entries []string
+	for _, d := range devices {
+		if d.State != "device" {
+			continue
+		}
+		entries = append(entries, fmt.Sprintf("identifier=%q serial=%s (state=%s)", d.IdentifierName(), d.Serial, d.State))
+	}
+	list := "(none)"
+	if len(entries) > 0 {
+		list = strings.Join(entries, "; ")
+	}
+	log.Printf("[MCP] rejected unavailable device input=%q", input)
+	return fmt.Errorf("device %q is unknown or offline; pass an online device serial or identifier (first matching online device is selected). Current online devices: %s", input, list)
+}
+
+// resolveDevice gives exact serial precedence, then matches public identifiers
+// case-insensitively in online registry order. Explicit offline serials fail.
+func (s *Server) resolveDevice(input string, allowIdentifier bool) (string, error) {
+	devices, err := s.deviceList()
+	if err != nil {
+		return "", err
+	}
+	input = strings.TrimSpace(input)
+	for _, d := range devices {
+		if d.Serial == input {
+			if d.State == "device" {
+				return d.Serial, nil
+			}
+			return "", deviceSelectionError(input, devices)
+		}
+	}
+	if allowIdentifier {
+		for _, d := range devices {
+			if d.State == "device" && strings.EqualFold(d.IdentifierName(), input) {
+				return d.Serial, nil
+			}
+		}
+	}
+	return "", deviceSelectionError(input, devices)
+}
+
+func (s *Server) handleDevices(_ context.Context, _ *sdk.CallToolRequest, _ DevicesInput) (*sdk.CallToolResult, any, error) {
+	devices, err := s.deviceList()
+	if err != nil {
+		return errorResult("device_unavailable", err.Error()), nil, nil
+	}
+	entries := make([]DeviceListEntry, 0, len(devices))
+	for _, d := range devices {
+		if d.State != "device" {
+			continue
+		}
+		entries = append(entries, DeviceListEntry{Identifier: d.IdentifierName(), Serial: d.Serial, State: d.State})
+	}
+	data, err := json.Marshal(entries)
+	if err != nil {
+		return errorResult("device_list_failed", err.Error()), nil, nil
+	}
+	return textResult(string(data)), nil, nil
+}
+
+// resolveContext retains real serial identity for an already bound session.
+// Only an explicitly supplied device parameter can select by identifier.
+func (s *Server) resolveContext(sessionID, deviceArg string) (serial, taskID string, err error) {
+	explicit := strings.TrimSpace(deviceArg) != ""
+	s.mu.Lock()
 	serial = deviceArg
-	if serial == "" {
+	if !explicit {
 		serial = s.devices[sessionID]
 	}
-	if serial == "" {
-		return "", "", fmt.Errorf("missing device serial (call phone_connect first or pass device)")
-	}
 	taskID = s.tasks[sessionID]
+	s.mu.Unlock()
+	if serial == "" {
+		return "", "", fmt.Errorf("missing device (call phone_connect first or pass a serial or identifier)")
+	}
+	serial, err = s.resolveDevice(serial, explicit)
+	if err != nil {
+		return "", "", err
+	}
 	return serial, taskID, nil
 }
 
@@ -275,7 +373,7 @@ func errorResult(errCode, msg string) *sdk.CallToolResult {
 
 // 1. handleConnect
 func (s *Server) handleConnect(ctx context.Context, req *sdk.CallToolRequest, in ConnectInput) (*sdk.CallToolResult, any, error) {
-	if in.Device == "" {
+	if strings.TrimSpace(in.Device) == "" {
 		return errorResult("invalid_argument", "必须指定 device 参数"), nil, nil
 	}
 
@@ -284,31 +382,35 @@ func (s *Server) handleConnect(ctx context.Context, req *sdk.CallToolRequest, in
 		sessionID = req.Session.ID()
 	}
 
-	// 在历史服务中开启任务记录
+	serial, err := s.resolveDevice(in.Device, true)
+	if err != nil {
+		return errorResult("device_unavailable", err.Error()), nil, nil
+	}
+	if s.autoService == nil {
+		return errorResult("service_unavailable", "automation service is not configured"), nil, nil
+	}
+	// Bind only after the device and its first observation have been verified.
+	screenText, err := s.autoService.Observe(ctx, automation.ObserveRequest{
+		Serial: serial, Formats: []string{"ref", "ocr"}, SettleMS: 300,
+	})
+	if err != nil {
+		return errorResult("connect_failed", fmt.Sprintf("observe failed for %s: %v", serial, err)), nil, nil
+	}
 	var taskID string
 	if s.history != nil {
-		id, err := s.history.CreateTask(ctx, in.Device, "Agent", in.Task)
-		if err == nil {
+		id, err := s.history.CreateTask(ctx, serial, "Agent", in.Task)
+		if err != nil {
+			log.Printf("[MCP] task history creation failed serial=%s: %v", serial, err)
+		} else {
 			taskID = id
 		}
 	}
-
 	s.mu.Lock()
-	s.devices[sessionID] = in.Device
+	s.devices[sessionID] = serial
 	s.tasks[sessionID] = taskID
 	s.mu.Unlock()
 
-	// 抓取首屏感知数据
-	screenText, err := s.autoService.Observe(ctx, automation.ObserveRequest{
-		Serial:   in.Device,
-		Formats:  []string{"ref", "ocr"},
-		SettleMS: 300,
-	})
-	if err != nil {
-		return textResult(fmt.Sprintf("connected to %s (task: %s), observe error: %v", in.Device, in.Task, err)), nil, nil
-	}
-
-	return textResult(fmt.Sprintf("connected to %s · task: %s\n%s", in.Device, in.Task, screenText)), nil, nil
+	return textResult(fmt.Sprintf("connected to %s · task: %s\n%s", serial, in.Task, screenText)), nil, nil
 }
 
 // 2. handleObserve
@@ -696,14 +798,24 @@ func (s *Server) handleLaunch(ctx context.Context, req *sdk.CallToolRequest, in 
 		}
 	}
 
-	// 唤起应用
+	if s.autoService == nil {
+		return errorResult("service_unavailable", "automation service is not configured"), nil, nil
+	}
+	launch := s.launchApp
+	if launch == nil {
+		launch = s.autoService.LaunchApp
+	}
+	if err := launch(ctx, serial, in.App); err != nil {
+		return errorResult("launch_failed", err.Error()), nil, nil
+	}
+	// Launch has succeeded; an observation failure must not suggest replaying it.
 	screenText, err := s.autoService.Observe(ctx, automation.ObserveRequest{
 		Serial:   serial,
 		Formats:  []string{"ref", "ocr"},
 		SettleMS: 1000,
 	})
 	if err != nil {
-		return errorResult("launch_failed", err.Error()), nil, nil
+		return errorResult("observe_failed", fmt.Sprintf("launched %s on %s; foreground verified; screen observation failed: %v", in.App, serial, err)), nil, nil
 	}
 
 	return textResult(fmt.Sprintf("settled\n%s", screenText)), nil, nil

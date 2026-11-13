@@ -43,10 +43,15 @@ ocr "已连接到 5G_WiFi" @320,480
 自动化接口输出结构化日志（标准输出 + 内存环形缓冲），覆盖请求、阶段、差异、动作、响应与错误七类事件；
 新增 `GET /api/automation/logs` 自省端点，支持按 `serial` / `type` / `limit` 过滤。
 
-### AI 自动化接口文档
-`/api-docs-automation.html` 由服务端读取筛选后的 OpenAPI 规范并渲染为精简文本，包含接口路径、方法、参数签名、请求 Schema 与响应 Schema。
-浏览器直接收到完整 HTML 内容，不需要执行 JavaScript 或二次请求；自动化清单收敛至 13 个已实现接口。
-当前点击、滑动、按键与视觉条件操作通过现有接口暴露；统一伪指令入口 `/api/automation/act` 尚未实现，文档不会将其列为可调用能力。
+### AI 自动化接口文档（2026-11-13 更新）
+`/fram.skill` 按技能使用说明展示四个 AI 专用入口：纯文本设备列表、GET observe、纯文本 act、文本调用日志。旧文档地址重定向至此。
+不再向技能展示 JSON Schema、MCP/Safety 或零散 `/api/v1/*` 接口；旧业务接口保留原实现与返回格式。
+
+### 统一文本操作（2026-11-13 新增）
+`POST /api/automation/act?serial=<真实序列号>`，正文每行“操作 参数”。支持 tap、keyevent、sendkey、swipe、check、ocr、wait、sleep。
+点击/滑动直接使用 `@X,Y` 屏幕像素坐标；多按键支持 `|｜,，` 分隔。最多 32 行，全语法预校验后顺序执行；失败、检查未命中或条件等待超时停止后续，返回失败行与完成数量。
+`sendkey` 通过现有 SDK 剪贴板粘贴通道保留 Unicode；不修改旧输入接口。每设备只允许一个活跃批次，全局最多 16 个，不排队、不自动重放。
+本机 Redmi 真机与浏览器验证见 [验证记录](../../verification/2026-11-13-automation-text-skill.md)。
 
 ### 端到端验收
 macmini（10.0.0.11）本地完成 13 个真实设备验收用例（Pixel_7_2 模拟器 / Android 14 / 1080x2400 / Indra OCR sidecar），

@@ -69,6 +69,7 @@ export function useHomePhoneView(
   allDevices: () => Device[],
   numberMap?: () => Map<string, string>,
   selectedSerials: () => string[] = () => [],
+  showOffline: () => boolean = () => false,
 ) {
   const initialDashSize = normalizeDashSize(localStorage.getItem(PHONE_DASH_SIZE_KEY))
   const dashSize = ref<DashSize>(initialDashSize)
@@ -135,7 +136,7 @@ export function useHomePhoneView(
   // 当前可见设备列表
   const visibleDevices = computed(() => {
     const selected = new Set(selectedSerials())
-    return allDevices().filter(d => d.state === 'device' && !hiddenSerials.value.includes(d.serial) && (!onlySelected.value || selected.has(d.serial)))
+    return allDevices().filter(d => (showOffline() || d.state === 'device') && !hiddenSerials.value.includes(d.serial) && (!onlySelected.value || selected.has(d.serial)))
   })
 
   return {

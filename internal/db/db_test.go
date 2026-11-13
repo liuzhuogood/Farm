@@ -76,3 +76,34 @@ func TestDBDeviceLifecycle(t *testing.T) {
 		t.Error("Expected error deleting non-existent device")
 	}
 }
+
+func TestDeviceAliasPersistsForAutoDevicesWithoutEnablingReconnect(t *testing.T) {
+	database, err := Open(filepath.Join(t.TempDir(), "farm.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	if err := database.UpdateAlias("auto-usb", "我的手机"); err != nil {
+		t.Fatal(err)
+	}
+	aliases, err := database.ListDeviceAliases()
+	if err != nil || aliases["auto-usb"] != "我的手机" {
+		t.Fatalf("aliases=%v err=%v", aliases, err)
+	}
+	manual, err := database.ListManualDevices()
+	if err != nil || len(manual) != 0 {
+		t.Fatalf("renaming promoted auto device: %v err=%v", manual, err)
+	}
+	var source string
+	var reconnect int
+	if err := database.db.QueryRow("SELECT source,auto_reconnect FROM devices WHERE serial=?", "auto-usb").Scan(&source, &reconnect); err != nil || source != "auto" || reconnect != 0 {
+		t.Fatalf("source=%q reconnect=%d err=%v", source, reconnect, err)
+	}
+	if err := database.UpdateAlias("auto-usb", ""); err != nil {
+		t.Fatal(err)
+	}
+	aliases, err = database.ListDeviceAliases()
+	if err != nil || aliases["auto-usb"] != "" {
+		t.Fatalf("clear alias failed: %v %v", aliases, err)
+	}
+}

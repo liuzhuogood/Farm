@@ -3,7 +3,6 @@ import AppGlyph from './AppGlyph.vue'
 import {
   Battery,
   BatteryCharging,
-  Check,
   Loader2,
   Lock,
   MonitorPlay,
@@ -52,6 +51,7 @@ const windowEffects = usePlayerWindows(computed(() => props.device.serial))
 
 const isEditing = computed(() => store.editingSerial === props.device.serial)
 const draft = ref('')
+const savingAlias = ref(false)
 const inputRef = ref<ComponentPublicInstance | null>(null)
 const isReconnecting = ref(false)
 const isDeleting = ref(false)
@@ -195,16 +195,22 @@ function getAppVisual(iconType?: string) {
 async function startEdit(e: Event) {
   e.stopPropagation()
   store.editingSerial = props.device.serial
-  draft.value = props.device.alias || store.aliases[props.device.serial] || props.device.brand || props.device.model || ''
+  draft.value = store.displayName(props.device)
   await nextTick()
   const el = inputRef.value?.$el as HTMLInputElement | undefined
   el?.focus()
   el?.select()
 }
 
-function save() {
-  store.saveAlias(props.device.serial, draft.value, props.device.brand || props.device.model || 'Android')
-  store.editingSerial = null
+async function save() {
+  if (savingAlias.value) return
+  savingAlias.value = true
+  try {
+    await store.saveAlias(props.device.serial, draft.value)
+    if (store.editingSerial === props.device.serial) store.editingSerial = null
+  }
+  catch (cause) { toast.error(cause instanceof Error ? cause.message : '保存失败') }
+  finally { savingAlias.value = false }
 }
 
 function cancel() {
@@ -442,13 +448,12 @@ async function openFloatingWindow(e?: Event) {
                 <Input
                   ref="inputRef"
                   v-model="draft"
+                  :disabled="savingAlias"
                   class="h-6 rounded-md bg-neutral-900 border-neutral-700 text-xs px-1.5 text-white"
                   @keydown.enter="save"
                   @keydown.esc="cancel"
                 />
-                <button type="button" class="text-emerald-400 hover:text-emerald-300 p-0.5" @click.stop="save">
-                  <Check class="h-3 w-3" />
-                </button>
+                <Button type="button" class="h-6 bg-blue-600 px-2 text-xs text-white hover:bg-blue-700" :disabled="savingAlias" @click.stop="save">保存</Button>
                 <button type="button" class="text-neutral-400 hover:text-neutral-300 p-0.5" @click.stop="cancel">
                   <X class="h-3 w-3" />
                 </button>
@@ -462,7 +467,7 @@ async function openFloatingWindow(e?: Event) {
                 <button
                   type="button"
                   class="text-neutral-500 hover:text-neutral-200 transition-colors cursor-pointer"
-                  title="编辑别名"
+                  title="修改标识名"
                   @click.stop="startEdit"
                 >
                   <Pencil class="h-2.5 w-2.5" />

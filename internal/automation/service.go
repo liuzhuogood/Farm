@@ -19,6 +19,7 @@ import (
 	"farm/internal/action"
 	debuglog "farm/internal/debug"
 	"farm/internal/dependencies"
+	"farm/internal/device"
 	"farm/internal/inputconfig"
 	"farm/internal/ocr"
 	"farm/internal/safety"
@@ -45,18 +46,27 @@ type FrameFetcher func(ctx context.Context, serial string) (image.Image, []byte,
 
 // Service 自动化与视觉服务实现
 type Service struct {
-	hub             *ws.Hub
-	templateStorage *template.Storage
-	ocrService      *ocr.Service
-	inputConfig     *inputconfig.Store
-	adbPath         string
-	frameFetcher    FrameFetcher
-	uiXML           UIXMLProvider
-	uiPage          UIPageProvider
-	screenCache     sync.Map       // map[string]*Screen
-	logRing         *debuglog.Ring // 自动化接口调用日志环形缓冲
-	policyEngine    *safety.PolicyEngine
-	approvalCenter  *safety.ApprovalCenter
+	hub               *ws.Hub
+	templateStorage   *template.Storage
+	ocrService        *ocr.Service
+	inputConfig       *inputconfig.Store
+	adbPath           string
+	frameFetcher      FrameFetcher
+	uiXML             UIXMLProvider
+	uiPage            UIPageProvider
+	screenCache       sync.Map       // map[string]*Screen
+	logRing           *debuglog.Ring // 自动化接口调用日志环形缓冲
+	policyEngine      *safety.PolicyEngine
+	approvalCenter    *safety.ApprovalCenter
+	deviceProvider    func() []device.Device
+	actTransport      actTransport
+	actSlots          chan struct{}
+	actMu             sync.Mutex
+	actDevices        map[string]struct{}
+	artifactHTTPOnce  sync.Once
+	artifactHTTPSlots chan struct{}
+	tasksOnce         sync.Once
+	tasks             *automationTasks
 }
 
 // NewService 创建自动化服务实例
@@ -67,14 +77,19 @@ func NewService(
 	inputConfig *inputconfig.Store,
 	adbPath string,
 ) *Service {
-	return &Service{
+	s := &Service{
 		hub:             hub,
 		templateStorage: templateStorage,
 		ocrService:      ocrService,
 		inputConfig:     inputConfig,
 		adbPath:         adbPath,
 		logRing:         debuglog.New(logRingCapacity),
+		actSlots:        make(chan struct{}, 16),
 	}
+	if hub != nil {
+		s.actTransport = hub
+	}
+	return s
 }
 
 // SetSafetyProviders 注入安全策略引擎与审批中心

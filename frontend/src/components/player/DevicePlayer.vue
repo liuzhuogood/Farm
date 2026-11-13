@@ -10,6 +10,7 @@ import {
   FolderOpen,
   Home,
   LayoutTemplate,
+  ListChecks,
   Loader2,
   Maximize,
   Minimize,
@@ -79,6 +80,7 @@ import SplitLayout from '@/components/layout/SplitLayout.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import FilesView from '@/views/FilesView.vue'
 import PlayerSettingsPanel from '@/components/player/PlayerSettingsPanel.vue'
+import DeviceTasksPanel from '@/components/player/DeviceTasksPanel.vue'
 import WindowEffectsControl from '@/components/player/WindowEffectsControl.vue'
 import AudioControl from '@/components/player/AudioControl.vue'
 import { usePlayerWindows } from '@/composables/usePlayerWindows'
@@ -158,6 +160,7 @@ const captureOpen = ref(false)
 const shellOpen = ref(false)
 const filesOpen = ref(false)
 const settingsOpen = ref(false)
+const taskPanelOpen = ref(!props.embedded)
 const sizeOpen = ref(false)
 const mobileTool = ref<'recording' | 'screenshots' | null>(null)
 const touchVisible = ref(localStorage.getItem('show-touch-overlay') !== 'false')
@@ -166,7 +169,9 @@ const deleteRecordingTarget = ref<RecordingEntry | null>(null)
 const { width: stageWidth } = useElementSize(p.stageRef)
 const compactToolbar = computed(() => stageWidth.value < 1280)
 const isVeryNarrow = computed(() => stageWidth.value < 270)
-const sidePanel = computed(() => captureOpen.value ? 'capture' : filesOpen.value || shellOpen.value || inspectorVisible.value || replayOpen.value || templateOpen.value || settingsOpen.value ? 'tools' : null)
+const existingToolOpen = computed(() => filesOpen.value || shellOpen.value || inspectorVisible.value || replayOpen.value || templateOpen.value || settingsOpen.value)
+const tasksVisible = computed(() => taskPanelOpen.value && !captureOpen.value && !existingToolOpen.value)
+const sidePanel = computed(() => captureOpen.value ? 'capture' : existingToolOpen.value || taskPanelOpen.value ? 'tools' : null)
 
 const localToolbarVisible = ref(true)
 const isNativeToolbarHovered = ref(false)
@@ -286,6 +291,16 @@ function closeSidePanels() {
   }
   templateOpen.value = false
   settingsOpen.value = false
+}
+
+function toggleTasks() {
+  if (tasksVisible.value) {
+    taskPanelOpen.value = false
+    return
+  }
+  closeSidePanels()
+  captureOpen.value = false
+  taskPanelOpen.value = true
 }
 
 function openReplayPanel() {
@@ -595,6 +610,7 @@ defineExpose({ handleEscape })
               <PictureInPicture2 class="h-4 w-4" />{{ p.pipActive.value ? '退出画中画' : '画中画' }}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem @select="toggleTasks()"><ListChecks class="h-4 w-4" />任务情况</DropdownMenuItem>
             <DropdownMenuItem @select="openDeviceDetail()"><ExternalLink class="h-4 w-4" />设备详情</DropdownMenuItem>
             <DropdownMenuItem @select="openSettings()"><Settings class="h-4 w-4" />设置</DropdownMenuItem>
           </DropdownMenuContent>
@@ -603,6 +619,7 @@ defineExpose({ handleEscape })
 
       <!-- 完整页面模式工具栏 -->
       <div v-else class="flex shrink-0 items-center gap-1">
+        <Button variant="ghost" size="icon" title="任务情况" aria-label="任务情况" :aria-pressed="tasksVisible" :class="{ 'bg-accent': tasksVisible }" @click="toggleTasks()"><ListChecks class="h-5 w-5" /></Button>
         <Button class="toolbar-secondary" variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
           <Undo2 class="h-5 w-5" />
         </Button>
@@ -803,7 +820,7 @@ defineExpose({ handleEscape })
       </DialogContent>
     </Dialog>
     <!-- 舞台 + 侧栏 -->
-    <SplitLayout :class="{ 'capture-layout': captureOpen }" :open="sidePanel !== null">
+    <SplitLayout :class="{ 'capture-layout': captureOpen, 'task-layout': tasksVisible }" :open="sidePanel !== null">
       <template #main><div class="flex h-full min-h-0 flex-col overflow-hidden p-0" :class="embedded ? 'bg-black' : 'bg-transparent gap-3 overflow-auto'">
       <main
         data-player-viewport
@@ -900,6 +917,7 @@ defineExpose({ handleEscape })
       <template #side>
       <div v-if="captureOpen" :id="captureHostId" class="h-full overflow-auto bg-card" />
       <div v-show="!captureOpen" class="flex h-full min-h-0 flex-col">
+      <DeviceTasksPanel v-if="taskPanelOpen" v-show="tasksVisible" :serial="serial" :active="tasksVisible" @close="taskPanelOpen = false" />
       <FilesView v-if="filesOpen" :serial="serial" embedded @close="filesOpen = false" />
       <InspectorPanel v-else-if="inspectorVisible" @close="inspectorVisible = false; setInspector(false)" />
       <AdbShellPanel v-else-if="shellOpen" :serial="serial" @close="shellOpen = false" />
@@ -976,10 +994,10 @@ defineExpose({ handleEscape })
   inset: 0;
   z-index: 50;
 }
-@media (min-width: 821px) {
-  .capture-layout.split-layout-open:not(.split-layout-resized) {
-    grid-template-columns: minmax(0, 1fr) 8px 280px;
-  }
+@media (max-width: 820px) {
+  .task-layout.split-layout-open { overflow: hidden; }
+  .task-layout :deep(.split-layout-main) { height: auto; min-height: 180px; flex: 1 1 45%; }
+  .task-layout :deep(.split-layout-side) { height: auto; min-height: 180px; flex: 1 1 55%; }
 }
 .toolbar-compact .toolbar-optional, .toolbar-compact .toolbar-secondary { display: none !important; }
 </style>

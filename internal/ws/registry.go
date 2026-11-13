@@ -676,6 +676,13 @@ func (e deviceActionExecutor) executeHID(ctx context.Context, r action.Request) 
 		y2 := clampInt32(int32(math.Round(r.Y2*float64(height))), 0, int32(height)-1)
 		e.ms.controlMu.Lock()
 		defer e.ms.controlMu.Unlock()
+		if r.Source == "automation.act" && r.DurationMS > 0 {
+			if err := e.automationSwipe(ctx, r, x1, y1, x2, y2, w, h, true); err != nil {
+				return err
+			}
+			e.touch.emit("swipe", r.X, r.Y, r.X2, r.Y2, r.Source)
+			return nil
+		}
 		if err := e.hidSwipe(x1, y1, x2, y2, w, h); err != nil {
 			return err
 		}
@@ -757,6 +764,13 @@ func (e deviceActionExecutor) executeSDK(ctx context.Context, r action.Request) 
 		x1, y1 := int32(r.X*float64(width)), int32(r.Y*float64(height))
 		x2, y2 := int32(r.X2*float64(width)), int32(r.Y2*float64(height))
 		w, h := uint16(width), uint16(height)
+		if r.Source == "automation.act" && r.DurationMS > 0 {
+			if err := e.automationSwipe(ctx, r, x1, y1, x2, y2, w, h, false); err != nil {
+				return err
+			}
+			e.touch.emit("swipe", r.X, r.Y, r.X2, r.Y2, r.Source)
+			return nil
+		}
 		if r.Humanize {
 			if err := e.humanizeSwipe(x1, y1, x2, y2, w, h); err != nil {
 				return err

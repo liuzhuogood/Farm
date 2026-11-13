@@ -17,6 +17,7 @@ import (
 	"farm/internal/adbshell"
 	"farm/internal/apidocs"
 	"farm/internal/apps"
+	"farm/internal/companion"
 	"farm/internal/db"
 	"farm/internal/dependencies"
 	"farm/internal/desktop"
@@ -32,6 +33,7 @@ import (
 	"farm/internal/uixml"
 	"farm/internal/updater"
 	"farm/internal/ws"
+	androidcompanion "farm/packages/android-companion"
 )
 
 //go:embed VERSION
@@ -124,8 +126,10 @@ func main() {
 	fileManager := files.NewManager(adbPath)
 	uiXML := uixml.New(adbPath)
 	uiPage := uipage.New(adbPath)
+	companionService := companion.New(adbPath, androidcompanion.APK())
 
 	mux := http.NewServeMux()
+	companionService.RegisterRoutes(mux, func(serial string) bool { _, ok := dm.GetDevice(serial); return ok })
 	discovery := device.NewDiscovery(dm)
 	defer discovery.Close()
 	discovery.RegisterRoutes(mux)
@@ -280,7 +284,10 @@ func main() {
 		return img, raw, err
 	})
 	auxiliary.automation.SetUIXMLProvider(uiXML)
+	auxiliary.automation.SetFastUIXMLProvider(companionService)
 	auxiliary.automation.SetUIPageProvider(uiPage)
+	auxiliary.automation.SetDeviceProvider(dm.Devices)
+	auxiliary.mcpServer.SetDeviceProvider(dm.Devices)
 
 	// API: 设备管理
 	mux.HandleFunc("/api/devices", func(w http.ResponseWriter, r *http.Request) {

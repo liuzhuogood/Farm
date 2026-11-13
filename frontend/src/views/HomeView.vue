@@ -12,6 +12,8 @@ import HomeIosDockBar from '@/components/home/HomeIosDockBar.vue'
 import SystemConfigDialog from '@/components/system/SystemConfigDialog.vue'
 import { Button } from '@/components/ui/button'
 import AddDeviceDialog from '@/components/home/AddDeviceDialog.vue'
+import DeviceIdentifierDialog from '@/components/home/DeviceIdentifierDialog.vue'
+import DeviceCompanionDialog from '@/components/home/DeviceCompanionDialog.vue'
 import { useDeviceStore } from '@/stores/devices'
 import { useHomePhoneView } from '@/composables/useHomePhoneView'
 import { useDeviceSelection } from '@/composables/useDeviceSelection'
@@ -46,8 +48,15 @@ const onlineCount = computed(() => {
   return store.devices.filter(d => d.state === 'device').length
 })
 
+const SHOW_OFFLINE_KEY = 'farm.show_offline_devices'
+const showOffline = ref(localStorage.getItem(SHOW_OFFLINE_KEY) === '1')
+function setShowOffline(value: boolean) {
+  showOffline.value = value
+  try { localStorage.setItem(SHOW_OFFLINE_KEY, value ? '1' : '0') }
+  catch (cause) { console.warn('[devices] Save offline visibility failed', cause) }
+}
 const homeFilteredDevices = computed(() => {
-  return store.filtered.filter(d => d.state === 'device')
+  return store.filtered.filter(d => showOffline.value || d.state === 'device')
 })
 
 // 手机视图及三视图状态管理
@@ -61,7 +70,7 @@ const {
   showDevice,
   hiddenSerials,
   restoreHiddenDevices,
-} = useHomePhoneView(() => homeFilteredDevices.value, () => store.numberMap, () => selectedSerials.value)
+} = useHomePhoneView(() => homeFilteredDevices.value, () => store.numberMap, () => selectedSerials.value, () => showOffline.value)
 
 // 编号选择范围独立于卡片显隐，避免筛选后无法选回设备。
 const currentScopeDevices = homeFilteredDevices
@@ -243,6 +252,8 @@ function handleReorder(serials: string[]) {
 async function handleDeviceAction(action: string, serial: string) {
   const device = store.devices.find(d => d.serial === serial)
   if (!device) return
+  if (action === 'companion' && !store.mockEnabled && device.state === 'device') { companionSerial.value = serial; return }
+  if (action === 'rename' && !store.mockEnabled) { identifierSerial.value = serial; return }
   if (action === 'hide') { hideDevice(serial); selectedSerials.value = selectedSerials.value.filter(s => s !== serial); return }
   if (action === 'show') { showDevice(serial); if (onlySelected.value && !selectedSerials.value.includes(serial)) toggleSelect(serial); return }
   if (action === 'open') { await handleOpenFloating(serial); return }
@@ -252,6 +263,8 @@ async function handleDeviceAction(action: string, serial: string) {
     catch (cause) { console.error('[devices] Remove failed', {serial,cause}); toast.error(cause instanceof Error ? cause.message : '删除失败') }
   }
 }
+const identifierSerial = ref<string | null>(null)
+const companionSerial = ref<string | null>(null)
 const isAddDialogOpen = ref(false)
 function openAddDialog() { isAddDialogOpen.value = true }
 
@@ -386,6 +399,7 @@ onUnmounted(() => {
       :hidden-serials="hiddenSerials"
       :visible-serials="visibleDevices.map(d => d.serial)"
       :only-selected="onlySelected"
+      :show-offline="showOffline"
       :mock-enabled="store.mockEnabled"
       :selected-serials="selectedSerials"
       :online-count="onlineCount"
@@ -404,6 +418,7 @@ onUnmounted(() => {
       @cancel-batch="cancelBatch"
       @open-add="openAddDialog"
       @update:only-selected="onlySelected = $event"
+      @update:show-offline="setShowOffline"
       @restore-hidden="restoreHiddenDevices"
       @device-action="handleDeviceAction"
       @open-config="isConfigOpen = true"
@@ -416,6 +431,8 @@ onUnmounted(() => {
     <SystemConfigDialog v-model:open="isConfigOpen" />
 
     <AddDeviceDialog v-model:open="isAddDialogOpen" />
+    <DeviceIdentifierDialog :serial="identifierSerial" @close="identifierSerial = null" />
+    <DeviceCompanionDialog :serial="companionSerial" @close="companionSerial = null" />
 
   </div>
 </template>

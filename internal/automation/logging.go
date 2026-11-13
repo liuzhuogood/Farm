@@ -1,6 +1,7 @@
 package automation
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sort"
@@ -29,6 +30,7 @@ const automationLogTag = "[Automation]"
 type AutomationLog struct {
 	At        time.Time              `json:"at"`
 	Type      string                 `json:"type"`
+	Title     string                 `json:"title,omitempty"`
 	Endpoint  string                 `json:"endpoint,omitempty"`
 	Method    string                 `json:"method,omitempty"`
 	Serial    string                 `json:"serial,omitempty"`
@@ -56,6 +58,26 @@ type AutomationLogResponse struct {
 // logRingCapacity 内存日志环形缓冲容量
 const logRingCapacity = 1024
 
+// Task titles travel only with the request context, never through device-global
+// state, so nested observation and cleanup logs retain the correct task.
+type automationTitleContextKey struct{}
+
+func (s *Service) recordAutomationLogContext(ctx context.Context, entry AutomationLog) {
+	if title, ok := ctx.Value(automationTitleContextKey{}).(string); ok {
+		entry.Title = title
+	}
+	if execution, ok := taskExecution(ctx); ok {
+		if entry.Fields == nil {
+			entry.Fields = map[string]interface{}{}
+		}
+		entry.Fields["task_id"] = execution.taskID
+		if execution.index > 0 {
+			entry.Fields["step_index"] = execution.index
+		}
+	}
+	s.recordAutomationLog(entry)
+}
+
 // recordAutomationLog 记录一条自动化接口日志。
 // 日志同时写入标准输出（便于进程级排查）与内存环形缓冲（便于接口自省与测试取证）。
 func (s *Service) recordAutomationLog(entry AutomationLog) {
@@ -67,13 +89,14 @@ func (s *Service) recordAutomationLog(entry AutomationLog) {
 	}
 
 	// 标准输出：遵循项目既有 [Tag] key=value 风格
-	log.Printf("%s %s serial=%s %s%s", automationLogTag, entry.Type, entry.Serial,
+	log.Printf("%s %s serial=%s title=%q %s%s", automationLogTag, entry.Type, entry.Serial, entry.Title,
 		entry.Message, formatAutomationFields(entry.Fields))
 
 	if s.logRing != nil {
 		s.logRing.Append(debuglog.Event{
 			At:        entry.At,
 			Type:      entry.Type,
+			Title:     entry.Title,
 			DeviceID:  entry.Serial,
 			RequestID: entry.Code,
 			Message:   entry.Message,
@@ -126,6 +149,7 @@ func (s *Service) ListAutomationLogs(query AutomationLogQuery) AutomationLogResp
 		resp.Logs = append(resp.Logs, AutomationLog{
 			At:      e.At,
 			Type:    e.Type,
+			Title:   e.Title,
 			Serial:  e.DeviceID,
 			Code:    e.RequestID,
 			Message: e.Message,

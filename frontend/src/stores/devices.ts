@@ -45,9 +45,10 @@ export const useDeviceStore = defineStore('devices', () => {
   const mockEnabled = ref(import.meta.env.DEV && localStorage.getItem(MOCK_KEY) === '1')
   let timer: number | undefined
 
-  // 设备显示名称逻辑：用户别名 > 品牌名 (ro.product.brand) > 型号 > 默认设备
-  const displayName = (d: Device) =>
-    d.alias?.trim() || aliases.value[d.serial]?.trim() || d.brand?.trim() || d.model || 'Android'
+  // 真机显示与自动化共用服务端标识名；本地别名仅用于模拟设备。
+  const displayName = (d: Device) => mockEnabled.value
+    ? (aliases.value[d.serial]?.trim() || d.identifier)
+    : d.identifier
 
   const filtered = computed(() => {
     let list = orderedDevices.value
@@ -120,23 +121,32 @@ export const useDeviceStore = defineStore('devices', () => {
     timer = undefined
   }
 
-  async function saveAlias(serial: string, name: string, originalModel: string) {
-    const next = { ...aliases.value }
-    const v = name.trim()
-    if (!v || v === originalModel)
-      delete next[serial]
-    else
-      next[serial] = v.slice(0, 20)
-    aliases.value = next
-    localStorage.setItem(ALIAS_KEY, JSON.stringify(next))
-
+  const aliasSaves = new Set<string>()
+  async function saveAlias(serial: string, name: string) {
+    if (aliasSaves.has(serial)) throw new Error('标识名正在保存')
+    const value = name.trim()
+    aliasSaves.add(serial)
     try {
-      await updateDeviceAlias(serial, v)
-      await load(true)
+      if (mockEnabled.value) {
+        const next = { ...aliases.value }
+        if (value) next[serial] = value
+        else delete next[serial]
+        localStorage.setItem(ALIAS_KEY, JSON.stringify(next))
+        aliases.value = next
+        return
+      }
+      await updateDeviceAlias(serial, value)
+      const currentSeq = ++loadSeq
+      const updated = await fetchDevices()
+      const device = updated.find(d => d.serial === serial)
+      if (!device || (device.alias ?? '') !== value) throw new Error('标识名保存后校验失败，请刷新设备列表')
+      if (currentSeq === loadSeq && !mockEnabled.value) devices.value = updated
     }
-    catch {
-      // 容错处理
+    catch (cause) {
+      console.error('[devices] Identifier save failed', { serial, cause })
+      throw cause
     }
+    finally { aliasSaves.delete(serial) }
   }
 
   async function addDevice(serial: string, alias?: string) {

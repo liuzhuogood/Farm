@@ -4,6 +4,7 @@ import (
 	"context"
 	"farm/internal/dependencies"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"sync"
@@ -18,6 +19,7 @@ type Device struct {
 	State              string   `json:"state"`  // "device", "offline", "connecting", "unauthorized" 等
 	Source             string   `json:"source"` // "auto" (自动发现) 或 "manual" (手动添加)
 	Alias              string   `json:"alias,omitempty"`
+	Identifier         string   `json:"identifier"`
 	Product            string   `json:"product,omitempty"`
 	Model              string   `json:"model,omitempty"`
 	DeviceName         string   `json:"device,omitempty"`
@@ -42,11 +44,25 @@ type Device struct {
 	TelemetryUpdatedAt int64    `json:"telemetry_updated_at,omitempty"`
 }
 
+// IdentifierName derives the editable public device identifier from the saved
+// alias, then the reported brand, then the exact serial. Models are not aliases.
+func (d Device) IdentifierName() string {
+	if alias := strings.TrimSpace(d.Alias); alias != "" {
+		return alias
+	}
+	if brand := strings.TrimSpace(d.Brand); brand != "" {
+		return brand
+	}
+	return d.Serial
+}
+
 // Manager 负责跟踪 adb 设备列表并守护手动添加设备的连接与持久化。
 type Manager struct {
 	adbPath        string
 	db             *db.DB
 	mu             sync.RWMutex
+	aliasMu        sync.Mutex
+	aliasRevision  uint64
 	devices        []Device
 	stop           chan struct{}
 	telemetryMu    sync.RWMutex
@@ -99,6 +115,9 @@ func (m *Manager) loop() {
 
 // refresh 执行 adb devices -l 并与 SQLite 手动设备合并。
 func (m *Manager) refresh() {
+	m.mu.RLock()
+	aliasRevision := m.aliasRevision
+	m.mu.RUnlock()
 	adbDevs, err := m.ListDevices()
 	if err != nil {
 		adbDevs = nil
@@ -110,8 +129,15 @@ func (m *Manager) refresh() {
 	}
 
 	var manualList []db.DeviceRecord
+	var aliases map[string]string
 	if m.db != nil {
 		manualList, _ = m.db.ListManualDevices()
+		var aliasErr error
+		aliases, aliasErr = m.db.ListDeviceAliases()
+		if aliasErr != nil {
+			log.Printf("[Device] load identifiers failed, retaining current snapshot: %v", aliasErr)
+			return
+		}
 	}
 
 	manualMap := make(map[string]db.DeviceRecord)
@@ -173,12 +199,26 @@ func (m *Manager) refresh() {
 	for _, adbDev := range adbDevs {
 		if !seen[adbDev.Serial] {
 			adbDev.Source = "auto"
+			adbDev.Alias = aliases[adbDev.Serial]
 			m.attachTelemetry(&adbDev)
 			combined = append(combined, adbDev)
 		}
 	}
 
 	m.mu.Lock()
+	// A refresh may have read the database before a rename completed. Preserve
+	// the current aliases when publishing that older device snapshot.
+	if m.aliasRevision != aliasRevision {
+		latestAliases := make(map[string]string, len(m.devices))
+		for _, d := range m.devices {
+			latestAliases[d.Serial] = d.Alias
+		}
+		for i := range combined {
+			if alias, ok := latestAliases[combined[i].Serial]; ok {
+				combined[i].Alias = alias
+			}
+		}
+	}
 	m.devices = combined
 	m.mu.Unlock()
 }
@@ -298,6 +338,7 @@ func (m *Manager) AddManualDevice(serial, alias string) (*Device, error) {
 		State:         "connecting",
 		AutoReconnect: true,
 	}
+	dev.Identifier = dev.IdentifierName()
 
 	m.mu.Lock()
 	found := false
@@ -353,12 +394,33 @@ func (m *Manager) UpdateAlias(serial, alias string) error {
 	if m.db == nil {
 		return fmt.Errorf("数据库未初始化")
 	}
-
+	m.aliasMu.Lock()
+	defer m.aliasMu.Unlock()
+	m.mu.RLock()
+	exists := false
+	for _, d := range m.devices {
+		if d.Serial == serial {
+			exists = true
+			break
+		}
+	}
+	m.mu.RUnlock()
+	if !exists {
+		return fmt.Errorf("设备不存在: %s", serial)
+	}
+	alias = strings.TrimSpace(alias)
 	if err := m.db.UpdateAlias(serial, alias); err != nil {
 		return err
 	}
-
-	m.refresh()
+	m.mu.Lock()
+	for i := range m.devices {
+		if m.devices[i].Serial == serial {
+			m.devices[i].Alias = alias
+		}
+	}
+	m.aliasRevision++
+	m.mu.Unlock()
+	log.Printf("[Device] identifier updated serial=%s", serial)
 	return nil
 }
 
@@ -418,6 +480,9 @@ func (m *Manager) Devices() []Device {
 	defer m.mu.RUnlock()
 	res := make([]Device, len(m.devices))
 	copy(res, m.devices)
+	for i := range res {
+		res[i].Identifier = res[i].IdentifierName()
+	}
 	return res
 }
 

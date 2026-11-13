@@ -61,3 +61,8 @@ packages/python-sdk/**/__pycache__/
 .cache/verification/
 
 .cache/sdk-wheel-v122/
+
+# Keep the Android Java package named farm despite the executable basename rule.
+!packages/android-companion/src/app/farm/
+!packages/android-companion/src/app/farm/companion/
+!packages/android-companion/src/app/farm/companion/*.java

@@ -47,6 +47,7 @@ const props = withDefaults(
     hiddenSerials: string[]
     visibleSerials: string[]
     onlySelected: boolean
+    showOffline: boolean
     mockEnabled?: boolean
     selectedSerials: string[]
     onlineCount: number
@@ -59,7 +60,7 @@ const props = withDefaults(
     isAllSelected: false,
     batchRunning: false,
     isSyncActive: false,
-    displayName: (d: Device) => d.alias || d.model || d.serial,
+    displayName: (d: Device) => d.identifier,
   },
 )
 
@@ -79,6 +80,7 @@ const emit = defineEmits<{
   (e: 'openShortcuts'): void
   (e: 'openDocs'): void
   (e: 'update:onlySelected', val: boolean): void
+  (e: 'update:showOffline', val: boolean): void
   (e: 'restoreHidden'): void
   (e: 'deviceAction', action: string, serial: string): void
 }>()
@@ -126,7 +128,7 @@ function closePanel() {
 
 // Use the full store mapping, including offline gaps, after filtering.
 const numberedDevices = computed(() => {
-  return props.devices.filter(device => device.state === 'device')
+  return props.devices.filter(device => props.showOffline || device.state === 'device')
     .map((device) => {
       const label = props.numberMap.get(device.serial) ?? ''
       return { device, label, serial: device.serial }
@@ -538,6 +540,10 @@ function handleDeviceClick(serial: string) {
             </Button>
           </div>
 
+          <label class="flex cursor-pointer items-center gap-2 text-xs" for="show-offline-devices">
+            <Switch id="show-offline-devices" :model-value="showOffline" @update:model-value="emit('update:showOffline', $event)" />
+            显示离线设备
+          </label>
           <div class="flex items-center justify-between gap-2">
             <label class="flex cursor-pointer items-center gap-2 text-xs" for="only-selected-devices">
               <Switch id="only-selected-devices" :model-value="onlySelected" @update:model-value="emit('update:onlySelected', $event)" />

@@ -1,0 +1,9 @@
+{
+  "rounds": 20,
+  "failures": 0,
+  "companion": 20,
+  "dump_fallback": 0,
+  "median_ms": 1423.0,
+  "max_ms": 1819,
+  "tree_median_ms": 609.5
+}

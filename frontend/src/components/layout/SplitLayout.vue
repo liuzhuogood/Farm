@@ -55,7 +55,7 @@ watch(() => props.open, async () => {
 <style scoped>
 .split-layout { height: 100%; max-height: 100%; min-height: 0; min-width: 0; flex: 1 1 0%; overflow: hidden; }
 .split-layout:not(.split-layout-open) { display: flex; }
-.split-layout-open { display: grid; grid-template-columns: minmax(0, 1fr) 8px minmax(420px, 1fr); grid-template-rows: minmax(0, 1fr); }
+.split-layout-open { display: grid; grid-template-columns: minmax(0, 1fr) 8px 360px; grid-template-rows: minmax(0, 1fr); }
 .split-layout-open.split-layout-resized { grid-template-columns: minmax(0, 1fr) 8px var(--split-width); }
 .split-layout-main { min-width: 0; min-height: 0; overflow: hidden; }
 .split-layout:not(.split-layout-open) .split-layout-main { width: 100%; height: 100%; }

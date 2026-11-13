@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -161,12 +162,20 @@ func isOCRRedundant(box ocr.Box, cx, cy int, elements []Element) bool {
 
 // Observe 统一感知入口：聚合 Accessibility 树与 OCR，执行空间中心坐标计算与增量 Diff
 func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, error) {
+	text, _, err := s.observeWithScreen(ctx, req, true)
+	return text, err
+}
+
+// observeWithScreen returns this invocation's structured snapshot directly.
+// Checks use the same collection, filtering and fallback behavior without
+// consuming the caller's previous-observation diff cache.
+func (s *Service) observeWithScreen(ctx context.Context, req ObserveRequest, commitCache bool) (string, *Screen, error) {
 	if strings.TrimSpace(req.Serial) == "" {
-		return "", fmt.Errorf("missing serial")
+		return "", nil, fmt.Errorf("missing serial")
 	}
 
 	started := time.Now()
-	s.recordAutomationLog(AutomationLog{
+	s.recordAutomationLogContext(ctx, AutomationLog{
 		Type:    LogTypeObserve,
 		Serial:  req.Serial,
 		Message: "感知请求开始",
@@ -186,7 +195,7 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 		select {
 		case <-time.After(settle):
 		case <-ctx.Done():
-			return "", ctx.Err()
+			return "", nil, ctx.Err()
 		}
 	}
 
@@ -197,31 +206,39 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 
 	// 若开发者仅请求调试 xml 格式，直接返回 XML Dump
 	isOnlyXML := len(formats) == 1 && strings.EqualFold(formats[0], "xml")
-	xmlProvider := s.getUIXMLProvider()
-	snapshot, err := xmlProvider.FetchSnapshot(ctx, req.Serial)
-	if err != nil {
-		s.recordAutomationLog(AutomationLog{
-			Type:    LogTypeError,
+	includeRef, includeOCR := parseFormats(formats)
+	var snapshot uixml.Snapshot
+	if includeRef || isOnlyXML {
+		xmlStarted := time.Now()
+		var err error
+		snapshot, err = s.getUIXMLProvider().FetchSnapshot(ctx, req.Serial)
+		if err != nil {
+			s.recordAutomationLogContext(ctx, AutomationLog{
+				Type:    LogTypeError,
+				Serial:  req.Serial,
+				Message: "获取 Accessibility 快照失败",
+				Fields:  AutomationLogFields("stage", "fetch_ui_xml", "error", err.Error()),
+			})
+			return "", nil, fmt.Errorf("fetch ui xml: %w", err)
+		}
+		s.recordAutomationLogContext(ctx, AutomationLog{
+			Type:    LogTypeObserveStage,
 			Serial:  req.Serial,
-			Message: "获取 Accessibility 快照失败",
-			Fields:  AutomationLogFields("stage", "fetch_ui_xml", "error", err.Error()),
+			Message: "Accessibility 快照获取完成",
+			Fields: AutomationLogFields(
+				"stage", "fetch_ui_xml",
+				"elapsed_ms", time.Since(xmlStarted).Milliseconds(),
+				"source", snapshot.Source,
+				"xml_bytes", len(snapshot.XML),
+				"display_width", snapshotDisplayWidth(snapshot),
+				"display_height", snapshotDisplayHeight(snapshot),
+			),
 		})
-		return "", fmt.Errorf("fetch ui xml: %w", err)
+
 	}
-	s.recordAutomationLog(AutomationLog{
-		Type:    LogTypeObserveStage,
-		Serial:  req.Serial,
-		Message: "Accessibility 快照获取完成",
-		Fields: AutomationLogFields(
-			"stage", "fetch_ui_xml",
-			"xml_bytes", len(snapshot.XML),
-			"display_width", snapshotDisplayWidth(snapshot),
-			"display_height", snapshotDisplayHeight(snapshot),
-		),
-	})
 
 	if isOnlyXML {
-		s.recordAutomationLog(AutomationLog{
+		s.recordAutomationLogContext(ctx, AutomationLog{
 			Type:    LogTypeResponse,
 			Serial:  req.Serial,
 			Message: "返回 XML 调试快照",
@@ -231,14 +248,17 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 				"elapsed_ms", time.Since(started).Milliseconds(),
 			),
 		})
-		return snapshot.XML, nil
+		return snapshot.XML, nil, nil
 	}
 
 	// 2. 收集屏幕与页面元数据
 	pageProvider := s.getUIPageProvider()
 	pageInfo, pageErr := pageProvider.FetchPageInfo(ctx, req.Serial)
+	if includeOCR && !includeRef && (pageErr != nil || pageInfo == nil || pageInfo.Display == nil || pageInfo.Display.Width <= 0 || pageInfo.Display.Height <= 0) {
+		return "", nil, fmt.Errorf("OCR-only observation requires current page and display information: %v", pageErr)
+	}
 	if pageErr != nil {
-		s.recordAutomationLog(AutomationLog{
+		s.recordAutomationLogContext(ctx, AutomationLog{
 			Type:    LogTypeObserveStage,
 			Serial:  req.Serial,
 			Message: "页面信息获取失败（降级使用默认值）",
@@ -277,38 +297,51 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 	}
 
 	// 3. 解析 Accessibility 树
-	elements, focusRef, err := ParseHierarchyXML([]byte(snapshot.XML), width, height)
-	if err != nil {
-		s.recordAutomationLog(AutomationLog{
-			Type:    LogTypeError,
+	var elements []Element
+	var focusRef int
+	if includeRef {
+		var err error
+		elements, focusRef, err = ParseHierarchyXML([]byte(snapshot.XML), width, height)
+		if err != nil {
+			s.recordAutomationLogContext(ctx, AutomationLog{
+				Type:    LogTypeError,
+				Serial:  req.Serial,
+				Message: "解析 Accessibility 树失败",
+				Fields:  AutomationLogFields("stage", "parse_hierarchy", "error", err.Error()),
+			})
+			return "", nil, fmt.Errorf("parse hierarchy: %w", err)
+		}
+		s.recordAutomationLogContext(ctx, AutomationLog{
+			Type:    LogTypeObserveStage,
 			Serial:  req.Serial,
-			Message: "解析 Accessibility 树失败",
-			Fields:  AutomationLogFields("stage", "parse_hierarchy", "error", err.Error()),
+			Message: "Accessibility 树解析完成",
+			Fields: AutomationLogFields(
+				"stage", "parse_hierarchy",
+				"elements", len(elements),
+				"focus_ref", focusRef,
+			),
 		})
-		return "", fmt.Errorf("parse hierarchy: %w", err)
+
 	}
-	s.recordAutomationLog(AutomationLog{
-		Type:    LogTypeObserveStage,
-		Serial:  req.Serial,
-		Message: "Accessibility 树解析完成",
-		Fields: AutomationLogFields(
-			"stage", "parse_hierarchy",
-			"elements", len(elements),
-			"focus_ref", focusRef,
-		),
-	})
 
 	// 4. OCR 处理 (若 requested)
-	_, includeOCR := parseFormats(formats)
 	var ocrItems []OCRItem
 
 	if includeOCR && s.ocrService != nil {
+		ocrStarted := time.Now()
 		var rawImg []byte
+		var frameErr error
 		if s.frameFetcher != nil {
-			_, rawImg, _ = s.frameFetcher(ctx, req.Serial)
+			_, rawImg, frameErr = s.frameFetcher(ctx, req.Serial)
+		}
+		if !includeRef && frameErr != nil {
+			return "", nil, fmt.Errorf("fetch OCR frame: %w", frameErr)
 		}
 		if len(rawImg) == 0 {
-			s.recordAutomationLog(AutomationLog{
+			if !includeRef {
+				return "", nil, fmt.Errorf("fetch OCR frame: no screen frame available")
+			}
+			s.recordAutomationLogContext(ctx, AutomationLog{
 				Type:    LogTypeObserveStage,
 				Serial:  req.Serial,
 				Message: "屏幕帧获取为空，OCR 将被跳过",
@@ -320,22 +353,30 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 				Serial: req.Serial,
 			})
 			if err != nil {
-				s.recordAutomationLog(AutomationLog{
+				if !includeRef {
+					return "", nil, fmt.Errorf("OCR detection: %w", err)
+				}
+				s.recordAutomationLogContext(ctx, AutomationLog{
 					Type:    LogTypeObserveStage,
 					Serial:  req.Serial,
 					Message: "OCR 识别失败（降级为仅 Accessibility 感知）",
 					Fields:  AutomationLogFields("stage", "ocr_detect", "error", err.Error()),
 				})
 			}
+			if detRes == nil && err == nil && !includeRef {
+				return "", nil, fmt.Errorf("OCR detection: no result returned")
+			}
 			if err == nil && detRes != nil {
 				rawOCRCount := len(detRes.Boxes)
 				for _, box := range detRes.Boxes {
-					cx := box.PixelX + box.PixelW/2
-					cy := box.PixelY + box.PixelH/2
-					if box.PixelW <= 0 && box.PixelH <= 0 && width > 0 && height > 0 {
-						cx = int(box.X * float64(width))
-						cy = int(box.Y * float64(height))
-					}
+					// OCR's confirmed X/Y/W/H contract is normalized top-left
+					// bounds. Map it to the physical display used by the tree;
+					// Pixel* belongs to the possibly downscaled video frame.
+					left := int(math.Round(box.X * float64(width)))
+					top := int(math.Round(box.Y * float64(height)))
+					right := int(math.Round((box.X + box.W) * float64(width)))
+					bottom := int(math.Round((box.Y + box.H) * float64(height)))
+					cx, cy := (left+right)/2, (top+bottom)/2
 
 					// 空间去重：过滤已存在独立 Accessibility 节点的文字
 					if !isOCRRedundant(box, cx, cy, elements) {
@@ -343,17 +384,18 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 							Text:       box.Text,
 							CenterX:    cx,
 							CenterY:    cy,
-							Bounds:     [4]int{box.PixelX, box.PixelY, box.PixelX + box.PixelW, box.PixelY + box.PixelH},
+							Bounds:     [4]int{left, top, right, bottom},
 							Confidence: box.Confidence,
 						})
 					}
 				}
-				s.recordAutomationLog(AutomationLog{
+				s.recordAutomationLogContext(ctx, AutomationLog{
 					Type:    LogTypeObserveStage,
 					Serial:  req.Serial,
 					Message: "OCR 识别完成",
 					Fields: AutomationLogFields(
 						"stage", "ocr_detect",
+						"elapsed_ms", time.Since(ocrStarted).Milliseconds(),
 						"engine", detRes.Engine,
 						"raw_boxes", rawOCRCount,
 						"kept_boxes", len(ocrItems),
@@ -363,7 +405,10 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 			}
 		}
 	} else if includeOCR {
-		s.recordAutomationLog(AutomationLog{
+		if !includeRef {
+			return "", nil, fmt.Errorf("OCR service is unavailable")
+		}
+		s.recordAutomationLogContext(ctx, AutomationLog{
 			Type:    LogTypeObserveStage,
 			Serial:  req.Serial,
 			Message: "OCR 服务未初始化，OCR 通道跳过",
@@ -373,7 +418,7 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 
 	// 5. 键盘状态
 	keyboardVisible := s.checkKeyboardVisible(ctx, req.Serial)
-	s.recordAutomationLog(AutomationLog{
+	s.recordAutomationLogContext(ctx, AutomationLog{
 		Type:    LogTypeObserveStage,
 		Serial:  req.Serial,
 		Message: "键盘状态检测完成",
@@ -393,6 +438,7 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 		Elements:        elements,
 		OCR:             ocrItems,
 		RawXML:          snapshot.XML,
+		TreeSource:      snapshot.Source,
 		CapturedAt:      time.Now().UTC(),
 	}
 
@@ -410,7 +456,7 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 		}
 		diffText, isDiff := Diff(prevScreen, nextScreen, formats)
 		output = diffText
-		s.recordAutomationLog(AutomationLog{
+		s.recordAutomationLogContext(ctx, AutomationLog{
 			Type:    LogTypeDiff,
 			Serial:  req.Serial,
 			Message: "差异对比完成",
@@ -427,7 +473,7 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 		})
 	} else {
 		output = nextScreen.Render(formats)
-		s.recordAutomationLog(AutomationLog{
+		s.recordAutomationLogContext(ctx, AutomationLog{
 			Type:    LogTypeDiff,
 			Serial:  req.Serial,
 			Message: "全量渲染完成",
@@ -443,9 +489,11 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 	}
 
 	// 写入设备前序快照缓存
-	s.screenCache.Store(req.Serial, nextScreen)
+	if commitCache {
+		s.screenCache.Store(req.Serial, nextScreen)
+	}
 
-	s.recordAutomationLog(AutomationLog{
+	s.recordAutomationLogContext(ctx, AutomationLog{
 		Type:    LogTypeResponse,
 		Serial:  req.Serial,
 		Message: "感知响应完成",
@@ -458,7 +506,7 @@ func (s *Service) Observe(ctx context.Context, req ObserveRequest) (string, erro
 		),
 	})
 
-	return output, nil
+	return output, nextScreen, nil
 }
 
 // elementCount 安全统计前序快照的元素数量
@@ -498,7 +546,7 @@ func (s *Service) handleObserve(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == http.MethodPost {
 		if r.Body != nil && r.ContentLength > 0 {
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-				writeError(w, http.StatusBadRequest, "invalid_json", "请求体 JSON 格式错误: "+err.Error())
+				writeAutomationProtocolError(w, r, http.StatusBadRequest, "invalid_json", "请求体 JSON 格式错误: "+err.Error())
 				s.recordAutomationLog(AutomationLog{
 					Type:     LogTypeError,
 					Endpoint: "/api/automation/observe",
@@ -516,7 +564,7 @@ func (s *Service) handleObserve(w http.ResponseWriter, r *http.Request) {
 			req.Serial = r.URL.Query().Get("serial")
 		}
 	} else {
-		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "仅支持 POST 或 GET 请求")
+		writeAutomationProtocolError(w, r, http.StatusMethodNotAllowed, "method_not_allowed", "仅支持 POST 或 GET 请求")
 		s.recordAutomationLog(AutomationLog{
 			Type:     LogTypeError,
 			Endpoint: "/api/automation/observe",
@@ -530,7 +578,7 @@ func (s *Service) handleObserve(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Serial == "" {
-		writeError(w, http.StatusBadRequest, "missing_serial", "缺少 serial 参数")
+		writeAutomationProtocolError(w, r, http.StatusBadRequest, "missing_serial", "缺少 serial 参数")
 		s.recordAutomationLog(AutomationLog{
 			Type:     LogTypeError,
 			Endpoint: "/api/automation/observe",
@@ -559,7 +607,7 @@ func (s *Service) handleObserve(w http.ResponseWriter, r *http.Request) {
 
 	output, err := s.Observe(r.Context(), req)
 	if err != nil {
-		writeError(w, http.StatusBadGateway, "observe_failed", err.Error())
+		writeAutomationProtocolError(w, r, http.StatusBadGateway, "observe_failed", err.Error())
 		s.recordAutomationLog(AutomationLog{
 			Type:     LogTypeError,
 			Endpoint: "/api/automation/observe",
@@ -613,5 +661,9 @@ func (s *Service) handleAutomationLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := s.ListAutomationLogs(query)
+	if q.Get("format") == "text" {
+		s.serveAutomationLogsText(w, resp)
+		return
+	}
 	writeJSON(w, http.StatusOK, resp)
 }

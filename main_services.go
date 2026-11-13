@@ -116,6 +116,12 @@ func configureAuxiliaryServices(dataDir string, database *db.DB, hub *ws.Hub, mu
 	if err != nil {
 		log.Printf("警告: 初始化安全历史数据库失败: %v，将降级运行", err)
 	}
+	if err := automationService.ConfigureTasks(filepath.Join(dataDir, "data", "automation", "tasks.json"), historyStore); err != nil {
+		log.Printf("[AutomationTasks] 加载任务持久化失败；仅内存任务可用，原磁盘文件保持不变: %v", err)
+		if configureErr := automationService.ConfigureTasks("", historyStore); configureErr != nil {
+			log.Printf("[AutomationTasks] 内存任务初始化失败: %v", configureErr)
+		}
+	}
 	policyEngine := safety.NewEngine(safety.PresetPayments)
 	approvalCenter := safety.NewApprovalCenter(60 * time.Second)
 	automationService.SetSafetyProviders(policyEngine, approvalCenter)
@@ -166,6 +172,9 @@ func (s *auxiliaryServices) restore() {
 }
 
 func (s *auxiliaryServices) Close() {
+	if s.automation != nil {
+		s.automation.CloseTasks()
+	}
 	if s.history != nil {
 		_ = s.history.Close()
 	}

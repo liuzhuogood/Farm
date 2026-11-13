@@ -3,11 +3,15 @@ package uixml
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/xml"
 	"errors"
 	"farm/internal/dependencies"
 	"fmt"
 	"io"
+	"log"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -39,12 +43,13 @@ type DisplaySize struct {
 
 type Snapshot struct {
 	XML         string       `json:"xml"`
+	Source      string       `json:"source,omitempty"`
 	CapturedAt  time.Time    `json:"captured_at"`
 	DisplaySize *DisplaySize `json:"display_size,omitempty"`
 }
 
 // Service takes a point-in-time UI hierarchy snapshot. A device can only run
-// one dump at a time because the dump path on the device is fixed.
+// one UIAutomator session at a time. Each request uses its own temporary file.
 type Service struct {
 	run     Runner
 	max     int64
@@ -84,7 +89,7 @@ func (s *Service) Fetch(ctx context.Context, serial string) (string, time.Time, 
 // FetchSnapshot also reads the effective Android display size when available.
 // UI Automator can omit system insets from maximum node bounds while the video
 // stream is based on the full display coordinate space.
-func (s *Service) FetchSnapshot(ctx context.Context, serial string) (Snapshot, error) {
+func (s *Service) FetchSnapshot(ctx context.Context, serial string) (snapshot Snapshot, fetchErr error) {
 	if strings.TrimSpace(serial) == "" {
 		return Snapshot{}, ErrMissingSerial
 	}
@@ -96,12 +101,30 @@ func (s *Service) FetchSnapshot(ctx context.Context, serial string) (Snapshot, e
 	}
 	ctx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
-	if _, err := s.run(ctx, "-s", serial, "shell", "uiautomator", "dump", "/sdcard/window_dump.xml"); err != nil {
-		return Snapshot{}, fmt.Errorf("uiautomator dump: %w", err)
+	started := time.Now()
+	defer func() {
+		log.Printf("[UIXML] snapshot serial=%s elapsed_ms=%d xml_bytes=%d error=%v", serial, time.Since(started).Milliseconds(), len(snapshot.XML), fetchErr)
+	}()
+	var nonce [12]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		return Snapshot{}, fmt.Errorf("create UI XML snapshot path: %w", err)
 	}
-	out, err := s.run(ctx, "-s", serial, "exec-out", "cat", "/sdcard/window_dump.xml")
+	dumpPath := "/data/local/tmp/farm-ui-" + hex.EncodeToString(nonce[:]) + ".xml"
+	defer func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), time.Second)
+		defer cleanupCancel()
+		if _, err := s.run(cleanupCtx, "-s", serial, "shell", "rm", "-f", dumpPath); err != nil {
+			log.Printf("[UIXML] temporary file cleanup failed serial=%s error=%v", serial, err)
+		}
+	}()
+	if out, err := s.run(ctx, "-s", serial, "shell", "uiautomator", "dump", dumpPath); err != nil {
+		return Snapshot{}, commandError(ctx, "uiautomator dump", out, err)
+	}
+	// Some Android builds print an error but exit zero without writing a file.
+	// A unique path prevents a previous screen's valid XML becoming fake success.
+	out, err := s.run(ctx, "-s", serial, "exec-out", "cat", dumpPath)
 	if err != nil {
-		return Snapshot{}, fmt.Errorf("read UI XML: %w", err)
+		return Snapshot{}, commandError(ctx, "read UI XML", out, err)
 	}
 	if int64(len(out)) > s.max {
 		return Snapshot{}, ErrTooLarge
@@ -110,11 +133,31 @@ func (s *Service) FetchSnapshot(ctx context.Context, serial string) (Snapshot, e
 	if err := validateXML(strings.NewReader(xmlText)); err != nil {
 		return Snapshot{}, err
 	}
-	snapshot := Snapshot{XML: xmlText, CapturedAt: time.Now().UTC()}
+	snapshot = Snapshot{XML: xmlText, Source: "uiautomator", CapturedAt: time.Now().UTC()}
 	if out, err := s.run(ctx, "-s", serial, "shell", "wm", "size"); err == nil {
 		snapshot.DisplaySize = parseDisplaySize(string(out))
 	}
 	return snapshot, nil
+}
+
+// Output keeps stderr separate from successful XML, but retains Android/ADB
+// diagnostics on failure rather than reducing every error to "exit status 1".
+func commandError(ctx context.Context, stage string, out []byte, err error) error {
+	var exitErr *exec.ExitError
+	detail := strings.TrimSpace(string(out))
+	if errors.As(err, &exitErr) && len(exitErr.Stderr) > 0 {
+		detail = strings.TrimSpace(detail + "\n" + string(exitErr.Stderr))
+	}
+	if len(detail) > 4096 {
+		detail = detail[:4096] + "…"
+	}
+	if ctx.Err() != nil {
+		err = ctx.Err()
+	}
+	if detail != "" {
+		return fmt.Errorf("%s: %w: %s", stage, err, detail)
+	}
+	return fmt.Errorf("%s: %w", stage, err)
 }
 
 var displaySizePattern = regexp.MustCompile(`(?m)^(Physical size|Override size):\s*(\d+)x(\d+)\s*$`)

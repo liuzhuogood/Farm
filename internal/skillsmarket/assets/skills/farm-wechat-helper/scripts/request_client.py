@@ -110,7 +110,7 @@ def read_body(filename: str) -> bytes:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path", help="从当前 OpenAPI 确认的接口路径")
+    parser.add_argument("path", help="从当前接口契约确认的接口路径")
     parser.add_argument("--base-url", default=os.environ.get("FARM_API_URL"))
     parser.add_argument("--method", default="GET")
     parser.add_argument("--query", type=key_value, action="append", default=[])
@@ -118,6 +118,7 @@ def main() -> int:
     bodies = parser.add_mutually_exclusive_group()
     bodies.add_argument("--json-file", help="JSON 请求文件；- 表示标准输入")
     bodies.add_argument("--body-file", help="原始请求文件；- 表示标准输入")
+    bodies.add_argument("--text", help="原样发送 UTF-8 纯文本命令")
     parser.add_argument("--content-type", help="原始请求体的媒体类型")
     parser.add_argument("--timeout", type=float, default=30)
     parser.add_argument("--insecure", action="store_true", help="仅在已获授权且网络可信时关闭 TLS 校验")
@@ -129,12 +130,17 @@ def main() -> int:
         parser.error("--body-file 需要 --content-type")
     if options.json_file and options.content_type:
         parser.error("--json-file 固定使用 application/json，无需 --content-type")
+    if options.text is not None and options.content_type:
+        parser.error("--text 固定使用 text/plain，无需 --content-type")
     try:
         headers = dict(options.header)
         if options.json_file:
             body = read_body(options.json_file)
             json.loads(body)
             headers["Content-Type"] = "application/json"
+        elif options.text is not None:
+            body = options.text.encode("utf-8")
+            headers["Content-Type"] = "text/plain; charset=utf-8"
         elif options.body_file:
             body = read_body(options.body_file)
             headers["Content-Type"] = options.content_type

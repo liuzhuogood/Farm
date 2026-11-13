@@ -58,3 +58,11 @@ func TestParseHierarchyXML(t *testing.T) {
 		t.Errorf("elem 3: got role=%s checked=%v label=%s", sw.Role, sw.Checked, sw.Label)
 	}
 }
+
+func TestCompanionUsesActualEditableStateForCustomViews(t *testing.T) {
+	data := []byte(`<hierarchy><node class="example.CustomView" editable="true" enabled="true" bounds="[0,0][100,50]"/><node class="android.widget.EditText" editable="false" enabled="true" bounds="[0,60][100,100]"/></hierarchy>`)
+	elements, _, err := ParseHierarchyXML(data, 100, 200)
+	if err != nil || len(elements) != 2 || elements[0].Role != "input" || !elements[0].Editable || elements[1].Editable {
+		t.Fatalf("elements=%+v err=%v", elements, err)
+	}
+}

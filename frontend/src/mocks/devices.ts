@@ -49,6 +49,7 @@ function buildMockDevices(): Device[] {
       : ipPrefixes[i % ipPrefixes.length] + '.' + String((i % 250) + 2) + ':5555'
     devices.push({
       serial,
+      identifier: t.brand,
       state: offline ? 'offline' : 'device',
       source: 'auto',
       brand: t.brand,

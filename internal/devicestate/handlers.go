@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -26,6 +27,9 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/device-state/{serial}/screenshot", h.handleGetLatestFrame)
 	mux.HandleFunc("GET /api/devices/{serial}/latest-frame", h.handleGetLatestFrame)
 	mux.HandleFunc("GET /api/v1/vision/latest-frame", h.handleGetLatestFrame)
+	mux.HandleFunc("POST /api/device-state/{serial}/screenshot", h.handleGetLatestFrame)
+	mux.HandleFunc("POST /api/devices/{serial}/latest-frame", h.handleGetLatestFrame)
+	mux.HandleFunc("POST /api/v1/vision/latest-frame", h.handleGetLatestFrame)
 	mux.HandleFunc("POST /api/device-state/{serial}/decision", h.handleGetStateAndDecision)
 	mux.HandleFunc("GET /api/system/service-config", h.handleGetServiceConfig)
 	mux.HandleFunc("PUT /api/system/service-config", h.handleSaveServiceConfig)
@@ -58,6 +62,7 @@ func (h *Handler) handleGetLatestFrame(w http.ResponseWriter, r *http.Request) {
 
 	_, raw, mimeType, err := h.service.GetLatestFrame(r.Context(), serial)
 	if err != nil {
+		log.Printf("[DeviceState] 最新帧获取失败 method=%s serial=%s: %v", r.Method, serial, err)
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
@@ -68,7 +73,9 @@ func (h *Handler) handleGetLatestFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", mimeType)
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(raw)
+	if _, err := w.Write(raw); err != nil {
+		log.Printf("[DeviceState] 最新帧响应失败 method=%s serial=%s: %v", r.Method, serial, err)
+	}
 }
 
 func (h *Handler) handleGetTotalState(w http.ResponseWriter, r *http.Request) {

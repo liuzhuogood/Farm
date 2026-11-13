@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="service_description">让 Farm 只读获取当前界面控件树以加速自动化观察。不注入点击、不读取通知、不联网。仅授权的 ADB 连接可访问。</string>
+</resources>

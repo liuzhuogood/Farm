@@ -58,6 +58,7 @@ type Screen struct {
 	Elements        []Element `json:"elements"`
 	OCR             []OCRItem `json:"ocr,omitempty"`
 	RawXML          string    `json:"raw_xml,omitempty"`
+	TreeSource      string    `json:"-"`
 	CapturedAt      time.Time `json:"captured_at"`
 }
 

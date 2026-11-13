@@ -9,6 +9,7 @@ import (
 type Event struct {
 	At        time.Time              `json:"at"`
 	Type      string                 `json:"type"`
+	Title     string                 `json:"title,omitempty"`
 	DeviceID  string                 `json:"device_id,omitempty"`
 	SessionID string                 `json:"session_id,omitempty"`
 	RequestID string                 `json:"request_id,omitempty"`

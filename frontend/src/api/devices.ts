@@ -1,5 +1,6 @@
 export interface Device {
   serial: string
+  identifier: string
   state: string
   source?: 'auto' | 'manual'
   alias?: string
@@ -62,6 +63,7 @@ export async function updateDeviceAlias(serial: string, alias: string): Promise<
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ alias }),
+    signal: AbortSignal.timeout(10000),
   })
   if (!res.ok) {
     const txt = await res.text()

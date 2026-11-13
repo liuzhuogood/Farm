@@ -1,0 +1,1 @@
+{"locked_observation": {"status": 200, "bytes": 101, "heartbeat_ready_while_locked": true}, "service_list_preserved": true, "after_wake": {"serial": "10.0.0.30:5555", "update_available": false, "installed": true, "enabled": true, "ready": true, "version": "1.0.1"}}
