@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"mime"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -30,6 +31,8 @@ func writeError(w http.ResponseWriter, status int, message string) {
 }
 
 // verifySameOrigin ensures the request is not a cross-origin / CSRF mutation.
+// Besides the exact same origin, the Vite dev proxy is allowed because the
+// proxy rewrites Host to the backend while keeping the browser Origin at :5173.
 func verifySameOrigin(r *http.Request) bool {
 	if r.Header.Get("Sec-Fetch-Site") == "cross-site" {
 		return false
@@ -45,7 +48,15 @@ func verifySameOrigin(r *http.Request) bool {
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return false
 	}
-	return strings.EqualFold(u.Host, r.Host)
+	if strings.EqualFold(u.Host, r.Host) {
+		return true
+	}
+	backend, _, err := net.SplitHostPort(r.Host)
+	if err != nil {
+		return false
+	}
+	loopback := func(host string) bool { return host == "localhost" || net.ParseIP(host).IsLoopback() }
+	return loopback(backend) && u.Scheme == "http" && u.Port() == "5173" && loopback(u.Hostname())
 }
 
 func handleAiIntegrations(m *Manager) http.HandlerFunc {
@@ -56,7 +67,7 @@ func handleAiIntegrations(m *Manager) http.HandlerFunc {
 			return
 		}
 		tools := AllAiTools(m.HomeDir())
-		writeJSON(w, http.StatusOK, AiIntegrationsResponse{Tools: tools})
+		writeJSON(w, http.StatusOK, AiIntegrationsResponse{Tools: tools, ContractURL: m.ContractURL()})
 	}
 }
 

@@ -19,6 +19,15 @@ pub fn show(app: &AppHandle) {
 }
 
 pub fn action(app: &AppHandle, id: &str) {
+    if let Some(serial) = crate::menu_devices::device_serial(id) {
+        eprintln!("[Desktop] 菜单打开设备小窗: serial={serial}");
+        if let Err(error) =
+            crate::links::open_device_window_internal(app, serial.to_string(), None, None, None)
+        {
+            eprintln!("[Desktop] 菜单打开设备小窗失败: serial={serial}: {error}");
+        }
+        return;
+    }
     match id {
         "show" => show(app),
         "restore-players" => crate::player_windows::restore_all(app),
@@ -27,6 +36,12 @@ pub fn action(app: &AppHandle, id: &str) {
         }
         "main-toggle-pin" => crate::main_window::toggle_always_on_top(app),
         "main-click-through" => crate::main_window::toggle_click_through(app),
+        "main-borderless" => {
+            let enabled = !crate::main_window::get_state(app).borderless;
+            if let Err(error) = crate::main_window::set_borderless_internal(app, enabled) {
+                eprintln!("[Desktop] 切换主窗口无边框失败: {error}");
+            }
+        }
         "main-opacity-100" => crate::main_window::set_opacity(app, 100),
         "main-opacity-80" => crate::main_window::set_opacity(app, 80),
         "main-opacity-60" => crate::main_window::set_opacity(app, 60),
@@ -70,19 +85,15 @@ pub fn action(app: &AppHandle, id: &str) {
 }
 
 pub fn install(app: &mut App) -> tauri::Result<bool> {
-    let application = SubmenuBuilder::new(app, "Farm")
-        .item(&PredefinedMenuItem::about(
-            app,
-            Some("关于 Farm"),
-            None,
-        )?)
+    let application = SubmenuBuilder::with_id(app, "application", "Farm")
+        .item(&PredefinedMenuItem::about(app, Some("关于 Farm"), None)?)
         .separator()
         .text("dependencies", "依赖管理")
         .text("browser", "在浏览器中打开")
         .separator()
         .text("quit", "退出 Farm")
         .build()?;
-    let edit = SubmenuBuilder::new(app, "编辑")
+    let edit = SubmenuBuilder::with_id(app, "edit", "编辑")
         .item(&PredefinedMenuItem::undo(app, Some("撤销"))?)
         .item(&PredefinedMenuItem::redo(app, Some("重做"))?)
         .separator()
@@ -91,24 +102,25 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
         .item(&PredefinedMenuItem::paste(app, Some("粘贴"))?)
         .item(&PredefinedMenuItem::select_all(app, Some("全选"))?)
         .build()?;
-    let view = SubmenuBuilder::new(app, "视图")
-        .text("home", "设备列表")
-        .separator()
-        .text("show", "打开主窗口")
-        .text("restore-players", "恢复所有小窗")
-        .build()?;
-    let window_menu = SubmenuBuilder::new(app, "窗口")
-        .text("main-toggle-pin", "主窗口置顶 / 取消置顶")
+    let view = crate::menu_devices::build_view(app.handle())?;
+    let effects = SubmenuBuilder::with_id(app, "main-effects", "窗口效果")
+        .text("main-toggle-pin", "主窗口置顶")
+        .text("main-borderless", "主窗口无边框")
         .text("main-click-through", "主窗口鼠标穿透")
-        .separator()
-        .text("main-opacity-100", "主窗口透明度: 100%")
-        .text("main-opacity-80", "主窗口透明度: 80%")
-        .text("main-opacity-60", "主窗口透明度: 60%")
-        .text("main-opacity-40", "主窗口透明度: 40%")
-        .text("main-opacity-10", "主窗口透明度: 10%")
-        .text("main-opacity-5", "主窗口透明度: 5%")
-        .text("main-opacity-2", "主窗口透明度: 2%")
-        .text("main-opacity-1", "主窗口透明度: 1%")
+        .build()?;
+    let opacity = SubmenuBuilder::with_id(app, "main-opacity", "透明度")
+        .text("main-opacity-100", "100%")
+        .text("main-opacity-80", "80%")
+        .text("main-opacity-60", "60%")
+        .text("main-opacity-40", "40%")
+        .text("main-opacity-10", "10%")
+        .text("main-opacity-5", "5%")
+        .text("main-opacity-2", "2%")
+        .text("main-opacity-1", "1%")
+        .build()?;
+    let window_menu = SubmenuBuilder::with_id(app, "window", "窗口")
+        .item(&effects)
+        .item(&opacity)
         .separator()
         .text("restore-main", "恢复主窗口")
         .text("restore-players", "恢复所有小窗")
@@ -116,6 +128,11 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
     let menu = Menu::with_items(app, &[&application, &edit, &view, &window_menu])?;
     app.set_menu(menu)?;
     app.on_menu_event(|app, event| action(app, event.id.as_ref()));
+    crate::menu_devices::start(app.handle(), view).map_err(|error| {
+        eprintln!("[Desktop] 启动在线设备菜单刷新失败: {error}");
+        tauri::Error::Anyhow(error.into())
+    })?;
+    eprintln!("[Desktop] 原生菜单已安装，在线设备每 5 秒刷新");
     let tray_menu = MenuBuilder::new(app)
         .text("show", "打开主窗口")
         .text("restore-main", "恢复主窗口")

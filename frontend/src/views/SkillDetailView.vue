@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Copy,
   Download,
+  FileText,
   Folder,
   Info,
   Layers,
@@ -51,6 +52,7 @@ const loadError = ref<string | null>(null)
 
 const skill = ref<SkillItem | null>(null)
 const availableTools = ref<AiTool[]>([])
+const contractUrl = ref('')
 
 // 当前选中的主工具（从 query 或默认 codex）
 const currentToolId = computed<AiToolId>(() => {
@@ -241,14 +243,15 @@ async function loadDetail() {
   loadError.value = null
 
   try {
-    const [detail, tools] = await Promise.all([
+    const [detail, integrations] = await Promise.all([
       fetchSkillDetail(skillId.value),
       fetchAiIntegrations(),
     ])
     if (loadSeq.value !== currentSeq)
       return
     skill.value = detail
-    availableTools.value = tools
+    availableTools.value = integrations.tools
+    contractUrl.value = integrations.contractUrl
     initSelectedTools()
   }
   catch (err: unknown) {
@@ -660,6 +663,20 @@ onUnmounted(() => {
                 <CardContent class="p-4 space-y-3">
                   <p class="text-xs text-muted-foreground">
                     直接下载包含完整 <code>SKILL.md</code> 与通用请求客户端的 ZIP 压缩包，不改变任何安装记录。
+                  </p>
+                  <p class="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                    <FileText class="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <span>
+                      技能执行前读取接口契约：
+                      <a
+                        v-if="contractUrl"
+                        :href="contractUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="font-mono underline-offset-2 hover:underline"
+                      >{{ contractUrl }}</a>
+                      <code v-else class="font-mono">/fram.skill</code>
+                    </span>
                   </p>
                   <Button
                     variant="outline"

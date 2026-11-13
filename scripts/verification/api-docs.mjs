@@ -49,7 +49,7 @@ const fixture = {
   },
 }
 
-for (const page of ['api-docs.html', 'api-docs-automation.html']) {
+for (const page of ['api-docs.html']) {
   const actual = await render(page, spec)
   const rendered = cards(actual.list.innerHTML)
   const expected = Object.values(spec.paths).flatMap(item => Object.entries(item)

@@ -24,7 +24,8 @@
 | 技能详情页 | 技能详情、技能二级页面 | 路由 `/ai-integration/skills/:id` · `frontend/src/views/SkillDetailView.vue` |
 | 手机客户端 | Flutter 手机端、移动 App | `mobile/`；Flutter Android/iOS 客户端，原生设备列表并以 WebView 打开现有投屏详情页 |
 | 全量接口文档 | 全量 API 文档、接口文档 | 静态页 `/api-docs.html` · 完整 OpenAPI 3.1.0 接口规范页，源文件 `/api/openapi.json` |
-| 自动化接口文档 | 自动化 API 文档、自动化文档 | 静态页 `/api-docs-automation.html` · 自动化专用核心接口规范页，源文件 `/api/openapi-automation.json`，配置位于 `configs/automation-apis.json` |
+| 自动化接口文档 | 自动化 API 文档、自动化文档 | 静态页 `/fram.skill` · 自动化专用核心接口规范页，源文件 `/api/openapi-automation.json`，配置位于 `configs/automation-apis.json`；技能执行前必须读取的权威接口契约，地址由 `GET /api/ai-integrations` 的 `contractUrl` 返回 |
+| 自动化接口契约 | 接口契约、技能契约、契约地址 | `/fram.skill` · 技能包 `SKILL.md` 声明的唯一接口来源；只公布 `observe`、`/api/v1/actions/*`、`/api/v1/device-status`、MCP 与安全审核等精简接口，技能不再读取完整 OpenAPI |
 
 ## 界面区域与面板
 
@@ -34,7 +35,8 @@
 | 顶栏 | header、顶部导航 | `frontend/src/components/layout/AppHeader.vue`；首页顶栏与主内容滚动区分离，使用 Liquid Glass 材质，其他页面保留原有默认样式 |
 | 小窗顶栏 | 小窗工具条、投屏工具栏、收边条、指示灯 | `frontend/src/components/player/DevicePlayer.vue` 内的工具栏；小窗默认收起，仅悬停或点击顶部可见收边条（含连接指示灯）时展开，顶部其余区域不唤出；展开后移出工具条延时收起，使用菜单期间保持展开；恢复小窗快捷键或菜单“视图 → 恢复所有小窗”保留 |
 | 小窗窗口设置 | 透明度菜单、鼠标穿透菜单 | `frontend/src/components/player/WindowEffectsControl.vue`;原生小窗的透明度、鼠标穿透与无边框开关 |
-| 主窗口窗口设置 | 主窗口透明度菜单、主窗口效果 | `frontend/src/components/layout/MainWindowEffectsControl.vue` 与原生菜单栏“窗口”菜单;主窗口置顶、透明度调节、鼠标穿透与恢复默认 |
+| 主窗口窗口设置 | 主窗口透明度菜单、主窗口效果 | 原生菜单栏“窗口”菜单 · `desktop/src/menu.rs` 与 `desktop/src/main_window.rs`；主窗口置顶、无边框、透明度调节、鼠标穿透与恢复默认；置顶/无边框/穿透收进“窗口效果”二级菜单、透明度收进“透明度”二级菜单，顶栏不再显示这些控件（前端控件组件已移除） |
+| 原生菜单设备列表 | 菜单设备列表、视图设备列表 | 原生菜单栏“视图 → 设备列表”二级菜单；每 5 秒刷新 `GET /api/devices`（3 秒超时），仅列出 `state == "device"` 的在线设备，点击直接打开该设备投屏小窗（`desktop/src/menu_devices.rs`、`desktop/src/links.rs` 的 `open_device_window_internal`） |
 | 无边框 | 隐藏系统标题栏 | 原生投屏小窗默认无系统边框；窗口、设置与菜单中的切换入口已移除。小窗工具栏为半透明覆盖层，显隐不改变视频尺寸；主窗口保持原有系统标题栏覆盖外观 |
 | 投屏设置 | 播放器设置 | 系统设置页签 `frontend/src/components/system/PlayerSettingsContent.vue` 保存默认配置;投屏详情页侧栏 `frontend/src/components/player/PlayerSettingsPanel.vue` 调整当前投屏 |
 | 右侧抽屉 | 抽屉、侧栏、侧边栏 | 投屏详情页右侧自适应面板,收纳检查器、文件管理、模板管理、ADB 终端(`frontend/src/components/player/DevicePlayer.vue`) |

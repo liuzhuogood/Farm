@@ -1,5 +1,26 @@
 package skillsmarket
 
+import "strings"
+
+// ContractPath is the agent-facing automation API reference. Installed skills
+// read it to learn the exact endpoints instead of guessing the full OpenAPI.
+const ContractPath = "/fram.skill"
+
+// ContractURL builds the absolute contract URL for the given listen address.
+// It mirrors mcpconfig.Endpoint so both advertised URLs use the same host.
+func ContractURL(addr string, https bool) string {
+	scheme := "http"
+	if https {
+		scheme = "https"
+	}
+	addr = strings.Replace(addr, "0.0.0.0:", "127.0.0.1:", 1)
+	addr = strings.Replace(addr, "[::]:", "127.0.0.1:", 1)
+	if strings.HasPrefix(addr, ":") {
+		addr = "127.0.0.1" + addr
+	}
+	return scheme + "://" + addr + ContractPath
+}
+
 // AiToolID represents a supported AI assistant tool.
 type AiToolID string
 
@@ -34,6 +55,9 @@ type AiTool struct {
 // AiIntegrationsResponse is the response structure for GET /api/ai-integrations.
 type AiIntegrationsResponse struct {
 	Tools []AiTool `json:"tools"`
+	// ContractURL points to the agent-facing automation API reference that
+	// installed skills must read before calling any endpoint.
+	ContractURL string `json:"contractUrl"`
 }
 
 // SkillID represents an available skill identifier.

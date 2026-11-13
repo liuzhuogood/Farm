@@ -6,6 +6,7 @@ mod embedded_service;
 mod links;
 mod main_window;
 mod menu;
+mod menu_devices;
 mod player_windows;
 mod update_backup;
 mod updater;
@@ -238,6 +239,7 @@ fn main() {
     };
     app.run(|app, event| {
         if let RunEvent::Exit = event {
+            menu_devices::stop(app);
             if let Some(state) = app.try_state::<State>() {
                 if let Ok(mut backend) = state.backend.lock() {
                     backend.take();

@@ -108,9 +108,14 @@ async function request<T>(input: string, init: RequestInit = {}): Promise<T> {
   return data as T
 }
 
-export async function fetchAiIntegrations(): Promise<AiTool[]> {
-  const res = await request<{ tools: AiTool[] }>('/api/ai-integrations')
-  return res.tools
+export interface AiIntegrationsResponse {
+  tools: AiTool[]
+  contractUrl: string
+}
+
+export async function fetchAiIntegrations(): Promise<AiIntegrationsResponse> {
+  const res = await request<AiIntegrationsResponse>('/api/ai-integrations')
+  return res
 }
 
 export async function fetchSkills(): Promise<SkillItem[]> {

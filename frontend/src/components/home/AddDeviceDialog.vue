@@ -6,6 +6,7 @@ import { useDeviceStore } from '@/stores/devices'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import Ipv4Input from './Ipv4Input.vue'
@@ -107,7 +108,13 @@ onUnmounted(() => { generation++; networkRequest?.abort() })
       <div class="min-h-0 flex-1 overflow-y-auto">
         <form v-show="mode === 'address'" id="add-android-device" class="space-y-4" @submit.prevent="save">
           <div class="grid grid-cols-3 gap-3">
-            <div class="col-span-2 space-y-1.5"><label for="add-host" class="text-sm">IP 地址</label><Input id="add-host" v-model="host" :disabled="saving" /></div>
+            <div class="col-span-2 space-y-1.5">
+              <label for="add-host" class="text-sm">IP 地址</label>
+              <div class="flex items-center gap-0.5">
+                <Input id="add-host" v-model="host" :disabled="saving" />
+                <CopyValueButton :value="host" label="IP 地址" />
+              </div>
+            </div>
             <div class="space-y-1.5"><label for="add-port" class="text-sm">端口</label><Input id="add-port" v-model="port" inputmode="numeric" :disabled="saving" /></div>
           </div>
           <div class="space-y-1.5"><label for="add-alias" class="text-sm">别名（可选）</label><Input id="add-alias" v-model="alias" :disabled="saving" /></div>
@@ -129,7 +136,12 @@ onUnmounted(() => { generation++; networkRequest?.abort() })
         </form>
         <p v-if="activeError" role="alert" class="mt-3 text-sm text-destructive">{{ activeError }}</p>
         <p v-if="status" role="status" class="mt-3 text-sm text-muted-foreground">{{ status }}</p>
-        <ul v-if="job?.found.length" class="max-h-24 overflow-auto text-sm font-mono"><li v-for="address in job.found" :key="address">{{ address }}</li></ul>
+        <ul v-if="job?.found.length" class="max-h-24 space-y-1 overflow-auto text-sm font-mono">
+          <li v-for="address in job.found" :key="address" class="flex items-center gap-0.5">
+            <span class="min-w-0 break-all">{{ address }}</span>
+            <CopyValueButton :value="address" label="设备地址" />
+          </li>
+        </ul>
       </div>
       <DialogFooter class="shrink-0">
         <Button variant="outline" @click="emit('update:open', false)">取消</Button>

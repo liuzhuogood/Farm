@@ -27,6 +27,7 @@ import Sortable from 'sortablejs'
 import DeviceContextMenu from './DeviceContextMenu.vue'
 import DashTile from '@/components/dashboard/DashTile.vue'
 import { Button } from '@/components/ui/button'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import type { Device } from '@/api/devices'
 import {
@@ -567,9 +568,12 @@ function getAppVisual(iconType?: string) {
 
           <!-- 底部微型型号/序列号与手势条 -->
           <div class="shrink-0 pt-2 pb-0.5 flex flex-col gap-1 border-t border-neutral-800/60">
-            <p class="truncate font-mono text-[9px] text-neutral-500 text-center">
-              {{ d.serial }}
-            </p>
+            <div class="flex min-w-0 items-center justify-center gap-0.5">
+              <p class="truncate font-mono text-[9px] text-neutral-500">
+                {{ d.serial }}
+              </p>
+              <CopyValueButton :value="d.serial" label="设备地址" class="h-5 w-5" />
+            </div>
             <div class="mx-auto rounded-full bg-neutral-800 transition-colors group-hover/card:bg-neutral-600 h-0.5 w-10 mt-0.5" />
           </div>
         </div>

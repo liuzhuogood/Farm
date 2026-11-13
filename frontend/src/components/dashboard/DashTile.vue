@@ -19,6 +19,7 @@ import {
 } from '@/scrcpy/protocol'
 import { useDeviceStore } from '@/stores/devices'
 import { computeContainDimensions, mapViewportToDeviceCoords } from '@/utils/phoneGrid'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -494,13 +495,14 @@ onUnmounted(() => {
 
       <!-- 未悬停时显示的极简左上角设备标签 -->
       <div
-        class="pointer-events-none absolute left-2 top-2 z-10 flex items-center gap-1.5 rounded bg-black/60 px-2 py-0.5 text-[11px] font-mono text-neutral-300 backdrop-blur-xs select-none transition-opacity duration-200 group-hover:opacity-0"
+        class="pointer-events-none absolute left-2 top-2 z-10 flex items-center gap-1.5 rounded bg-black/60 px-2 py-0.5 text-[11px] font-mono text-neutral-300 backdrop-blur-xs select-none"
       >
         <span
           class="inline-block h-1.5 w-1.5 rounded-full"
           :class="state === 'live' ? 'bg-emerald-500' : state === 'error' ? 'bg-destructive' : 'bg-amber-500 animate-pulse'"
         />
         <span class="max-w-48 truncate">{{ serial }}</span>
+        <CopyValueButton :value="serial" label="设备地址" class="pointer-events-auto h-5 w-5 text-neutral-300 hover:bg-white/10 hover:text-white" />
       </div>
 
       <div v-if="state !== 'live'" class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/80 p-3 text-center backdrop-blur-sm">

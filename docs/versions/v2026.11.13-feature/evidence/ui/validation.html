@@ -1,0 +1,113 @@
+<meta charset="utf-8"><style>body{font:16px system-ui;padding:32px;background:#f8fafc}pre{white-space:pre-wrap;background:white;padding:24px;border-radius:20px}</style><h1>Farm 功能验证记录</h1><p>实际命令输出；设备操作未在本次验证。</p><pre>=== RUN   TestApprovalLifecycleAllowOnce
+--- PASS: TestApprovalLifecycleAllowOnce (0.00s)
+=== RUN   TestApprovalBindingTamperProtection
+--- PASS: TestApprovalBindingTamperProtection (0.00s)
+=== RUN   TestApprovalTimeoutAutoExpire
+--- PASS: TestApprovalTimeoutAutoExpire (0.10s)
+=== RUN   TestApprovalWaitBlock
+--- PASS: TestApprovalWaitBlock (0.05s)
+=== RUN   TestHistoryStoreFlow
+--- PASS: TestHistoryStoreFlow (0.00s)
+=== RUN   TestPolicyEnginePasswordDenial
+--- PASS: TestPolicyEnginePasswordDenial (0.00s)
+=== RUN   TestPolicyEnginePresetPayments
+--- PASS: TestPolicyEnginePresetPayments (0.00s)
+=== RUN   TestPolicyEnginePresetCommits
+--- PASS: TestPolicyEnginePresetCommits (0.00s)
+=== RUN   TestPolicyEngineAlwaysAllowExemption
+--- PASS: TestPolicyEngineAlwaysAllowExemption (0.00s)
+=== RUN   TestPolicyEngineReadOnlyMode
+--- PASS: TestPolicyEngineReadOnlyMode (0.00s)
+=== RUN   TestSafetyRoutesRejectInvalidInput
+--- PASS: TestSafetyRoutesRejectInvalidInput (0.00s)
+=== RUN   TestSafetyHistoryDetailAndExportRoutes
+--- PASS: TestSafetyHistoryDetailAndExportRoutes (0.00s)
+ok  	farm/internal/safety	0.524s
+=== RUN   TestInstallUninstallPreservesOtherConfiguration
+=== RUN   TestInstallUninstallPreservesOtherConfiguration/codex
+=== RUN   TestInstallUninstallPreservesOtherConfiguration/claude-code
+=== RUN   TestInstallUninstallPreservesOtherConfiguration/cursor
+--- PASS: TestInstallUninstallPreservesOtherConfiguration (0.03s)
+=== RUN   TestRejectDamagedConflictingAndLinkedConfiguration
+=== RUN   TestRejectDamagedConflictingAndLinkedConfiguration/{&quot;broken&quot;:
+=== RUN   TestRejectDamagedConflictingAndLinkedConfiguration/null
+=== RUN   TestRejectDamagedConflictingAndLinkedConfiguration/{&quot;mcpServers&quot;:[]}
+=== RUN   TestRejectDamagedConflictingAndLinkedConfiguration/{&quot;mcpServers&quot;:{&quot;farm&quot;:{&quot;url&quot;:&quot;https://other.test/mcp&quot;}}}
+=== RUN   TestRejectDamagedConflictingAndLinkedConfiguration/symlink
+--- PASS: TestRejectDamagedConflictingAndLinkedConfiguration (0.01s)
+=== RUN   TestRoutesRejectRemoteAndCrossOrigin
+--- PASS: TestRoutesRejectRemoteAndCrossOrigin (0.00s)
+=== RUN   TestViteProxyOrigin
+--- PASS: TestViteProxyOrigin (0.00s)
+ok  	farm/internal/mcpconfig	0.782s
+=== RUN   TestMCPServerToolsListing
+--- PASS: TestMCPServerToolsListing (0.00s)
+=== RUN   TestMCPPhoneTapInterceptedByPolicy
+--- PASS: TestMCPPhoneTapInterceptedByPolicy (0.00s)
+ok  	farm/internal/mcp	1.566s
+=== RUN   TestElementLineFormattingAndParsing
+=== RUN   TestElementLineFormattingAndParsing/Button_simple
+=== RUN   TestElementLineFormattingAndParsing/Text_simple
+=== RUN   TestElementLineFormattingAndParsing/Input_focused_editable
+=== RUN   TestElementLineFormattingAndParsing/Switch_checked
+=== RUN   TestElementLineFormattingAndParsing/Checkbox_disabled_and_selected
+=== RUN   TestElementLineFormattingAndParsing/Password_input_with_scrollable
+=== RUN   TestElementLineFormattingAndParsing/Special_characters:_quotes,_backslash,_newlines
+--- PASS: TestElementLineFormattingAndParsing (0.00s)
+=== RUN   TestOCRLineFormattingAndParsing
+=== RUN   TestOCRLineFormattingAndParsing/Normal_OCR_text
+=== RUN   TestOCRLineFormattingAndParsing/OCR_text_with_quotes_and_escapes
+--- PASS: TestOCRLineFormattingAndParsing (0.00s)
+=== RUN   TestEventLineFormattingAndParsing
+=== RUN   TestEventLineFormattingAndParsing/Toast_message
+=== RUN   TestEventLineFormattingAndParsing/Notification_with_sender
+=== RUN   TestEventLineFormattingAndParsing/Notification_without_sender
+--- PASS: TestEventLineFormattingAndParsing (0.00s)
+=== RUN   TestMetadataLineAndScreenRender
+--- PASS: TestMetadataLineAndScreenRender (0.00s)
+=== RUN   TestDiffFallbackScenarios
+--- PASS: TestDiffFallbackScenarios (0.00s)
+=== RUN   TestDiffIncrementalChanges
+--- PASS: TestDiffIncrementalChanges (0.00s)
+=== RUN   TestRecordAutomationLogWritesToRing
+--- PASS: TestRecordAutomationLogWritesToRing (0.00s)
+=== RUN   TestListAutomationLogsFiltersByTypeAndSerial
+--- PASS: TestListAutomationLogsFiltersByTypeAndSerial (0.00s)
+=== RUN   TestObserveEmitsStructuredLogs
+--- PASS: TestObserveEmitsStructuredLogs (0.00s)
+=== RUN   TestHandleObserveLogsErrorPaths
+--- PASS: TestHandleObserveLogsErrorPaths (0.00s)
+=== RUN   TestHandleAutomationLogsEndpoint
+--- PASS: TestHandleAutomationLogsEndpoint (0.00s)
+=== RUN   TestFormatAutomationFieldsStableOrder
+--- PASS: TestFormatAutomationFieldsStableOrder (0.00s)
+=== RUN   TestMatchTemplatePureGo
+--- PASS: TestMatchTemplatePureGo (0.00s)
+=== RUN   TestObserveCompactFormattingAndDeduplication
+--- PASS: TestObserveCompactFormattingAndDeduplication (0.00s)
+=== RUN   TestObserveDiffStreaming
+--- PASS: TestObserveDiffStreaming (0.00s)
+=== RUN   TestObserveFormatDebugXML
+--- PASS: TestObserveFormatDebugXML (0.00s)
+=== RUN   TestObserveHTTPHandler
+--- PASS: TestObserveHTTPHandler (0.01s)
+=== RUN   TestEvaluatePixelPoints
+--- PASS: TestEvaluatePixelPoints (0.00s)
+=== RUN   TestRoutesValidation
+--- PASS: TestRoutesValidation (0.00s)
+=== RUN   TestSwipeStartPointResolution
+--- PASS: TestSwipeStartPointResolution (0.00s)
+=== RUN   TestRegionScreenshotBounds
+--- PASS: TestRegionScreenshotBounds (0.00s)
+=== RUN   TestCheckUnifiedTimeout
+--- PASS: TestCheckUnifiedTimeout (0.00s)
+=== RUN   TestGetPixel
+--- PASS: TestGetPixel (0.00s)
+=== RUN   TestParseHierarchyXML
+--- PASS: TestParseHierarchyXML (0.00s)
+ok  	farm/internal/automation	1.143s
+版本一致: 2026.11.11-1</pre><h2>前端构建</h2><pre>../web/dist/assets/index-C4MBGXdG.js               192.98 kB │ gzip:  64.10 kB
+../web/dist/assets/SelectValue-DhqpyRNn.js         288.81 kB │ gzip:  97.59 kB
+../web/dist/assets/DevicePlayer-PbZdRegb.js        490.06 kB │ gzip: 129.18 kB
+
+✓ built in 458ms</pre><p>go build ./...：退出码 0；go test -race ./internal/safety ./internal/mcpconfig：通过。</p>

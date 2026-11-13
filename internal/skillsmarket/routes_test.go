@@ -45,6 +45,40 @@ func TestRoutesAiIntegrations(t *testing.T) {
 			t.Fatalf("tool %s targetPath not rooted at homeDir: %s", tool.ID, tool.TargetPath)
 		}
 	}
+	// The contract URL must point at the agent-facing automation reference.
+	if resp.ContractURL != ContractPath {
+		t.Fatalf("expected default contract url %s, got %s", ContractPath, resp.ContractURL)
+	}
+}
+
+func TestContractURLBuildsAbsoluteLoopbackAddress(t *testing.T) {
+	cases := []struct {
+		addr   string
+		https  bool
+		expect string
+	}{
+		{addr: "127.0.0.1:8080", expect: "http://127.0.0.1:8080/fram.skill"},
+		{addr: "0.0.0.0:8080", expect: "http://127.0.0.1:8080/fram.skill"},
+		{addr: "[::]:8080", expect: "http://127.0.0.1:8080/fram.skill"},
+		{addr: ":8080", expect: "http://127.0.0.1:8080/fram.skill"},
+		{addr: "127.0.0.1:1989", expect: "http://127.0.0.1:1989/fram.skill"},
+		{addr: "127.0.0.1:1989", https: true, expect: "https://127.0.0.1:1989/fram.skill"},
+	}
+	for _, c := range cases {
+		if got := ContractURL(c.addr, c.https); got != c.expect {
+			t.Fatalf("ContractURL(%q, https=%v) = %s, want %s", c.addr, c.https, got, c.expect)
+		}
+	}
+}
+
+func TestManagerAdvertisesConfiguredContractURL(t *testing.T) {
+	mgr, err := NewManagerWithContract(t.TempDir(), "http://127.0.0.1:1989/fram.skill")
+	if err != nil {
+		t.Fatalf("NewManagerWithContract error: %v", err)
+	}
+	if got := mgr.ContractURL(); got != "http://127.0.0.1:1989/fram.skill" {
+		t.Fatalf("unexpected contract url: %s", got)
+	}
 }
 
 func TestRoutesListAndGetSkills(t *testing.T) {
@@ -175,6 +209,31 @@ func TestRoutesInstallSkillSecurityAndValidation(t *testing.T) {
 
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("expected 403 on cross-origin, got %d", rec.Code)
+	}
+
+	// 2b. The Vite dev proxy rewrites Host to the backend while the browser
+	// keeps Origin at :5173, so that pair must be accepted.
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(reqBody))
+	req.Host = "localhost:8080"
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", "http://127.0.0.1:5173")
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 for vite proxy origin, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	// 2c. A non-loopback host must not gain the vite proxy exception.
+	req = httptest.NewRequest("POST", "/api/skills/farm-device-base/install", strings.NewReader(reqBody))
+	req.Host = "farm.example.com:8080"
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", "http://127.0.0.1:5173")
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 for non-loopback host, got %d", rec.Code)
 	}
 
 	// 3. Sec-Fetch-Site cross-site rejection

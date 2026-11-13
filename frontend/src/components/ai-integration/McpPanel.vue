@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { Plug } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { fetchMcpConfiguration, setMcpInstallation, type McpClient } from '@/api/mcp'
 
 const clients = ref<McpClient[]>([])
@@ -66,9 +70,12 @@ onMounted(load)
   <section class="rounded-3xl border border-border/60 bg-card/80 p-6 shadow-sm" aria-label="MCP 接入">
     <div class="mb-5 flex items-center justify-between gap-4">
       <div>
-        <h2 class="text-lg font-semibold">MCP 接入</h2>
+        <h2 class="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+          MCP 接入
+        </h2>
         <div v-if="endpoint" class="mt-1 flex items-center gap-0.5">
           <p class="break-all font-mono text-xs text-muted-foreground">{{ endpoint }}</p>
+          <CopyValueButton :value="endpoint" label="服务地址" />
         </div>
       </div>
       <Button variant="outline" size="sm" :disabled="loading || !!busy" @click="load">刷新</Button>
@@ -76,13 +83,19 @@ onMounted(load)
     <p v-if="loading" class="text-sm text-muted-foreground">正在读取配置…</p>
     <p v-if="error" role="alert" class="mb-3 text-sm text-destructive">{{ error }}</p>
     <p v-if="notice" role="status" class="mb-3 text-sm text-green-600">{{ notice }}</p>
-    <div class="space-y-3">
+    <div v-if="!loading && clients.length > 0" class="space-y-3">
       <article v-for="client in clients" :key="client.id" class="rounded-2xl border border-border/60 bg-background/60 p-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="min-w-0">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5">
               <h3 class="font-medium">{{ client.name }}</h3>
-              <span class="rounded-full px-2 py-0.5 text-xs" :class="client.status === 'installed' ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'">{{ labels[client.status] }}</span>
+              <Badge
+                variant="outline"
+                class="font-normal"
+                :class="client.status === 'installed' ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400' : ''"
+              >
+                {{ labels[client.status] }}
+              </Badge>
             </div>
             <p class="mt-1 break-all text-xs text-muted-foreground">{{ client.path }}</p>
           </div>
@@ -97,5 +110,14 @@ onMounted(load)
         <pre v-if="expanded === client.id" class="mt-3 overflow-x-auto rounded-xl bg-muted/60 p-3 text-xs">{{ client.config }}</pre>
       </article>
     </div>
+    <Empty v-else-if="!loading" class="border-0 py-8">
+      <EmptyMedia>
+        <Plug class="h-8 w-8 text-muted-foreground" />
+      </EmptyMedia>
+      <EmptyHeader>
+        <EmptyTitle class="text-base">未发现 MCP 客户端</EmptyTitle>
+        <EmptyDescription class="text-xs">当前宿主机没有可配置的 MCP 客户端。</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   </section>
 </template>

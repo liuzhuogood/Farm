@@ -23,6 +23,7 @@ import type { ComponentPublicInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { invoke } from '@tauri-apps/api/core'
 import { Button } from '@/components/ui/button'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Input } from '@/components/ui/input'
 import type { Device } from '@/api/devices'
 import { useDeviceStore } from '@/stores/devices'
@@ -468,9 +469,12 @@ async function openFloatingWindow(e?: Event) {
                 </button>
               </div>
 
-              <p class="truncate font-mono text-[9px] text-neutral-500 mt-0.5">
-                {{ device.model || 'Android' }} · {{ device.serial }}
-              </p>
+              <div class="mt-0.5 flex min-w-0 items-center gap-0.5">
+                <p class="truncate font-mono text-[9px] text-neutral-500">
+                  {{ device.model || 'Android' }} · {{ device.serial }}
+                </p>
+                <CopyValueButton :value="device.serial" label="设备地址" class="h-5 w-5" />
+              </div>
             </div>
 
             <!-- 网络设备快捷重连 / 删除操作 -->
@@ -533,9 +537,12 @@ async function openFloatingWindow(e?: Event) {
             Android {{ device.android_release }}
           </span>
         </div>
-        <p class="truncate font-mono text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-          {{ device.model || 'Android' }} · {{ device.serial }}
-        </p>
+        <div class="mt-0.5 flex min-w-0 items-center gap-0.5">
+          <p class="truncate font-mono text-[11px] text-slate-500 dark:text-slate-400">
+            {{ device.model || 'Android' }} · {{ device.serial }}
+          </p>
+          <CopyValueButton :value="device.serial" label="设备地址" />
+        </div>
       </div>
 
       <!-- 紧凑指标条（电量与电池温度） -->

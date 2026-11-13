@@ -15,13 +15,13 @@ func TestAppRoutesAndStaticAssets(t *testing.T) {
 		"assets/app.js": {Data: []byte("console.log('app')")},
 	}
 	docs := fstest.MapFS{
-		"api-docs.html":            {Data: []byte("API docs")},
-		"api-docs-automation.html": {Data: []byte("Automation API docs")},
+		"api-docs.html": {Data: []byte("API docs")},
+		"fram.skill":    {Data: []byte("Automation API docs")},
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/devices", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("[]")) })
 	mux.Handle("/api-docs.html", http.FileServer(http.FS(docs)))
-	mux.Handle("/api-docs-automation.html", http.FileServer(http.FS(docs)))
+	mux.Handle("/fram.skill", http.FileServer(http.FS(docs)))
 	mux.Handle("/", newAppHandler(app))
 	tests := []struct {
 		method, path string
@@ -51,7 +51,7 @@ func TestAppRoutesAndStaticAssets(t *testing.T) {
 		{"GET", "/scripts.html", 404, ""},
 		{"GET", "/js/decoder.js", 404, ""},
 		{"GET", "/api-docs.html", 200, "API docs"},
-		{"GET", "/api-docs-automation.html", 200, "Automation API docs"},
+		{"GET", "/fram.skill", 200, "Automation API docs"},
 		{"GET", "/api/devices", 200, "[]"},
 		{"HEAD", "/player", 200, ""},
 		{"POST", "/player", 405, ""},
@@ -93,7 +93,7 @@ func TestBuiltAppUsesRootAssetPaths(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if !entry.IsDir() && path != "web/api-docs.html" && path != "web/api-docs-automation.html" && !strings.HasPrefix(path, "web/dist/") {
+		if !entry.IsDir() && path != "web/api-docs.html" && path != "web/fram.skill" && !strings.HasPrefix(path, "web/dist/") {
 			t.Errorf("unexpected embedded legacy/source file: %s", path)
 		}
 		return nil

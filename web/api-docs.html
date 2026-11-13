@@ -304,7 +304,7 @@
     <p class="subtitle">接口规范遵循 OpenAPI 3.1.0，源文件位于 <code>/api/openapi.json</code>。</p>
     <nav class="doc-tabs" aria-label="文档分类">
       <a href="/api-docs.html" class="doc-tab active">📚 全量接口文档</a>
-      <a href="/api-docs-automation.html" class="doc-tab">🤖 自动化接口文档</a>
+      <a href="/fram.skill" class="doc-tab">🤖 自动化接口文档</a>
     </nav>
   </header>
 
@@ -322,7 +322,7 @@
   (()=>{
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('scope') === 'automation') {
-      window.location.replace('/api-docs-automation.html' + (window.location.hash || ''));
+      window.location.replace('/fram.skill' + (window.location.hash || ''));
       return;
     }
 

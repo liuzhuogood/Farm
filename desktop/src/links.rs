@@ -24,15 +24,26 @@ pub fn open_device_window(
     width: Option<f64>,
     height: Option<f64>,
 ) -> Result<(), String> {
+    open_device_window_internal(&app, serial, title, width, height)
+}
+
+pub(crate) fn open_device_window_internal(
+    app: &AppHandle,
+    serial: String,
+    title: Option<String>,
+    width: Option<f64>,
+    height: Option<f64>,
+) -> Result<(), String> {
     let state = app.state::<State>();
     let safe_serial = serial.replace(|c: char| !c.is_alphanumeric(), "_");
     let label = format!("player-{}", safe_serial);
 
     if let Some(existing) = app.get_webview_window(&label) {
-        crate::player_windows::restore(&app, &label)?;
+        crate::player_windows::restore(app, &label)?;
         let _ = existing.show();
         let _ = existing.unminimize();
         let _ = existing.set_focus();
+        eprintln!("[Desktop] 已恢复设备小窗: serial={serial} label={label}");
         return Ok(());
     }
 
@@ -58,7 +69,7 @@ pub fn open_device_window(
         String::new()
     };
 
-    let builder = tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::External(dest))
+    let builder = tauri::WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::External(dest))
         .title(win_title)
         .inner_size(w, h)
         .transparent(true)
@@ -74,11 +85,13 @@ pub fn open_device_window(
         .initialization_script(CLICK_SCRIPT);
 
     // Track before loading so the first frontend snapshot already has this window.
-    crate::player_windows::track(&app, &label, &serial, borderless)?;
+    crate::player_windows::track(app, &label, &serial, borderless)?;
     if let Err(error) = builder.build() {
-        crate::player_windows::forget(&app, &label);
+        crate::player_windows::forget(app, &label);
+        eprintln!("[Desktop] 创建设备小窗失败: serial={serial}: {error}");
         return Err(error.to_string());
     }
+    eprintln!("[Desktop] 已创建设备小窗: serial={serial} label={label}");
     Ok(())
 }
 

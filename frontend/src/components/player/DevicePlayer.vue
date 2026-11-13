@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -459,7 +460,6 @@ defineExpose({ handleEscape })
       :embedded="embedded"
       :compact-toolbar="compactToolbar"
       :show-nav="false"
-      :show-effects="false"
       :show-config="false"
       :class="[
         embedded ? 'absolute top-0 inset-x-0 z-40' : '',
@@ -492,12 +492,13 @@ defineExpose({ handleEscape })
             <RouterLink to="/"><ArrowLeft class="h-4 w-4" /></RouterLink>
           </Button>
           <span
-            class="ml-1 min-w-0 max-w-44 flex-1 truncate font-mono text-xs font-bold tracking-tight text-slate-900 dark:text-white"
+            class="ml-1 min-w-0 max-w-44 truncate font-mono text-xs font-bold tracking-tight text-slate-900 dark:text-white"
             :class="{ 'cursor-move select-none': embedded }"
             :title="serial"
           >
             {{ serial }}
           </span>
+          <CopyValueButton :value="serial" label="设备地址" />
           <span
             v-if="!embedded"
             class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold backdrop-blur-md"
@@ -757,7 +758,7 @@ defineExpose({ handleEscape })
                 <AlertDialogHeader>
                   <AlertDialogTitle>重启这台设备？</AlertDialogTitle>
                   <AlertDialogDescription>
-                    {{ serial }} 将立即重启，当前投屏连接会中断并自动重连。
+                    <span class="inline-flex items-center gap-1">{{ serial }}<CopyValueButton :value="serial" label="设备地址" /></span> 将立即重启，当前投屏连接会中断并自动重连。
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

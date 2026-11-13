@@ -37,6 +37,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
@@ -280,7 +281,10 @@ onMounted(() => {
           <RouterLink :to="backTo"><ArrowLeft class="h-5 w-5" /></RouterLink>
         </Button>
         <span class="text-base font-semibold">文件管理</span>
-        <span v-if="serial" class="max-w-48 truncate font-mono text-xs text-muted-foreground" :title="serial">{{ serial }}</span>
+        <div v-if="serial" class="flex min-w-0 items-center gap-0.5">
+          <span class="max-w-48 truncate font-mono text-xs text-muted-foreground" :title="serial">{{ serial }}</span>
+          <CopyValueButton :value="serial" label="设备地址" />
+        </div>
         <span class="ml-auto text-xs text-muted-foreground" aria-live="polite">{{ storageText }}</span>
       </div>
     </header>

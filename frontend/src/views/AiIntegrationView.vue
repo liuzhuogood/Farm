@@ -32,6 +32,7 @@ const loadSeq = ref(0)
 
 const tools = ref<AiTool[]>([])
 const skills = ref<SkillItem[]>([])
+const contractUrl = ref('')
 
 // 筛选与选择状态（优先读取 URL query，支持浏览器前进后退与分享）
 const selectedToolId = ref<AiToolId>('codex')
@@ -120,14 +121,15 @@ async function loadData() {
   isLoading.value = true
   loadError.value = null
   try {
-    const [loadedTools, loadedSkills] = await Promise.all([
+    const [integrations, loadedSkills] = await Promise.all([
       fetchAiIntegrations(),
       fetchSkills(),
     ])
     if (loadSeq.value !== currentSeq)
       return
-    tools.value = loadedTools
+    tools.value = integrations.tools
     skills.value = loadedSkills
+    contractUrl.value = integrations.contractUrl
   }
   catch (err: unknown) {
     if (loadSeq.value !== currentSeq)
@@ -264,7 +266,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative min-h-screen text-slate-900 dark:text-slate-100 select-none pb-20 overflow-x-hidden">
+  <div class="relative min-h-screen text-slate-900 dark:text-slate-100 select-none pb-20 overflow-x-clip">
     <!-- 极光光斑渐变与星芒网格背景 -->
     <HomeAuroraBackground />
 
@@ -316,11 +318,13 @@ onUnmounted(() => {
           <AiGuidePanel
             v-if="currentAiTool"
             :tool="currentAiTool"
+            :contract-url="contractUrl"
             @install-base="handleOpenInstallBase"
           />
 
+          <!-- 服务接入：MCP 与安全审核 -->
           <McpPanel />
-      <SafetyPanel />
+          <SafetyPanel />
 
           <!-- 下半区：技能市场 -->
           <SkillMarket

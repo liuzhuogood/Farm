@@ -10,7 +10,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useUpdaterStore } from '@/stores/updater'
 import UpdateNoticeDialog from '@/components/updater/UpdateNoticeDialog.vue'
 import SystemConfigDialog from '@/components/system/SystemConfigDialog.vue'
-import MainWindowEffectsControl from '@/components/layout/MainWindowEffectsControl.vue'
 import { useMainWindowEffects } from '@/composables/useMainWindowEffects'
 
 interface Props {
@@ -27,7 +26,6 @@ interface Props {
   showLogo?: boolean
   showVersion?: boolean
   showNav?: boolean
-  showEffects?: boolean
   showConfig?: boolean
 }
 
@@ -45,7 +43,6 @@ const props = withDefaults(defineProps<Props>(), {
   showLogo: undefined,
   showVersion: undefined,
   showNav: undefined,
-  showEffects: undefined,
   showConfig: undefined,
 })
 
@@ -77,11 +74,6 @@ const shouldShowVersion = computed(() => {
 const shouldShowNav = computed(() => {
   if (props.showNav !== undefined) return props.showNav
   return !props.embedded && (!props.back || props.title === '大屏监控')
-})
-
-const shouldShowEffects = computed(() => {
-  if (props.showEffects !== undefined) return props.showEffects
-  return !props.embedded
 })
 
 const shouldShowConfig = computed(() => {
@@ -327,7 +319,7 @@ onMounted(() => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" class="rounded-2xl border-slate-200 bg-white/95 dark:border-white/10 dark:bg-slate-900/95 backdrop-blur-xl">
               <DropdownMenuItem as-child>
-                <a href="/api-docs-automation.html" target="_blank" rel="noopener">
+                <a href="/fram.skill" target="_blank" rel="noopener">
                   🤖 自动化接口文档
                 </a>
               </DropdownMenuItem>
@@ -339,9 +331,6 @@ onMounted(() => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
-        <!-- 窗口效果调节 (透明度/无边框/置顶) -->
-        <MainWindowEffectsControl v-if="shouldShowEffects" />
 
         <!-- 系统设置 -->
         <Button
@@ -376,7 +365,7 @@ onMounted(() => {
               <a href="https://github.com/liuzhuogood/Farm" target="_blank" rel="noopener noreferrer"><Github class="h-4 w-4" />GitHub</a>
             </DropdownMenuItem>
             <DropdownMenuItem as-child>
-              <a href="/api-docs-automation.html" target="_blank" rel="noopener">🤖 自动化接口文档</a>
+              <a href="/fram.skill" target="_blank" rel="noopener">🤖 自动化接口文档</a>
             </DropdownMenuItem>
             <DropdownMenuItem as-child>
               <a href="/api-docs.html" target="_blank" rel="noopener">📚 全量接口文档</a>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { Check, Copy, Loader2, Play, RefreshCw, Square } from 'lucide-vue-next'
+import { Loader2, Play, RefreshCw, Square } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
@@ -36,7 +37,6 @@ const engine = ref('auto')
 
 const testStatus = ref<{ mac?: 'success' | 'failed' | 'testing', paddle?: 'success' | 'failed' | 'testing', indra?: 'success' | 'failed' | 'testing' }>({})
 const testMsg = ref<{ mac?: string, paddle?: string, indra?: string }>({})
-const copied = ref(false)
 
 async function loadStatus() {
   loading.value = true
@@ -152,14 +152,6 @@ async function testMac() {
   }
 }
 
-function copyAddress(text: string) {
-  navigator.clipboard.writeText(text).then(() => {
-    copied.value = true
-    toast.success('已复制服务地址')
-    setTimeout(() => { copied.value = false }, 1500)
-  })
-}
-
 onMounted(() => {
   void loadStatus()
   async function poll() {
@@ -218,16 +210,7 @@ onUnmounted(() => { disposed = true; if (pollTimer) clearTimeout(pollTimer) })
             </div>
           </div>
           <div class="flex shrink-0 items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              class="h-7 text-xs"
-              @click="copyAddress(status?.indraocr_url || `http://127.0.0.1:${status?.indra_port || 8032}/upload`)"
-            >
-              <Check v-if="copied" class="mr-1 h-3 w-3 text-emerald-500" />
-              <Copy v-else class="mr-1 h-3 w-3" />
-              {{ copied ? '已复制' : '复制地址' }}
-            </Button>
+            <CopyValueButton :value="status?.indraocr_url || `http://127.0.0.1:${status?.indra_port || 8032}/upload`" label="服务地址" />
             <Button
               size="sm"
               variant="ghost"
@@ -286,16 +269,7 @@ onUnmounted(() => { disposed = true; if (pollTimer) clearTimeout(pollTimer) })
             </div>
           </div>
           <div class="flex shrink-0 items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              class="h-7 text-xs"
-              @click="copyAddress(status?.paddleocr_url || `http://127.0.0.1:${status?.paddle_port || 8031}/upload`)"
-            >
-              <Check v-if="copied" class="mr-1 h-3 w-3 text-emerald-500" />
-              <Copy v-else class="mr-1 h-3 w-3" />
-              {{ copied ? '已复制' : '复制地址' }}
-            </Button>
+            <CopyValueButton :value="status?.paddleocr_url || `http://127.0.0.1:${status?.paddle_port || 8031}/upload`" label="服务地址" />
             <Button
               size="sm"
               variant="ghost"
@@ -365,7 +339,10 @@ onUnmounted(() => { disposed = true; if (pollTimer) clearTimeout(pollTimer) })
 
         <div class="space-y-1.5 pt-2 border-t">
           <label class="text-xs font-medium">INDRAOCR_URL</label>
-          <Input v-model="indraUrl" placeholder="http://127.0.0.1:8032/upload" class="font-mono text-xs" />
+          <div class="flex items-center gap-0.5">
+            <Input v-model="indraUrl" placeholder="http://127.0.0.1:8032/upload" class="font-mono text-xs" />
+            <CopyValueButton :value="indraUrl" label="服务地址" />
+          </div>
         </div>
 
         <!-- MACOCR_URL 配置 -->
@@ -383,7 +360,10 @@ onUnmounted(() => { disposed = true; if (pollTimer) clearTimeout(pollTimer) })
               测试连接
             </Button>
           </div>
-          <Input v-model="macUrl" placeholder="http://10.0.0.11:8000/upload" class="font-mono text-xs" />
+          <div class="flex items-center gap-0.5">
+            <Input v-model="macUrl" placeholder="http://10.0.0.11:8000/upload" class="font-mono text-xs" />
+            <CopyValueButton :value="macUrl" label="服务地址" />
+          </div>
           <p v-if="testMsg.mac" class="text-xs" :class="testStatus.mac === 'success' ? 'text-emerald-500' : 'text-destructive'">
             {{ testMsg.mac }}
           </p>
@@ -398,7 +378,10 @@ onUnmounted(() => { disposed = true; if (pollTimer) clearTimeout(pollTimer) })
         <!-- PADDLEOCR_URL 覆盖配置 -->
         <div class="space-y-1.5 pt-2 border-t">
           <label class="text-xs font-medium">PADDLEOCR_URL (服务地址覆盖)</label>
-          <Input v-model="paddleUrl" placeholder="http://127.0.0.1:8031/upload" class="font-mono text-xs" />
+          <div class="flex items-center gap-0.5">
+            <Input v-model="paddleUrl" placeholder="http://127.0.0.1:8031/upload" class="font-mono text-xs" />
+            <CopyValueButton :value="paddleUrl" label="服务地址" />
+          </div>
           <p class="text-[11px] text-muted-foreground">
             留空时默认使用本机启动地址；如局域网有独立 GPU 机器可填入远程地址。
           </p>

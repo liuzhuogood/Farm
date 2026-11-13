@@ -180,13 +180,13 @@ func TestAPIDocsPageGuardsScriptTagGrouping(t *testing.T) {
 	if !strings.Contains(page, "if(tag==='脚本')continue") {
 		t.Errorf("API docs page is missing %q", "if(tag==='脚本')continue")
 	}
-	if !strings.Contains(page, "api-docs-automation.html") {
+	if !strings.Contains(page, "fram.skill") {
 		t.Errorf("API docs page is missing link to automation docs")
 	}
 }
 
 func TestAutomationAPIDocsPage(t *testing.T) {
-	pageTemplate, err := webFS.ReadFile("web/api-docs-automation.html")
+	pageTemplate, err := webFS.ReadFile("web/fram.skill")
 	if err != nil {
 		t.Fatalf("read embedded automation API docs page: %v", err)
 	}

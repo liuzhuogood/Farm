@@ -8,11 +8,11 @@ import {
 } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -123,9 +123,10 @@ function handleInstall() {
           <FileBox class="h-5 w-5 text-primary" />
           <span>安装应用</span>
         </DialogTitle>
-        <DialogDescription class="text-xs text-muted-foreground font-mono">
-          {{ serial }}
-        </DialogDescription>
+        <div class="flex items-center gap-0.5 text-xs text-muted-foreground font-mono">
+          <span>{{ serial }}</span>
+          <CopyValueButton :value="serial" label="设备地址" />
+        </div>
       </DialogHeader>
 
       <!-- 阶段 1：确认对话框 -->

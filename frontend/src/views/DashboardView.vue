@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Eye, EyeOff, LayoutGrid, Maximize, Minimize, MonitorSmartphone, Smartphone } from 'lucide-vue-next'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useElementSize, useFullscreen } from '@vueuse/core'
 import DashTile from '@/components/dashboard/DashTile.vue'
@@ -224,8 +225,11 @@ onUnmounted(() => {
                     <div class="truncate font-medium leading-tight">
                       {{ deviceStore.displayName(d) }}
                     </div>
-                    <div class="truncate font-mono text-[10px] text-muted-foreground/70">
-                      {{ d.serial }}
+                    <div class="flex min-w-0 items-center gap-0.5">
+                      <div class="truncate font-mono text-[10px] text-muted-foreground/70">
+                        {{ d.serial }}
+                      </div>
+                      <CopyValueButton :value="d.serial" label="设备地址" class="h-5 w-5" />
                     </div>
                   </div>
                 </div>

@@ -981,6 +981,8 @@ dependencies = [
 name = "farm-gui"
 version = "2026.11.11-1"
 dependencies = [
+ "reqwest",
+ "rustls",
  "serde",
  "serde_json",
  "sha2",
@@ -991,6 +993,7 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-updater",
  "tempfile",
+ "tokio",
 ]
 
 [[package]]

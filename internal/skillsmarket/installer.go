@@ -26,10 +26,17 @@ const (
 type Manager struct {
 	homeDir string
 	sem     chan struct{}
+	// contractURL is the absolute automation API reference handed to agents.
+	contractURL string
 }
 
 // NewManager creates a new Manager for skills installation rooted at the explicit homeDir.
 func NewManager(homeDir string) (*Manager, error) {
+	return NewManagerWithContract(homeDir, ContractPath)
+}
+
+// NewManagerWithContract creates a Manager that advertises the given contract URL.
+func NewManagerWithContract(homeDir, contractURL string) (*Manager, error) {
 	if strings.TrimSpace(homeDir) == "" {
 		return nil, errors.New("homeDir 不能为空")
 	}
@@ -48,15 +55,24 @@ func NewManager(homeDir string) (*Manager, error) {
 	if !info.IsDir() {
 		return nil, errors.New("homeDir 必须是目录")
 	}
+	if strings.TrimSpace(contractURL) == "" {
+		contractURL = ContractPath
+	}
 	return &Manager{
-		homeDir: realHome,
-		sem:     make(chan struct{}, 1),
+		homeDir:     realHome,
+		sem:         make(chan struct{}, 1),
+		contractURL: contractURL,
 	}, nil
 }
 
 // HomeDir returns the configured base directory.
 func (m *Manager) HomeDir() string {
 	return m.homeDir
+}
+
+// ContractURL returns the absolute automation API reference for agents.
+func (m *Manager) ContractURL() string {
+	return m.contractURL
 }
 
 func (m *Manager) openHomeRoot() (*os.Root, error) {

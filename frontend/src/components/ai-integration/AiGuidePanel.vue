@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AiTool } from '@/api/aiIntegrations'
 import { onUnmounted, ref, watch } from 'vue'
-import { Check, Copy, Download, ExternalLink, Folder, Loader2, Sparkles } from 'lucide-vue-next'
+import { Check, Copy, Download, ExternalLink, FileText, Folder, Loader2, Sparkles } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,6 +9,7 @@ import { downloadSkillZip } from '@/api/aiIntegrations'
 
 const props = defineProps<{
   tool: AiTool
+  contractUrl?: string
 }>()
 
 const emit = defineEmits<{
@@ -224,6 +225,24 @@ onUnmounted(() => {
         <code class="break-all rounded bg-muted/80 px-1 py-0.5 font-mono text-[11px] text-foreground">
           {{ props.tool.targetPath }}
         </code>
+      </div>
+
+      <!-- 自动化接口契约：技能执行时读取的唯一权威接口说明 -->
+      <div class="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+        <FileText class="h-3.5 w-3.5 shrink-0" />
+        <span class="shrink-0">自动化接口契约：</span>
+        <a
+          v-if="props.contractUrl"
+          :href="props.contractUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 break-all rounded bg-muted/80 px-1 py-0.5 font-mono text-[11px] text-foreground underline-offset-2 hover:underline"
+        >
+          {{ props.contractUrl }}
+        </a>
+        <span v-else class="break-all rounded bg-muted/80 px-1 py-0.5 font-mono text-[11px] text-foreground">
+          /fram.skill
+        </span>
       </div>
 
       <!-- 复制异常提示 -->

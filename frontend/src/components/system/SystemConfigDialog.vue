@@ -4,6 +4,7 @@ import { Monitor, Moon, Sun } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { theme } from '@/composables/useTheme'
@@ -103,12 +104,15 @@ async function handleServiceSave() {
               <div class="space-y-3 text-xs">
                 <div>
                   <label for="ai-endpoint" class="text-muted-foreground block mb-1">接口完整地址 (Chat Completions)</label>
-                  <Input
-                    id="ai-endpoint"
-                    v-model="serviceConfig.config.value.ai_chat_endpoint"
-                    placeholder="https://api.openai.com/v1/chat/completions"
-                    class="w-full font-mono text-xs"
-                  />
+                  <div class="flex items-center gap-0.5">
+                    <Input
+                      id="ai-endpoint"
+                      v-model="serviceConfig.config.value.ai_chat_endpoint"
+                      placeholder="https://api.openai.com/v1/chat/completions"
+                      class="w-full font-mono text-xs"
+                    />
+                    <CopyValueButton :value="serviceConfig.config.value.ai_chat_endpoint" label="接口地址" />
+                  </div>
                 </div>
                 <div>
                   <label for="ai-model" class="text-muted-foreground block mb-1">模型名称</label>

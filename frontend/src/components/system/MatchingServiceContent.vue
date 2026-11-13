@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
+import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import type { MatchingStatus } from '@/composables/useMatchingService'
 
 const props = defineProps<{ status?: MatchingStatus; busy: boolean; error: string }>()
@@ -40,7 +41,10 @@ function onToggle(enabled: boolean) {
     <div v-if="status?.devices.length" class="mt-4 divide-y rounded-lg border px-4">
       <div v-for="device in status.devices" :key="device.serial" class="space-y-1 py-3">
         <div class="flex items-center justify-between gap-3">
-          <span class="min-w-0 break-all text-xs">{{ device.serial }}</span>
+          <div class="flex min-w-0 items-center gap-0.5">
+            <span class="min-w-0 break-all text-xs">{{ device.serial }}</span>
+            <CopyValueButton :value="device.serial" label="设备地址" />
+          </div>
           <Badge variant="secondary">{{ deviceLabels[device.state] }}</Badge>
         </div>
         <p v-if="device.error" class="break-all text-xs text-destructive">{{ device.error }}</p>

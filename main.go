@@ -40,7 +40,7 @@ var versionBytes []byte
 //go:embed assets/scrcpy-server
 var serverJarFS []byte
 
-//go:embed all:web/dist web/api-docs.html web/api-docs-automation.html
+//go:embed all:web/dist web/api-docs.html web/fram.skill
 var webFS embed.FS
 
 //go:embed web/openapi.json
@@ -161,7 +161,7 @@ func main() {
 	if homeErr != nil {
 		log.Printf("错误: 获取用户主目录失败: %v，已禁用 AI 技能市场管理能力", homeErr)
 	} else {
-		skillsMgr, err := skillsmarket.NewManager(userHome)
+		skillsMgr, err := skillsmarket.NewManagerWithContract(userHome, skillsmarket.ContractURL(addr, *httpsFlag))
 		if err != nil {
 			log.Printf("警告: 初始化 AI 技能市场管理器失败: %v", err)
 		} else {
@@ -478,15 +478,16 @@ func main() {
 		log.Fatalf("初始化前端资源失败: %v", err)
 	}
 	mux.Handle("/api-docs.html", http.FileServer(http.FS(webRoot)))
-	mux.HandleFunc("/api-docs-automation.html", func(w http.ResponseWriter, r *http.Request) {
-		pageTemplate, err := fs.ReadFile(webRoot, "api-docs-automation.html")
+	mux.HandleFunc("/fram.skill", func(w http.ResponseWriter, r *http.Request) {
+		pageTemplate, err := fs.ReadFile(webRoot, "fram.skill")
 		if err != nil {
 			http.Error(w, "automation API page template unavailable", http.StatusInternalServerError)
 			return
 		}
 		automationAPIsManager.ServeAutomationHTML(w, r, pageTemplate)
 	})
-	mux.Handle("/automation-api-docs.html", http.RedirectHandler("/api-docs-automation.html", http.StatusMovedPermanently))
+	mux.Handle("/automation-api-docs.html", http.RedirectHandler("/fram.skill", http.StatusMovedPermanently))
+	mux.Handle("/api-docs-automation.html", http.RedirectHandler("/fram.skill", http.StatusMovedPermanently))
 	mux.Handle("/", newAppHandler(appRoot))
 
 	auxiliary.restore()
