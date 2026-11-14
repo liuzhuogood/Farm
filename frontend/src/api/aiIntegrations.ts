@@ -118,6 +118,21 @@ export async function fetchAiIntegrations(): Promise<AiIntegrationsResponse> {
   return res
 }
 
+export async function fetchContractContent(): Promise<string> {
+  const res = await fetch('/fram.skill')
+  if (!res.ok) {
+    throw new Error(`获取技能文档失败: HTTP ${res.status}`)
+  }
+  const text = await res.text()
+  const match = text.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i)
+  if (match) {
+    const raw = match[1]
+    const doc = new DOMParser().parseFromString(raw, 'text/html')
+    return doc.documentElement.textContent || raw
+  }
+  return text
+}
+
 export async function fetchSkills(): Promise<SkillItem[]> {
   const res = await request<{ skills: SkillItem[] }>('/api/skills')
   return res.skills

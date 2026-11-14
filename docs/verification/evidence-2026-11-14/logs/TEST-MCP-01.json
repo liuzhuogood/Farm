@@ -1,0 +1,26 @@
+{
+  "id": "TEST-MCP-01",
+  "name": "MCP 客户端握手初始化 (initialize)",
+  "status": "PASS",
+  "details": "原生 MCP Server 成功建立连接并返回服务名称与能力定义。",
+  "log": {
+    "response": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "tools": {
+            "listChanged": true
+          }
+        },
+        "instructions": "Farm 让 AI Agent 可以像真人一样操作连接的真实 Android 设备。\n操作约定：\n1. 使用 phone_devices 获取设备标识名、serial 和状态，再用 phone_connect 开始任务。device 支持精确 serial 或标识名；同名按列表顺序取第一台。\n2. 每个动作执行后会自动返回最新紧凑屏幕文本（或差异变化行），无需频繁重复 phone_observe。\n3. 遇到涉及财产支付、转账、发送敏感信息或破坏性删除等动作时，安全网关会返回 approval_pending 并携带 approval_id，请以相同参数附带该 approval_id 再次调用重试，等待人类审批。\n4. 严禁向密码框输入真实密码或验证码，遇到密码输入或滑块验证请调用 phone_handoff 交由人类完成。\n5. 任务结束时调用 phone_release 释放设备并输出完成摘要。",
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "farm",
+          "title": "Farm Mobile Automation",
+          "version": "v2026.11.14-1"
+        }
+      }
+    }
+  }
+}

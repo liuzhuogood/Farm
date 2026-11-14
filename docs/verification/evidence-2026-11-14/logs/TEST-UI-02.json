@@ -1,0 +1,10 @@
+{
+  "id": "TEST-UI-02",
+  "name": "技能文档动作速查与命令示例查看",
+  "status": "PASS",
+  "details": "验证技能文档面板可交互切换 Tab，动作速查清晰列出 tap/keyevent/sendkey/swipe/check/wait 等全部核心语法。",
+  "log": {
+    "stdout": "",
+    "stderr": "{\"hasTap\":true,\"hasKey\":false,\"hasSendKey\":true}\n\n"
+  }
+}

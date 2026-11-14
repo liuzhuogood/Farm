@@ -1,0 +1,20 @@
+{
+  "id": "TEST-MCP-03",
+  "name": "设备会话建立与独占连接 (phone_connect)",
+  "status": "PASS",
+  "details": "成功通过 MCP 工具 phone_connect 绑定设备 emulator-5554，开启任务上下文审计流水。",
+  "log": {
+    "response": {
+      "jsonrpc": "2.0",
+      "id": 3,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "connected to emulator-5554 · task: MCP安全审批与审计全链路端到端验收\nscreen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus none\n[1] item \"\" @540,1236 scrollable\n[2] button \"个人资料照片，点按两次即可打开 Google 账号\" @954,346\n[3] text \"设置\" @158,478\n[4] button \"搜索设置\" @540,679\n[5] button \"\" @126,679\n[6] text \"搜索设置\" @300,679\n[7] item \"\" @540,1563 scrollable\n[8] button \"网络和互联网 移动网络、WLAN、热点\" @540,905\n[9] text \"网络和互联网\" @348,878\n[10] text \"移动网络、WLAN、热点\" @389,944\n[11] button \"已连接的设备 蓝牙、配对\" @540,1136\n[12] text \"已连接的设备\" @348,1109\n[13] text \"蓝牙、配对\" @281,1175\n[14] button \"应用 Google 助理、最近使用的应用、默认应用\" @540,1367\n[15] text \"应用\" @242,1340\n[16] text \"Google 助理、最近使用的应用、默认应用\" @529,1406\n[17] button \"通知 通知历史记录、对话\" @540,1598\n[18] text \"通知\" @242,1571\n[19] text \"通知历史记录、对话\" @355,1637\n[20] button \"电池 100%\" @540,1829\n[21] text \"电池\" @242,1804\n[22] text \"100%\" @234,1868\n[23] button \"存储 已使用 93% - 还剩 543 MB\" @540,2060\n[24] text \"存储\" @242,2033\n[25] text \"已使用 93% - 还剩 543 MB\" @402,2099\n[26] button \"提示音和振动 音量、触感反馈、勿扰\" @540,2256\n[27] text \"提示音和振动\" @348,2264\n[28] text \"音量、触感反馈、勿扰\" @374,2320\nocr \"04:08 M S\" @151,71\nocr \"0•\" @375,69\nocr \"A\" @115,1594\nocr \"4)\" @117,2287"
+          }
+        ]
+      }
+    }
+  }
+}

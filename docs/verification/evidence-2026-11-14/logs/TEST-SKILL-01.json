@@ -1,0 +1,11 @@
+{
+  "id": "TEST-SKILL-01",
+  "name": "契约规范读取与在线设备发现",
+  "status": "PASS",
+  "details": "成功读取 /fram.skill 权威接口契约，并通过纯文本接口 /api/automation/devices 发现目标在线设备 emulator-5554。",
+  "log": {
+    "contract_status": 200,
+    "devices_status": 200,
+    "devices_text": "设备 \"google\" · serial \"emulator-5554\" · 在线"
+  }
+}

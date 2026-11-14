@@ -609,9 +609,10 @@ func (s *Server) handleType(ctx context.Context, req *sdk.CallToolRequest, in Ty
 
 	// 安全评估：绝对拦截向密码/凭据框输入
 	policyIn := safety.Input{
-		Device: serial,
-		Op:     safety.OpType,
-		Text:   in.Text,
+		Device:       serial,
+		Op:           safety.OpType,
+		Text:         in.Text,
+		ElementLabel: in.Intent,
 	}
 
 	verdict := safety.Verdict{Decision: safety.Allow}

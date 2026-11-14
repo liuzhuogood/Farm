@@ -1,0 +1,10 @@
+{
+  "id": "TEST-SKILL-03",
+  "name": "统一感知 (Observe) 屏幕尺寸与控件提取",
+  "status": "PASS",
+  "details": "成功调用统一感知接口，返回紧凑单行格式的屏幕分辨率、应用信息、控件树节点与 OCR 文字像素坐标。",
+  "log": {
+    "status": 200,
+    "observe_sample": "screen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus none\n- ocr \"11:38 M S r 0•\" @231,71\n+ ocr \"04:08 M S r 0•\" @229,71"
+  }
+}

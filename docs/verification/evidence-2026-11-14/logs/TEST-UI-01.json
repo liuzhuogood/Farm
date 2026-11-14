@@ -1,0 +1,10 @@
+{
+  "id": "TEST-UI-01",
+  "name": "AI 集成页加载与技能文档契约面板展示",
+  "status": "PASS",
+  "details": "验证 AI 集成页正常加载，顶栏、AI 接入引导与合并的「自动化技能文档 · 接口契约 (/fram.skill)」面板均正确渲染。",
+  "log": {
+    "stdout": "",
+    "stderr": "{\"hasContract\":true,\"len\":1975}\n\n"
+  }
+}

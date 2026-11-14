@@ -1,0 +1,25 @@
+{
+  "id": "TEST-UI-03",
+  "name": "基础技能一键安装至本地 AI 助手",
+  "status": "PASS",
+  "details": "验证技能安装接口执行成功，技能包在宿主机正确释放至 /Users/liuzhuo/.agents/skills/farm-device-base，包含 SKILL.md 与 request_client.py。",
+  "log": {
+    "status": 200,
+    "response": {
+      "skillId": "farm-device-base",
+      "results": [
+        {
+          "target": "codex",
+          "status": "already_installed",
+          "path": "/Users/liuzhuo/.agents/skills/farm-device-base"
+        },
+        {
+          "target": "claude-code",
+          "status": "already_installed",
+          "path": "/Users/liuzhuo/.claude/skills/farm-device-base"
+        }
+      ]
+    },
+    "skill_file_exists": true
+  }
+}

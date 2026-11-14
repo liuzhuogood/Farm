@@ -1,0 +1,11 @@
+{
+  "id": "TEST-SKILL-06",
+  "name": "设备截图产物生成与下载目录索引",
+  "status": "PASS",
+  "details": "成功在设备 tasks/task_e965ed36a8a536061c58f12f 目录内生成保留原格式截图，并通过 /api/automation/artifacts 索引到文件链接。",
+  "log": {
+    "act_status": 200,
+    "act_response": "任务 \"AI端到端全链路自动化验收\"\n任务 ID task_e965ed36a8a536061c58f12f\n设备 \"emulator-5554\"\n状态 已完成\n完成 2/2\n第 1 行 mkdir：已完成（1/1）\n结果\ntasks/task_e965ed36a8a536061c58f12f\n目录 http://127.0.0.1:1989/api/automation/artifacts?directory=tasks%2Ftask_e965ed36a8a536061c58f12f&serial=emulator-5554\n第 2 行 screenshot：已完成（1/1）\n结果\ntasks/task_e965ed36a8a536061c58f12f/farm-screenshot-act_56801dc7294a4c48609d16e2.png\n目录 http://127.0.0.1:1989/api/automation/artifacts?directory=tasks%2Ftask_e965ed36a8a536061c58f12f&serial=emulator-5554\n",
+    "artifacts_html": "<!doctype html>\n<html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Farm 设备产物下载</title><style>body{max-width:1000px;margin:24px auto;padding:0 16px;font:14px/1.6 system-ui,sans-serif;color:#202124}li{margin:14px 0}a{color:#1677ff;"
+  }
+}

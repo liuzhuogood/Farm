@@ -1,0 +1,21 @@
+{
+  "id": "TEST-MCP-04",
+  "name": "高危敏感操作安全网关拦截与审批单派发",
+  "status": "PASS",
+  "details": "网关级策略引擎识别到支付关键词，阻断动作并返回 approval_pending (审批单号: ap_63e6a553)。",
+  "log": {
+    "response": {
+      "jsonrpc": "2.0",
+      "id": 4,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "approval_pending · approval_id: ap_63e6a553 · rule: Payments\n检测到支付/转账行为：\"确认购买商品并去支付 ¥199.00\"，需要人工确认。"
+          }
+        ]
+      }
+    },
+    "approval_id": "ap_63e6a553"
+  }
+}

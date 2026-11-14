@@ -1,0 +1,21 @@
+{
+  "id": "TEST-MCP-06",
+  "name": "密码与验证码字段绝对安全阻断 (No Model Bypass)",
+  "status": "PASS",
+  "details": "策略引擎对交易密码/凭据输入实施绝对拦截（Deny），禁止大模型或 Agent 触碰用户账户密码。",
+  "log": {
+    "response": {
+      "jsonrpc": "2.0",
+      "id": 6,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "error: blocked_by_policy · 禁止向密码或验证码字段自动注入输入；请调用 phone_handoff 交由人工完成输入。"
+          }
+        ],
+        "isError": true
+      }
+    }
+  }
+}

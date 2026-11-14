@@ -1,0 +1,22 @@
+{
+  "id": "TEST-MCP-02",
+  "name": "MCP 10 大核心设备自动化工具自省",
+  "status": "PASS",
+  "details": "查询到 11 个标准自动化工具，包含 phone_connect, phone_observe, phone_tap, phone_type, phone_key, phone_release 等核心能力。",
+  "log": {
+    "tool_count": 11,
+    "tool_names": [
+      "phone_connect",
+      "phone_devices",
+      "phone_handoff",
+      "phone_key",
+      "phone_launch",
+      "phone_observe",
+      "phone_release",
+      "phone_request_approval",
+      "phone_swipe",
+      "phone_tap",
+      "phone_type"
+    ]
+  }
+}

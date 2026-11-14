@@ -109,7 +109,7 @@ var rawSkills = []SkillDetail{
 			App:              "通用设备",
 			Category:         "productivity",
 			CategoryLabel:    "基础",
-			Description:      "截图、识别页面与点击输入",
+			Description:      "统一自动化技能：设备发现、任务生命周期、统一感知与多行文本动作协议（以 /fram.skill 契约为主）",
 			IconType:         "device",
 			ZipDownloadURL:   "/api/skills/farm-device-base/download",
 			ZipFileName:      "farm-device-base.zip",
@@ -117,7 +117,7 @@ var rawSkills = []SkillDetail{
 			TargetStatuses:   map[AiToolID]TargetStatus{},
 		},
 		Details: SkillDetails{
-			Overview: "提供通用的 Android 设备底层屏幕捕获、控件层级树提取（UI Dump）与精准输入模拟能力，是所有应用专属自动化技能的核心底座。",
+			Overview: "提供通用的 Android 设备底层屏幕捕获、控件层级树提取（UI Dump）与精准输入模拟能力。以 /fram.skill 自动化接口契约与多行文本动作协议为统一规范，合并基础设备操作与技能文档说明，是所有应用专属自动化技能的核心底座。",
 			Capabilities: []SkillCapability{
 				{
 					Title:       "实时屏幕捕获与分辨率映射",

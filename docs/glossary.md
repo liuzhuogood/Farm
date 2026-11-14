@@ -60,6 +60,7 @@
 | 设备右键菜单 | 卡片右键、编号右键 | `DeviceContextMenu.vue`；卡片与底栏编号均按 serial 执行隐藏、手动条目删除、打开小窗、进入详情；离线设备不执行投屏，Mock 不派发真机操作 |
 | 投屏音量 | 小窗声音、音量调节 | `frontend/src/components/player/AudioControl.vue` 与 `frontend/src/scrcpy/audio.ts`；调节本地播放增益并保留静音，不改变设备系统音量 |
 | 技能市场 | 技能列表、APP 自动化技能 | `frontend/src/components/ai-integration/SkillMarket.vue` |
+| 自动化技能文档面板 | 技能契约面板、技能文档卡片 | AI 集成页内 `frontend/src/components/ai-integration/SkillContractPanel.vue`；以 `/fram.skill` 为唯一权威来源，整合展示设备发现、任务生命周期、统一感知、多行文本动作协议与基础技能安装下载 |
 
 ## 核心概念
 

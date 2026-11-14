@@ -18,6 +18,7 @@ import AiGuidePanel from '@/components/ai-integration/AiGuidePanel.vue'
 import AiToolSelector from '@/components/ai-integration/AiToolSelector.vue'
 import InstallDialog from '@/components/ai-integration/InstallDialog.vue'
 import SkillMarket from '@/components/ai-integration/SkillMarket.vue'
+import SkillContractPanel from '@/components/ai-integration/SkillContractPanel.vue'
 import McpPanel from '@/components/ai-integration/McpPanel.vue'
 import SafetyPanel from '@/components/ai-integration/SafetyPanel.vue'
 import { fetchAiIntegrations, fetchSkills, installSkill } from '@/api/aiIntegrations'
@@ -320,6 +321,14 @@ onUnmounted(() => {
             :tool="currentAiTool"
             :contract-url="contractUrl"
             @install-base="handleOpenInstallBase"
+          />
+
+          <!-- 自动化技能文档与接口契约（技能文档与安装合一） -->
+          <SkillContractPanel
+            :contract-url="contractUrl"
+            :current-tool="currentAiTool"
+            :is-installed="installedMap['farm-device-base']?.includes(selectedToolId) || false"
+            @install="handleOpenInstallBase"
           />
 
           <!-- 服务接入：MCP 与安全审核 -->
