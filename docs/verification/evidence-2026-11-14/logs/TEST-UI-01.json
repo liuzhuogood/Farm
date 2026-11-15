@@ -5,6 +5,6 @@
   "details": "验证 AI 集成页正常加载，顶栏、AI 接入引导与合并的「自动化技能文档 · 接口契约 (/fram.skill)」面板均正确渲染。",
   "log": {
     "stdout": "",
-    "stderr": "{\"hasContract\":true,\"len\":1975}\n\n"
+    "stderr": "{\"hasContract\":true,\"len\":2049}\n\n"
   }
 }

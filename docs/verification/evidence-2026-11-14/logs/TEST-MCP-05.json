@@ -2,10 +2,10 @@
   "id": "TEST-MCP-05",
   "name": "人工审批中心决策放行与重放防护",
   "status": "PASS",
-  "details": "通过安全中心决策接口批准审批单 ap_63e6a553，带审批 ID 重新下发操作执行成功。",
+  "details": "通过安全中心决策接口批准审批单 ap_8b87b1ec，带审批 ID 重新下发操作执行成功。",
   "log": {
     "decide_res": {
-      "approval_id": "ap_63e6a553",
+      "approval_id": "ap_8b87b1ec",
       "decision": "allow_once",
       "status": "ok"
     },
@@ -16,7 +16,7 @@
         "content": [
           {
             "type": "text",
-            "text": "settled\nscreen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus none\n[1] item \"\" @540,1168 scrollable\n[2] button \"返回\" @73,209\n[3] item \"\" @540,1061 scrollable\n[4] button \"与新设备配对\" @540,687\n[5] text \"与新设备配对\" @348,687\n[6] text \"保存的设备\" @550,858\n[7] button \"查看全部\" @540,987\n[8] text \"查看全部\" @295,987\n[9] button \"连接偏好设置 蓝牙、Android Auto\" @540,1176\n[10] text \"连接偏好设置\" @222,1149\n[11] text \"蓝牙、Android Auto\" @226,1215\n[12] text \"向其他设备显示为“sdk_gphone64_arm64”\" @406,1458\nocr \"04:08 M S r 0•\" @229,71\nocr \"-\" @73,209\nocr \"e\" @98,483\nocr \"已连接的设备\" @365,486\nocr \"十\" @95,693\nocr \">\" @100,991\nocr \"H5F. Android Auto\" @225,1217\nocr \"同其他设备显示为“sdk_gphone64_arm64”\" @407,1472"
+            "text": "settled\nscreen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus none\n[1] item \"\" @540,1168 scrollable\n[2] button \"返回\" @73,209\n[3] item \"\" @540,1061 scrollable\n[4] button \"与新设备配对\" @540,687\n[5] text \"与新设备配对\" @348,687\n[6] text \"保存的设备\" @550,858\n[7] button \"查看全部\" @540,987\n[8] text \"查看全部\" @295,987\n[9] button \"连接偏好设置 蓝牙、Android Auto\" @540,1176\n[10] text \"连接偏好设置\" @222,1149\n[11] text \"蓝牙、Android Auto\" @226,1215\n[12] text \"向其他设备显示为“sdk_gphone64_arm64”\" @406,1458\nocr \"04:04 M S\" @147,72\nocr \"0•\" @375,70\nocr \"-\" @73,209\nocr \"e\" @98,483\nocr \"已连接的设备\" @365,486\nocr \"十\" @95,693\nocr \">\" @100,991\nocr \"H5F. Android Auto\" @225,1217\nocr \"同其他设备显示为“sdk_gphone64_arm64”\" @407,1472"
           }
         ]
       }

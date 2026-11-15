@@ -2,23 +2,23 @@
   "id": "TEST-SKILL-02",
   "name": "完整自动化任务创建 (Task Start)",
   "status": "PASS",
-  "details": "成功创建生命周期任务 ID: task_e965ed36a8a536061c58f12f，关联设备: emulator-5554，工作目录: tasks/task_e965ed36a8a536061c58f12f。",
+  "details": "成功创建生命周期任务 ID: task_cb29fc43c5f5ac332febcced，关联设备: emulator-5554，工作目录: tasks/task_cb29fc43c5f5ac332febcced。",
   "log": {
     "status": 201,
     "response": {
       "task": {
-        "id": "task_e965ed36a8a536061c58f12f",
+        "id": "task_cb29fc43c5f5ac332febcced",
         "serial": "emulator-5554",
         "title": "AI端到端全链路自动化验收",
         "source": "automation",
         "state": "running",
         "summary": "",
-        "started_at": "2026-11-14T20:07:59.017801Z",
-        "updated_at": "2026-11-14T20:07:59.017801Z",
+        "started_at": "2026-11-15T20:03:22.263859Z",
+        "updated_at": "2026-11-15T20:03:22.263859Z",
         "active": false,
         "steps": [],
         "artifacts": [],
-        "directory": "tasks/task_e965ed36a8a536061c58f12f"
+        "directory": "tasks/task_cb29fc43c5f5ac332febcced"
       }
     }
   }
