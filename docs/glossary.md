@@ -39,6 +39,7 @@
 | 小窗窗口设置 | 透明度菜单、鼠标穿透菜单 | `frontend/src/components/player/WindowEffectsControl.vue`;原生小窗的透明度、鼠标穿透与无边框开关 |
 | 主窗口窗口设置 | 主窗口透明度菜单、主窗口效果 | 原生菜单栏“窗口”菜单 · `desktop/src/menu.rs` 与 `desktop/src/main_window.rs`；主窗口置顶、无边框、透明度调节、鼠标穿透与恢复默认；置顶/无边框/穿透收进“窗口效果”二级菜单、透明度收进“透明度”二级菜单，顶栏不再显示这些控件（前端控件组件已移除） |
 | 原生菜单设备列表 | 菜单设备列表、视图设备列表 | 原生菜单栏“视图 → 设备列表”二级菜单；每 5 秒刷新 `GET /api/devices`（3 秒超时），仅列出 `state == "device"` 的在线设备，点击直接打开该设备投屏小窗（`desktop/src/menu_devices.rs`、`desktop/src/links.rs` 的 `open_device_window_internal`） |
+| ADB 服务重启 | 重启 ADB、ADB 重启服务 | 原生菜单栏“视图 → 重启 ADB 服务”与托盘菜单同名项；桌面端调用 `POST /api/adb/restart`，后端 `internal/device` 的 `RestartADB` 依次执行 `adb kill-server`、`adb start-server`（`desktop/src/menu.rs`） |
 | 无边框 | 隐藏系统标题栏 | 原生投屏小窗默认无系统边框；窗口、设置与菜单中的切换入口已移除。小窗工具栏为半透明覆盖层，显隐不改变视频尺寸；主窗口保持原有系统标题栏覆盖外观 |
 | 投屏设置 | 播放器设置 | 系统设置页签 `frontend/src/components/system/PlayerSettingsContent.vue` 保存默认配置;投屏详情页侧栏 `frontend/src/components/player/PlayerSettingsPanel.vue` 调整当前投屏 |
 | 右侧抽屉 | 抽屉、侧栏、侧边栏 | 投屏详情页右侧自适应面板,默认展示设备任务，收纳检查器、文件管理、模板管理、ADB 终端(`frontend/src/components/player/DevicePlayer.vue`) |

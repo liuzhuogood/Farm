@@ -113,6 +113,22 @@ func (m *Manager) loop() {
 	}
 }
 
+// RestartADB 重启本机 ADB 服务：先 kill-server 再 start-server。
+// kill-server 失败（如服务本未运行）只记录日志，仍继续启动。
+func (m *Manager) RestartADB(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+	if out, err := dependencies.CommandContext(ctx, m.adbPath, "kill-server").CombinedOutput(); err != nil {
+		log.Printf("[Device] adb kill-server 未成功，继续启动服务: %v: %s", err, strings.TrimSpace(string(out)))
+	}
+	out, err := dependencies.CommandContext(ctx, m.adbPath, "start-server").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("adb start-server 失败: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	log.Printf("[Device] ADB 服务已重启")
+	return nil
+}
+
 // refresh 执行 adb devices -l 并与 SQLite 手动设备合并。
 func (m *Manager) refresh() {
 	m.mu.RLock()

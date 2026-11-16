@@ -1,9 +1,11 @@
 package device
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"farm/internal/db"
@@ -169,5 +171,65 @@ func TestAliasReadFailureRetainsCurrentSnapshot(t *testing.T) {
 	devices := mgr.Devices()
 	if len(devices) != 1 || devices[0].Identifier != "自定义手机" {
 		t.Fatalf("failed DB read changed identifier: %+v", devices)
+	}
+}
+
+func TestRestartADBRunsKillAndStartServerInOrder(t *testing.T) {
+	dir := t.TempDir()
+	calls := filepath.Join(dir, "calls.log")
+	script := filepath.Join(dir, "adb")
+	body := "#!/bin/sh\nprintf '%s\\n' \"$1\" >> " + calls + "\nexit 0\n"
+	if err := os.WriteFile(script, []byte(body), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	mgr := NewManager(script, nil)
+	if err := mgr.RestartADB(context.Background()); err != nil {
+		t.Fatalf("RestartADB failed: %v", err)
+	}
+	got, err := os.ReadFile(calls)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "kill-server\nstart-server\n" {
+		t.Fatalf("unexpected adb calls: %q", got)
+	}
+}
+
+func TestRestartADBKeepsStartingWhenKillServerFails(t *testing.T) {
+	dir := t.TempDir()
+	calls := filepath.Join(dir, "calls.log")
+	script := filepath.Join(dir, "adb")
+	// kill-server 失败（服务未运行），start-server 必须继续执行。
+	body := "#!/bin/sh\nprintf '%s\\n' \"$1\" >> " + calls + "\nif [ \"$1\" = kill-server ]; then exit 1; fi\nexit 0\n"
+	if err := os.WriteFile(script, []byte(body), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	mgr := NewManager(script, nil)
+	if err := mgr.RestartADB(context.Background()); err != nil {
+		t.Fatalf("RestartADB failed: %v", err)
+	}
+	got, err := os.ReadFile(calls)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "kill-server\nstart-server\n" {
+		t.Fatalf("unexpected adb calls: %q", got)
+	}
+}
+
+func TestRestartADBReportsStartServerFailure(t *testing.T) {
+	dir := t.TempDir()
+	script := filepath.Join(dir, "adb")
+	body := "#!/bin/sh\nif [ \"$1\" = start-server ]; then echo 'cannot bind 5037' >&2; exit 1; fi\nexit 0\n"
+	if err := os.WriteFile(script, []byte(body), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	mgr := NewManager(script, nil)
+	err := mgr.RestartADB(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "cannot bind 5037") {
+		t.Fatalf("start-server failure not reported: %v", err)
 	}
 }

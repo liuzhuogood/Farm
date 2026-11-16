@@ -53,6 +53,7 @@ func TestOpenAPISpecDocumentsRegisteredAPIs(t *testing.T) {
 		// ADB 与按键
 		"/api/adb/commands",
 		"/api/adb/commands/{command_id}",
+		"/api/adb/restart",
 		"/api/sendkey",
 		"/api/operation-logs",
 		// 文件管理

@@ -30,6 +30,7 @@ pub fn action(app: &AppHandle, id: &str) {
     }
     match id {
         "show" => show(app),
+        "adb-restart" => restart_adb(app),
         "restore-players" => crate::player_windows::restore_all(app),
         "restore-main" => {
             let _ = crate::main_window::restore(app);
@@ -82,6 +83,41 @@ pub fn action(app: &AppHandle, id: &str) {
         }
         _ => {}
     }
+}
+
+// 重启本机 ADB 服务（adb kill-server 后 adb start-server），结果只记日志。
+fn restart_adb(app: &AppHandle) {
+    let url = format!("{}/api/adb/restart", app.state::<State>().url);
+    let client = match crate::menu_devices::polling_client() {
+        Ok(client) => client,
+        Err(error) => {
+            eprintln!("[Desktop] 重启 ADB 服务失败: {error}");
+            return;
+        }
+    };
+    eprintln!("[Desktop] 请求重启 ADB 服务: {url}");
+    tauri::async_runtime::spawn(async move {
+        // 后端串行执行 kill-server 与 start-server，留足启动时间。
+        let result = async {
+            let response = client
+                .post(&url)
+                .timeout(std::time::Duration::from_secs(30))
+                .send()
+                .await
+                .map_err(|error| error.to_string())?;
+            let status = response.status();
+            if status.is_success() {
+                return Ok(());
+            }
+            let body = response.text().await.unwrap_or_default();
+            Err(format!("HTTP {status}: {}", body.trim()))
+        }
+        .await;
+        match result {
+            Ok(()) => eprintln!("[Desktop] ADB 服务已重启"),
+            Err(error) => eprintln!("[Desktop] 重启 ADB 服务失败: {error}"),
+        }
+    });
 }
 
 pub fn install(app: &mut App) -> tauri::Result<bool> {
@@ -139,6 +175,7 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
         .text("restore-players", "恢复所有小窗")
         .text("home", "设备列表")
         .text("dependencies", "依赖管理")
+        .text("adb-restart", "重启 ADB 服务")
         .separator()
         .text("browser", "在浏览器中打开")
         .separator()

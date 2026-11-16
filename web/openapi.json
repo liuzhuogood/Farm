@@ -1717,6 +1717,38 @@
         }
       }
     },
+    "/api/adb/restart": {
+      "post": {
+        "tags": [
+          "ADB 与按键"
+        ],
+        "summary": "重启 ADB 服务",
+        "description": "在本机依次执行 adb kill-server 与 adb start-server，用于恢复离线或无法连接的设备。桌面端菜单栏“视图 → 重启 ADB 服务”与托盘菜单调用本接口。",
+        "x-side-effect": true,
+        "responses": {
+          "200": {
+            "description": "ADB 服务已重启",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleOkResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "adb start-server 执行失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sendkey": {
       "post": {
         "tags": [

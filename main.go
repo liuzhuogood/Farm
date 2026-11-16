@@ -379,6 +379,19 @@ func main() {
 		}
 	})
 
+	// API: 重启 ADB 服务（桌面菜单栏/托盘「重启 ADB 服务」）
+	mux.HandleFunc("POST /api/adb/restart", func(w http.ResponseWriter, r *http.Request) {
+		if err := dm.RestartADB(r.Context()); err != nil {
+			log.Printf("[Device] 重启 ADB 服务失败: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadGateway)
+			json.NewEncoder(w).Encode(map[string]string{"error": "adb_restart_failed", "message": err.Error()})
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	})
+
 	// API: 获取当前设备的 Android UI XML 快照（只读，按请求执行）。
 	mux.Handle("/api/ui/xml", uixml.Handler{
 		Service: uiXML,

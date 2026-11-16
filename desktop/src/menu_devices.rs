@@ -101,6 +101,7 @@ fn build_devices(app: &AppHandle, entries: &[Entry]) -> tauri::Result<Submenu<ta
 pub(crate) fn build_view(app: &AppHandle) -> tauri::Result<Submenu<tauri::Wry>> {
     SubmenuBuilder::with_id(app, "view", "视图")
         .item(&build_devices(app, &[])?)
+        .text("adb-restart", "重启 ADB 服务")
         .separator()
         .text("show", "打开主窗口")
         .text("restore-players", "恢复所有小窗")
@@ -134,7 +135,7 @@ struct Refresh {
     task: Mutex<Option<tauri::async_runtime::JoinHandle<()>>>,
 }
 
-fn polling_client() -> Result<reqwest::Client, reqwest::Error> {
+pub(crate) fn polling_client() -> Result<reqwest::Client, reqwest::Error> {
     // The updater enables reqwest/rustls-no-provider. Match its ring provider
     // initialization even for this HTTP-only client: reqwest builds TLS eagerly.
     // A concurrent installer may win; either way a default provider is ready.
