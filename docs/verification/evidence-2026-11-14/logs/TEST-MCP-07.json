@@ -2,7 +2,7 @@
   "id": "TEST-MCP-07",
   "name": "MCP 任务归档与自包含 HTML 审计报告导出",
   "status": "PASS",
-  "details": "释放 MCP 设备连接，自动归档任务流水；一键导出自包含 HTML 报告（字节数: 121308，内嵌 base64 截图与时间线）。",
+  "details": "释放 MCP 设备连接，自动归档任务流水；一键导出自包含 HTML 报告（字节数: 121764，内嵌 base64 截图与时间线）。",
   "log": {
     "release_res": {
       "jsonrpc": "2.0",
@@ -11,12 +11,12 @@
         "content": [
           {
             "type": "text",
-            "text": "released emulator-5554 · outcome: done · summary: 端到端自动化安全拦截、审批核销与审计记录测试完成\nreport exported to: /tmp/farm-task-tsk_b9686b6ae3.html"
+            "text": "released emulator-5554 · outcome: done · summary: 端到端自动化安全拦截、审批核销与审计记录测试完成\nreport exported to: /tmp/farm-task-tsk_42a1374a49.html"
           }
         ]
       }
     },
-    "task_id": "tsk_b9686b6ae3",
-    "html_bytes": 121308
+    "task_id": "tsk_42a1374a49",
+    "html_bytes": 121764
   }
 }

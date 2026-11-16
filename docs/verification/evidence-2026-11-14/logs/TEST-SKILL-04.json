@@ -5,6 +5,6 @@
   "details": "成功通过纯文本多行协议顺序下发 3 个动作指令，全量预校验通过且 3/3 全部完成。",
   "log": {
     "status": 200,
-    "act_response": "任务 \"AI端到端全链路自动化验收\"\n任务 ID task_cb29fc43c5f5ac332febcced\n设备 \"emulator-5554\"\n状态 已完成\n完成 3/3\n第 1 行 tap：已完成（1/1）\n第 2 行 sleep：已完成（1/1）\n第 3 行 check：命中（1/1）\n目标 \"设置\"\n匹配来源 tree:uiautomator\n"
+    "act_response": "任务 \"AI端到端全链路自动化验收\"\n任务 ID task_acddd8f928b4ba25bda07c88\n设备 \"emulator-5554\"\n状态 已完成\n完成 3/3\n第 1 行 tap：已完成（1/1）\n第 2 行 sleep：已完成（1/1）\n第 3 行 check：命中（1/1）\n目标 \"设置\"\n匹配来源 tree:uiautomator\n"
   }
 }
