@@ -175,6 +175,9 @@ func TestAliasReadFailureRetainsCurrentSnapshot(t *testing.T) {
 }
 
 func TestRestartADBRunsKillAndStartServerInOrder(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fixture uses a POSIX shell executable")
+	}
 	dir := t.TempDir()
 	calls := filepath.Join(dir, "calls.log")
 	script := filepath.Join(dir, "adb")
@@ -197,6 +200,9 @@ func TestRestartADBRunsKillAndStartServerInOrder(t *testing.T) {
 }
 
 func TestRestartADBKeepsStartingWhenKillServerFails(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fixture uses a POSIX shell executable")
+	}
 	dir := t.TempDir()
 	calls := filepath.Join(dir, "calls.log")
 	script := filepath.Join(dir, "adb")
@@ -220,6 +226,9 @@ func TestRestartADBKeepsStartingWhenKillServerFails(t *testing.T) {
 }
 
 func TestRestartADBReportsStartServerFailure(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fixture uses a POSIX shell executable")
+	}
 	dir := t.TempDir()
 	script := filepath.Join(dir, "adb")
 	body := "#!/bin/sh\nif [ \"$1\" = start-server ]; then echo 'cannot bind 5037' >&2; exit 1; fi\nexit 0\n"

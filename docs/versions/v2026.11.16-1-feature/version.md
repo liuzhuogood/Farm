@@ -23,6 +23,7 @@
   2. 技能核心协议：契约读取与在线设备发现、任务创建、统一感知、多行纯文本动作批次、文本注入与组合按键、产物生成下载、任务核对与结束闭环（7 项）；
   3. 原生 MCP 与安全网关：握手自省、工具自省、设备会话建立、高危操作拦截与审批派发、人工审批放行、密码凭据框绝对阻断、任务归档与 HTML 报告导出（7 项）。
 - [x] **验证证据刷新归档**：`docs/verification/2026-11-14-ai-e2e-report.html`、Markdown 报告与 `evidence-2026-11-14/` 截图、日志按本次复验结果更新。
+- [x] **Windows 单测适配**：`TestRestartADB*` 假可执行文件为 POSIX shell 脚本，按仓库既有约定（`65f870b`）在 Windows 环境跳过，macOS/Linux 全量验证通过；`GOOS=windows` 交叉编译校验通过。
 - [x] **版本一致性**：`VERSION` 与 `frontend` / `desktop` / `python-sdk` 各包版本同步为 `v2026.11.16-1`，`node scripts/sync-version.mjs --check` 校验通过。
 
 ### 待开发 (Pending / Planned)
@@ -33,7 +34,7 @@
 
 ## 3. 验证与交付
 
-- **测试结论**：Go、Python SDK、前端构建与 17 项 LZAUTO 端到端用例全部通过，本轮未发现需修复问题。
+- **测试结论**：Go（macOS 本机 + Windows 交叉编译）、Python SDK、前端构建与 17 项 LZAUTO 端到端用例全部通过；首轮 CI 发现 Windows 环境新增单测假可执行文件不兼容，已按既有约定适配后复推。
 - **证据归档**：`docs/verification/`（自包含 HTML 报告、Markdown 概要与截图日志证据）。
 - **发布方式**：推送 `v2026.11.16-1` 标签触发 `release.yml`，完成五平台 CLI 构建、签名桌面包、macOS DMG、Release 与 Docker 发布。
 - **未验证范围**：Windows 签名桌面包与更新器签名在 CI 侧产物验证；macOS DMG 由 `macos-dmg.yml` 远端构建，本机未复跑签名安装流程。
