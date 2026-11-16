@@ -15,3 +15,11 @@ cp .cache/logo-selected-generated/icon.png frontend/public/app-icon.png
 ```
 
 只采用当前桌面配置消费的三种资源；网页 favicon 和顶栏共用 `frontend/public/app-icon.png`。设备当前运行应用的图标不属于本资源。
+
+## macOS 托盘图标
+
+`../tray-white.png` 为独立的 36×36（18pt @2x）纯白 RGBA 图标，保留三个叠放屏幕的轮廓，通过透明间隙区分屏幕；没有底板、包围边框、投影或渐变。原应用 Logo 不变。
+
+可维护的 CoreGraphics 路径位于 `../render-tray.swift`，在 macOS 执行 `swift desktop/icons/render-tray.swift` 可重新生成托盘 PNG 和 1024×1024 的 `tray-white-source.png`。所有 RGB 均为 255，抗锯齿仅使用 alpha。
+
+`desktop/src/menu.rs` 仅在 macOS 使用此图标，并关闭模板自动改色以保留用户要求的纯白；其他平台保留原有托盘资源。

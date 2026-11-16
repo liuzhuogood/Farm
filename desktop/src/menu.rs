@@ -197,6 +197,14 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
                 show(tray.app_handle());
             }
         });
+    #[cfg(target_os = "macos")]
+    {
+        let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray-white.png"))?;
+        // Keep the requested white pixels; template rendering recolors them by appearance.
+        tray = tray.icon(icon).icon_as_template(false);
+        eprintln!("[Desktop] macOS 托盘使用纯白透明图标");
+    }
+    #[cfg(not(target_os = "macos"))]
     if let Some(icon) = app.default_window_icon() {
         tray = tray.icon(icon.clone());
     }

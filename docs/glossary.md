@@ -34,6 +34,7 @@
 | 术语 | 别名 | 指向 |
 |---|---|---|
 | 设备卡片 | 卡片 | `frontend/src/components/device/DeviceCard.vue` |
+| macOS 托盘图标 | 菜单栏图标、状态栏图标、托盘 | `desktop/src/menu.rs` 的 `main-tray`；macOS 使用独立 `desktop/icons/tray-white.png`，纯白图形、透明背景，无包围外框；保留原有托盘菜单和点击行为 |
 | 顶栏 | header、顶部导航 | `frontend/src/components/layout/AppHeader.vue`；首页顶栏与主内容滚动区分离，使用 Liquid Glass 材质，其他页面保留原有默认样式 |
 | 小窗顶栏 | 小窗工具条、投屏工具栏、收边条、指示灯 | `frontend/src/components/player/DevicePlayer.vue` 内的工具栏；小窗默认收起，仅悬停或点击顶部可见收边条（含连接指示灯）时展开，顶部其余区域不唤出；展开后移出工具条延时收起，使用菜单期间保持展开；恢复小窗快捷键或菜单“视图 → 恢复所有小窗”保留 |
 | 小窗窗口设置 | 透明度菜单、鼠标穿透菜单 | `frontend/src/components/player/WindowEffectsControl.vue`;原生小窗的透明度、鼠标穿透与无边框开关 |
