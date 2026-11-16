@@ -15,7 +15,7 @@
 |---|---|---|
 | 设备列表页 | 首页、主页、设备页 | 路由 `/` · `frontend/src/views/HomeView.vue` |
 | 投屏详情页 | 投屏页、投屏操控页、播放器页、控制页 | 路由 `/player?serial=<序列号>` · `frontend/src/views/PlayerView.vue` |
-| 投屏小窗 | 小窗、画中画小窗、画中画、画中画微窗 | 点击设备列表页（首页）设备卡片打开的投屏小窗；小窗“更多”菜单提供「设备详情」入口。桌面端为系统级独立原生小窗（路由 `/player?serial=<序列号>&embedded=1`，由 `desktop/src/links.rs` 的 `open_device_window` 创建），Web 端为内嵌可拖拽浮动小窗（`frontend/src/components/player/FloatingPlayer.vue`） |
+| 投屏小窗 | 小窗、画中画小窗、画中画、画中画微窗 | 设备详情页顶部「打开小窗」按钮打开的投屏小窗；小窗“更多”菜单提供「设备详情」入口。桌面端为系统级独立原生小窗（路由 `/player?serial=<序列号>&embedded=1`，由 `desktop/src/links.rs` 的 `open_device_window` 创建），Web 端为内嵌可拖拽浮动小窗（`frontend/src/components/player/FloatingPlayer.vue`，浮窗列表由 `frontend/src/composables/useFloatingPlayers.ts` 在首页与详情页共享） |
 | 大屏监控页 | 大屏、监控墙、dashboard | 路由 `/dashboard` · `frontend/src/views/DashboardView.vue` |
 | 文件管理页 | 文件页、文件管理器 | 路由 `/files?serial=<序列号>` · `frontend/src/views/FilesView.vue`;亦内嵌于投屏详情页抽屉(`DevicePlayer.vue`,embedded) |
 | 依赖管理页 | 依赖页 | 路由 `/dependencies` · `frontend/src/views/DependenciesView.vue` |
@@ -36,7 +36,7 @@
 | 设备卡片 | 卡片 | `frontend/src/components/device/DeviceCard.vue` |
 | macOS 托盘图标 | 菜单栏图标、状态栏图标、托盘 | `desktop/src/menu.rs` 的 `main-tray`；macOS 使用独立 `desktop/icons/tray-white.png`，纯白图形、透明背景，无包围外框；保留原有托盘菜单和点击行为 |
 | 顶栏 | header、顶部导航 | `frontend/src/components/layout/AppHeader.vue`；首页顶栏与主内容滚动区分离，使用 Liquid Glass 材质，其他页面保留原有默认样式 |
-| 小窗顶栏 | 小窗工具条、投屏工具栏、收边条、指示灯 | `frontend/src/components/player/DevicePlayer.vue` 内的工具栏；小窗默认收起，仅悬停或点击顶部可见收边条（含连接指示灯）时展开，顶部其余区域不唤出；展开后移出工具条延时收起，使用菜单期间保持展开；恢复小窗快捷键或菜单“视图 → 恢复所有小窗”保留 |
+| 小窗顶栏 | 小窗工具条、投屏工具栏、收边条、指示灯 | `frontend/src/components/player/DevicePlayer.vue` 内的工具栏；小窗默认收起，顶部把手（含连接指示灯）仅在指针进入窗口顶部 24px 热区时出现，平时完全隐藏以免遮挡画面，悬停或点击把手时展开工具条，顶部其余区域不唤出；展开后移出工具条延时收起，使用菜单期间保持展开；恢复小窗快捷键或菜单“视图 → 恢复所有小窗”保留 |
 | 小窗窗口设置 | 透明度菜单、鼠标穿透菜单 | `frontend/src/components/player/WindowEffectsControl.vue`;原生小窗的透明度、鼠标穿透与无边框开关 |
 | 主窗口窗口设置 | 主窗口透明度菜单、主窗口效果 | 原生菜单栏“窗口”菜单 · `desktop/src/menu.rs` 与 `desktop/src/main_window.rs`；主窗口置顶、无边框、透明度调节、鼠标穿透与恢复默认；置顶/无边框/穿透收进“窗口效果”二级菜单、透明度收进“透明度”二级菜单，顶栏不再显示这些控件（前端控件组件已移除） |
 | 原生菜单设备列表 | 菜单设备列表、视图设备列表 | 原生菜单栏“视图 → 设备列表”二级菜单；每 5 秒刷新 `GET /api/devices`（3 秒超时），仅列出 `state == "device"` 的在线设备，点击直接打开该设备投屏小窗（`desktop/src/menu_devices.rs`、`desktop/src/links.rs` 的 `open_device_window_internal`） |
@@ -51,7 +51,7 @@
 | 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏 | 系统设置 → 通用设置中的开关，默认关闭；开启后按设备计算，无投屏、ADB 终端、命令及设备操作满 10 分钟后由后端自动熄屏，后台遥测与屏幕状态轮询不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
 | 系统配置 | 设置、系统设置、系统配置弹窗 | 首页入口弹窗 `frontend/src/components/system/SystemConfigDialog.vue`,页签:通用设置 / 投屏设置 / 服务 / 依赖（内含模板匹配与 OCR）；本次打开期间保留面板实例，切换不重建投屏控件 |
 | 大屏磁贴 | 磁贴、tile | `frontend/src/components/dashboard/DashTile.vue` |
-| 手机卡片视图 | 手机卡片、卡片视图、甲板、3D全息 | `frontend/src/components/home/HomePhoneView.vue` (`viewMode === 'deck'`)；首页卡片与手机两种视图之一，采用手机拟物卡片展示设备遥测（温度、电量）与当前运行应用，熄屏或锁屏时展示已锁定状态，不挂载实时投屏流；卡片按持久化拖动顺序靠左紧凑排列（8px 间隙），默认按 serial 排序；底部仅显示真实 serial/地址，不展示连接类型标志，点击卡片打开投屏小窗，支持鼠标拉框批量框选 |
+| 手机卡片视图 | 手机卡片、卡片视图、甲板、3D全息 | `frontend/src/components/home/HomePhoneView.vue` (`viewMode === 'deck'`)；首页卡片与手机两种视图之一，采用手机拟物卡片展示设备遥测（温度、电量）与当前运行应用，熄屏或锁屏时展示已锁定状态，不挂载实时投屏流；卡片按持久化拖动顺序靠左紧凑排列（8px 间隙），默认按 serial 排序；底部仅显示真实 serial/地址，不展示连接类型标志，点击卡片进入设备详情页，支持鼠标拉框批量框选 |
 | 首页手机视图 | 手机视图、第三视图、手机样式视图、手机墙、首页多设备投屏、紧密设备墙 | `frontend/src/components/home/HomePhoneView.vue`；首页卡片与手机两种视图之一，以紧密设备墙规格挂载实时画面（同档位同宽同高，相邻横纵间距统一 8px，画面黑底 contain 等比居中黑边填充、不拉伸不裁图；首页为实时预览，左键拖动框选、单击打开小窗，直接操控在小窗/详情页进行），设备显隐由 iOS 悬浮底栏的编号小方块控制，支持页面全屏 |
 | 手机视图统一格 | 统一格、同宽同高手机格子、紧密设备格 | `frontend/src/utils/phoneGrid.ts` 与 `frontend/src/components/home/HomePhoneView.vue`；首页手机视图在小/中/大/铺满各档位所使用的等宽等高规格与 2px 间隙体系，横屏、长屏与旋转均保持卡片尺寸恒定，视口内黑底等比 contain 居中显示 |
 | iOS 悬浮底栏 | 悬浮底栏、底栏、操作栏、Dock栏、浮动药丸栏、控制中心、操作面板、批量操作面板、批量面板、右侧面板 | `frontend/src/components/home/HomeIosDockBar.vue`；首页底部居中悬浮 Liquid Glass 胶囊操作栏，整合操作、视图、设备（支持鼠标原生框选）与更多服务四组 iOS 浮动卡片 Sheet，支持最小化、设备编号区域紧凑展开、滚动框选；无遮罩、点击外部或操作手机保持展开，关闭按钮/胶囊切换/Esc 可收起；群控作为独立模式开关，系统导航指令及锁屏/解锁分段按钮作用于已选在线设备，取代原右侧固定操作侧栏（ActionPanel） |

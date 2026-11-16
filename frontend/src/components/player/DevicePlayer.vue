@@ -84,6 +84,8 @@ import DeviceTasksPanel from '@/components/player/DeviceTasksPanel.vue'
 import WindowEffectsControl from '@/components/player/WindowEffectsControl.vue'
 import AudioControl from '@/components/player/AudioControl.vue'
 import { usePlayerWindows } from '@/composables/usePlayerWindows'
+import { usePlayerSettings } from '@/composables/usePlayerSettings'
+import { useFloatingPlayers } from '@/composables/useFloatingPlayers'
 import TemplatePanel from '@/template/TemplatePanel.vue'
 import { useTemplateMatches } from '@/template/useTemplateMatches'
 import { useDesktopConfig } from '@/composables/useDesktopConfig'
@@ -102,6 +104,8 @@ const serial = computed(() => props.serial)
 const router = useRouter()
 const drop = useDeviceFileDrop()
 const windowEffects = usePlayerWindows(serial)
+const playerSettings = usePlayerSettings()
+const { open: openFloatingPlayer } = useFloatingPlayers()
 const nativePlayerWindow = isTauri() && getCurrentWindow().label.startsWith('player-')
 
 async function handleCloseSmallWindow() {
@@ -208,6 +212,41 @@ function revealToolbar() {
   // The handle is replaced on reveal; hide again if the pointer has already left
   // rather than relying on a mouseleave event from the removed handle.
   onToolbarLeave()
+}
+
+// 顶部把手只在指针靠近窗口顶部时出现，避免常驻遮挡画面。
+const TOP_HANDLE_HOT_ZONE = 24
+const showTopHandle = ref(false)
+
+function onStagePointer(event: PointerEvent) {
+  const host = event.currentTarget as HTMLElement | null
+  if (!host)
+    return
+  const rect = host.getBoundingClientRect()
+  showTopHandle.value = event.clientY - rect.top <= TOP_HANDLE_HOT_ZONE
+}
+
+function hideTopHandle() {
+  showTopHandle.value = false
+}
+
+// 从设备详情页打开投屏小窗：桌面端使用原生窗口，Web 端使用共享的内嵌浮窗。
+async function openSmallWindow() {
+  if (isTauri()) {
+    try {
+      const size = playerSettings.floatingSize.value
+      const targetW = size === 'compact' ? 320 : size === 'large' ? 440 : 380
+      const baseH = size === 'compact' ? 680 : size === 'large' ? 880 : 780
+      await invoke('open_device_window', { serial: serial.value, width: targetW, height: baseH })
+      return
+    }
+    catch (error) {
+      console.warn('[Desktop] 打开原生投屏小窗失败', error)
+      toast.error('打开投屏小窗失败，请稍后重试')
+      return
+    }
+  }
+  openFloatingPlayer(serial.value)
 }
 
 async function dragBorderlessWindow(event: MouseEvent) {
@@ -448,10 +487,10 @@ defineExpose({ handleEscape })
     </Empty>
   </div>
 
-  <div v-else :ref="p.stageRef" class="relative flex min-h-0 min-w-0 flex-col" :class="embedded ? 'h-full overflow-hidden bg-black' : 'h-dvh bg-slate-100/90 text-slate-900 dark:bg-[#060810] dark:text-white transition-colors duration-200'">
-    <!-- 工具栏隐藏时的顶部唤出把手 -->
+  <div v-else :ref="p.stageRef" class="relative flex min-h-0 min-w-0 flex-col" :class="embedded ? 'h-full overflow-hidden bg-black' : 'h-dvh bg-slate-100/90 text-slate-900 dark:bg-[#060810] dark:text-white transition-colors duration-200'" @pointermove="onStagePointer" @pointerdown="onStagePointer" @pointerleave="hideTopHandle">
+    <!-- 工具栏隐藏时的顶部唤出把手：指针靠近顶部才显示 -->
     <div
-      v-if="!toolbarVisible"
+      v-if="!toolbarVisible && showTopHandle"
       class="pointer-events-none absolute top-0 inset-x-0 z-50 flex items-start justify-center"
     >
       <button
@@ -563,7 +602,7 @@ defineExpose({ handleEscape })
             <Undo2 class="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" title="主页" aria-label="主页" @click="p.pressHome()">
-            <Home class="h-4 w-4" />
+            <Circle class="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" title="切换任务" aria-label="切换任务" @click="p.pressRecents()">
             <GalleryHorizontal class="h-4 w-4" />
@@ -619,16 +658,20 @@ defineExpose({ handleEscape })
 
       <!-- 完整页面模式工具栏 -->
       <div v-else class="flex shrink-0 items-center gap-1">
-        <Button variant="ghost" size="icon" title="任务情况" aria-label="任务情况" :aria-pressed="tasksVisible" :class="{ 'bg-accent': tasksVisible }" @click="toggleTasks()"><ListChecks class="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" title="打开小窗" aria-label="打开小窗" @click="openSmallWindow()">
+          <PictureInPicture2 class="h-5 w-5" />
+        </Button>
         <Button class="toolbar-secondary" variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
           <Undo2 class="h-5 w-5" />
         </Button>
         <Button variant="ghost" size="icon" title="主页" aria-label="主页" @click="p.pressHome()">
-          <Home class="h-5 w-5" />
+          <Circle class="h-5 w-5" />
         </Button>
         <Button class="toolbar-secondary" variant="ghost" size="icon" title="切换任务" aria-label="切换任务" @click="p.pressRecents()">
           <GalleryHorizontal class="h-5 w-5" />
         </Button>
+        <span class="mx-0.5 h-5 w-px shrink-0 bg-slate-300/80 dark:bg-white/15" aria-hidden="true" />
+        <Button variant="ghost" size="icon" title="任务情况" aria-label="任务情况" :aria-pressed="tasksVisible" :class="{ 'bg-accent': tasksVisible }" @click="toggleTasks()"><ListChecks class="h-5 w-5" /></Button>
         <Button class="toolbar-secondary" variant="ghost" size="icon" title="电源键" aria-label="电源键" :disabled="p.powerBusy.value" @click="p.pressPower()">
           <Power class="h-5 w-5" />
         </Button>

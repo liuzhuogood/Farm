@@ -4,6 +4,10 @@ import { useRoute } from 'vue-router'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import DevicePlayer from '@/components/player/DevicePlayer.vue'
+import FloatingPlayer from '@/components/player/FloatingPlayer.vue'
+import { useFloatingPlayers } from '@/composables/useFloatingPlayers'
+
+const { floatingSerials, close: closeFloatingWindow } = useFloatingPlayers()
 
 const route = useRoute()
 const serial = computed(() => typeof route.query.serial === 'string' ? route.query.serial : '')
@@ -63,6 +67,16 @@ async function handleClose() {
       :embedded="embedded"
       @close="handleClose"
       @layout="handleLayout"
+    />
+
+    <!-- Web 端内嵌投屏小窗（与首页共用同一份浮窗列表） -->
+    <FloatingPlayer
+      v-for="(floatingSerial, index) in floatingSerials"
+      :key="floatingSerial"
+      :serial="floatingSerial"
+      :offset-index="index"
+      :z-index="60 + index"
+      @close="closeFloatingWindow(floatingSerial)"
     />
   </div>
 </template>

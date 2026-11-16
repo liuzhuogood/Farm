@@ -24,6 +24,7 @@ import {
   usePlayerSettings,
 } from '@/composables/usePlayerSettings'
 import { useGroupControl } from '@/composables/useGroupControl'
+import { useFloatingPlayers } from '@/composables/useFloatingPlayers'
 import { toast } from 'vue-sonner'
 
 type ViewMode = HomeViewMode
@@ -113,7 +114,7 @@ function handleUpdateSelectedSerials(serials: string[]) {
 }
 
 // 点击设备卡片：优先打开原生小窗（桌面端），Web 端使用内嵌浮动小窗
-const floatingSerials = ref<string[]>([])
+const { floatingSerials, open: openFloatingPlayer, close: closeFloatingWindow } = useFloatingPlayers()
 
 async function handleOpenFloating(serial: string) {
   if (store.mockEnabled) {
@@ -146,12 +147,7 @@ async function handleOpenFloating(serial: string) {
     }
   }
 
-  if (!floatingSerials.value.includes(serial))
-    floatingSerials.value = [...floatingSerials.value, serial]
-}
-
-function closeFloatingWindow(serial: string) {
-  floatingSerials.value = floatingSerials.value.filter(item => item !== serial)
+  openFloatingPlayer(serial)
 }
 
 function handleOpenAi() {
