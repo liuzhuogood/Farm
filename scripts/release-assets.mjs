@@ -5,6 +5,11 @@ const [artifacts, index, output] = process.argv.slice(2)
 if (!artifacts || !index || !output) throw new Error('需要 artifacts、index、output')
 const version = readFileSync('VERSION', 'utf8').trim()
 const windowsInstaller = `farm-${version}-windows-x86_64-gui-setup.exe`
+const darwinUpdaterAssets = ['darwin-aarch64', 'darwin-x86_64']
+  .flatMap(target => [
+    `farm-${version}-${target}.app.tar.gz`,
+    `farm-${version}-${target}.app.tar.gz.sig`,
+  ])
 const programs = [
   'farm-linux-amd64-cli',
   'farm-linux-arm64-cli',
@@ -15,6 +20,7 @@ const programs = [
   windowsInstaller,
   `farm-${version}-macos-amd64-gui.dmg`,
   `farm-${version}-macos-arm64-gui.dmg`,
+  ...darwinUpdaterAssets,
 ]
 function files(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap(item =>
@@ -27,14 +33,19 @@ const selected = programs.map(name => {
   return matches[0]
 })
 const manifest = JSON.parse(readFileSync(index, 'utf8'))
-if (manifest.version !== version || Object.keys(manifest.platforms).join(',') !== 'windows-x86_64') {
-  throw new Error('GUI 更新索引必须对应当前版本的 Windows 安装包')
+const requiredPlatforms = ['windows-x86_64', 'darwin-aarch64', 'darwin-x86_64']
+if (manifest.version !== version || requiredPlatforms.some(target => !manifest.platforms[target])) {
+  throw new Error('GUI 更新索引必须包含 Windows 与 macOS 更新包')
 }
 const platform = manifest.platforms['windows-x86_64']
 const expected = `https://github.com/liuzhuogood/Farm/releases/download/${version}/${windowsInstaller}`
 if (platform.url !== expected || !platform.signature) throw new Error('GUI 更新索引地址或签名错误')
+for (const target of darwinUpdaterAssets.filter(name => name.endsWith('.app.tar.gz'))) {
+  const signature = manifest.platforms[target.match(/darwin-(aarch64|x86_64)/)[0]]
+  if (!signature?.signature || !signature.url.endsWith(target)) throw new Error(`macOS 更新索引错误: ${target}`)
+}
 mkdirSync(output, { recursive: true })
 if (readdirSync(output).length) throw new Error('发布目录必须为空')
 for (const file of selected) copyFileSync(file, path.join(output, path.basename(file)))
 copyFileSync(index, path.join(output, 'desktop-latest.json'))
-console.log(`Release: ${programs.length} 个程序 + GUI 自动更新索引`)
+console.log(`Release: ${programs.length} 个程序与更新资源 + GUI 自动更新索引`)

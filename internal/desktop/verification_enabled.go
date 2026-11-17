@@ -30,6 +30,7 @@ func registerVerification(mux *http.ServeMux, authorize func(http.HandlerFunc) h
 			AudioDecoder      bool            `json:"audio_decoder"`
 			Path              string          `json:"path"`
 			DependencyHeading bool            `json:"dependency_heading"`
+			CheckUpdateDialog bool            `json:"check_update_dialog"`
 		}
 		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&report); err != nil {
 			http.Error(w, "invalid report", 400)

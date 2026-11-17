@@ -2,7 +2,7 @@ use crate::State;
 use tauri::{
     menu::{Menu, MenuBuilder, PredefinedMenuItem, SubmenuBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    App, AppHandle, Manager,
+    App, AppHandle, Emitter, Manager,
 };
 use tauri_plugin_opener::OpenerExt;
 
@@ -30,6 +30,7 @@ pub fn action(app: &AppHandle, id: &str) {
     }
     match id {
         "show" => show(app),
+        "check-update" => check_update(app),
         "adb-restart" => restart_adb(app),
         "restore-players" => crate::player_windows::restore_all(app),
         "restore-main" => {
@@ -85,6 +86,16 @@ pub fn action(app: &AppHandle, id: &str) {
     }
 }
 
+fn check_update(app: &AppHandle) {
+    show(app);
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = app.emit_to("main", "check-update", ()) {
+            eprintln!("[Desktop] 打开检查更新失败: {error}");
+        }
+    });
+}
+
 // 重启本机 ADB 服务（adb kill-server 后 adb start-server），结果只记日志。
 fn restart_adb(app: &AppHandle) {
     let url = format!("{}/api/adb/restart", app.state::<State>().url);
@@ -123,6 +134,7 @@ fn restart_adb(app: &AppHandle) {
 pub fn install(app: &mut App) -> tauri::Result<bool> {
     let application = SubmenuBuilder::with_id(app, "application", "Farm")
         .item(&PredefinedMenuItem::about(app, Some("关于 Farm"), None)?)
+        .text("check-update", "检查更新…")
         .separator()
         .text("dependencies", "依赖管理")
         .text("browser", "在浏览器中打开")
@@ -170,6 +182,8 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
     })?;
     eprintln!("[Desktop] 原生菜单已安装，在线设备每 5 秒刷新");
     let tray_menu = MenuBuilder::new(app)
+        .text("check-update", "检查更新…")
+        .separator()
         .text("show", "打开主窗口")
         .text("restore-main", "恢复主窗口")
         .text("restore-players", "恢复所有小窗")

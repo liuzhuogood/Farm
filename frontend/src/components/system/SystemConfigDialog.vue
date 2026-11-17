@@ -4,6 +4,7 @@ import { Monitor, Moon, Sun } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -15,6 +16,7 @@ import MatchingServicePanel from './MatchingServicePanel.vue'
 import OcrServicePanel from './OcrServicePanel.vue'
 import PlayerSettingsContent from './PlayerSettingsContent.vue'
 import IdleScreenSettings from './IdleScreenSettings.vue'
+import { useUpdateSettings } from '@/composables/useUpdateSettings'
 
 const props = defineProps<{ initialTab?: 'general' | 'player' | 'theme' | 'service' | 'dependencies' | 'matching' | 'ocr' }>()
 
@@ -22,6 +24,7 @@ const open = defineModel<boolean>('open', { default: false })
 const tab = ref('general')
 const desktopConfig = useDesktopConfig()
 const serviceConfig = useServiceConfig()
+const { settings: updateSettings, setCheckOnStartup, setAutoUpdate } = useUpdateSettings()
 const themes = [{ id: 'auto' as const, name: '系统', icon: Monitor }, { id: 'light' as const, name: '明亮', icon: Sun }, { id: 'dark' as const, name: '黑暗', icon: Moon }]
 
 watch(open, (value) => {
@@ -63,6 +66,17 @@ async function handleServiceSave() {
             <p class="text-sm font-medium">外观</p>
             <div class="grid grid-cols-3 gap-3" role="group" aria-label="主题">
               <Button v-for="item in themes" :key="item.id" variant="outline" class="h-24 flex-col gap-3" :class="theme === item.id ? 'border-primary bg-primary/5 text-primary' : ''" :aria-pressed="theme === item.id" @click="theme = item.id"><component :is="item.icon" class="size-6" />{{ item.name }}</Button>
+            </div>
+            <p class="text-sm font-medium">更新</p>
+            <div class="divide-y rounded-lg border">
+              <div class="flex items-center justify-between gap-4 px-4 py-3">
+                <label for="update-check" class="text-sm">检查更新</label>
+                <Switch id="update-check" :model-value="updateSettings.checkOnStartup" aria-label="检查更新" @update:model-value="(value) => setCheckOnStartup(value === true)" />
+              </div>
+              <div class="flex items-center justify-between gap-4 px-4 py-3">
+                <label for="update-auto" class="text-sm" :class="{ 'text-muted-foreground': !updateSettings.checkOnStartup }">自动更新</label>
+                <Switch id="update-auto" :model-value="updateSettings.autoUpdate" :disabled="!updateSettings.checkOnStartup" aria-label="自动更新" @update:model-value="(value) => setAutoUpdate(value === true)" />
+              </div>
             </div>
             <IdleScreenSettings />
           </TabsContent>

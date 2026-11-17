@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { checkUpdate, startUpgrade, subscribeUpgradeStream, getUpgradeStatus, isDesktopUpdate, upgradeDesktop, type CheckResult, type UpgradeProgress } from '@/api/updater'
+import { updateActionFor, useUpdateSettings } from '@/composables/useUpdateSettings'
 
 export const useUpdaterStore = defineStore('updater', () => {
   const isChecking = ref(false)
@@ -15,11 +16,17 @@ export const useUpdaterStore = defineStore('updater', () => {
   })
   const errorMessage = ref<string | null>(null)
   const dialogOpen = ref(false)
+  const dismissedVersion = ref('')
   let unsubscribeStream: (() => void) | null = null
+  let initialized = false
 
   async function check() {
     isChecking.value = true
     errorMessage.value = null
+    // 新一轮检查代表上一次升级尝试已结束，避免弹窗残留旧进度条。
+    if (!isUpgrading.value) {
+      progress.value = { state: 'idle', percent: 0, downloaded: 0, total: 0, speed: '0 KB/s' }
+    }
     try {
       const res = await checkUpdate()
       checkResult.value = res
@@ -101,7 +108,25 @@ export const useUpdaterStore = defineStore('updater', () => {
     }
   }
 
+  async function initialize() {
+    if (initialized) return
+    initialized = true
+    const { settings } = useUpdateSettings()
+    if (!settings.value.checkOnStartup) return
+    const result = await check()
+    if (updateActionFor(result, settings.value) !== 'install') return
+    dialogOpen.value = true
+    await upgrade()
+  }
+
+  async function checkAndOpen() {
+    dialogOpen.value = true
+    dismissedVersion.value = ''
+    await check()
+  }
+
   function openDialog() {
+    dismissedVersion.value = ''
     dialogOpen.value = true
   }
 
@@ -111,6 +136,7 @@ export const useUpdaterStore = defineStore('updater', () => {
       dialogOpen.value = false
       return
     }
+    if (checkResult.value?.has_update) dismissedVersion.value = checkResult.value.latest_version
     dialogOpen.value = false
   }
 
@@ -121,8 +147,11 @@ export const useUpdaterStore = defineStore('updater', () => {
     progress,
     errorMessage,
     dialogOpen,
+    dismissedVersion,
     check,
     upgrade,
+    initialize,
+    checkAndOpen,
     openDialog,
     closeDialog,
   }

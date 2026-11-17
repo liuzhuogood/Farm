@@ -82,14 +82,29 @@ pub async fn desktop_check_update(app: AppHandle) -> Result<CheckResult, String>
     let updater = match builder(&app) {
         Ok(value) => value,
         Err(reason) => {
+            eprintln!("[Updater] 更新器不可用: {reason}");
             result.update_reason = reason;
             return Ok(result);
         }
     };
+    eprintln!("[Updater] 正在检查更新: current=v{}", current);
     let checked=match updater.check().await {
         Ok(value)=>value,
         Err(tauri_plugin_updater::Error::ReleaseNotFound)=>{result.update_reason="暂未获取到可用的桌面更新包，请稍后重试".into();return Ok(result)},
-        Err(error)=>return Err(error.to_string()),
+        Err(tauri_plugin_updater::Error::TargetNotFound(target))=>{
+            eprintln!("[Updater] 当前平台缺少更新包: {target}");
+            result.update_reason="当前平台暂未发布自动更新包，请前往 GitHub 发布页下载".into();
+            return Ok(result);
+        },
+        Err(tauri_plugin_updater::Error::TargetsNotFound(targets))=>{
+            eprintln!("[Updater] 当前平台缺少更新包: {targets:?}");
+            result.update_reason="当前平台暂未发布自动更新包，请前往 GitHub 发布页下载".into();
+            return Ok(result);
+        },
+        Err(error)=>{
+            eprintln!("[Updater] 检查更新失败: {error}");
+            return Err(error.to_string());
+        },
     };
     if let Some(update) = checked {
         result.latest_version = format!("v{}", update.version.trim_start_matches('v'));
@@ -97,6 +112,9 @@ pub async fn desktop_check_update(app: AppHandle) -> Result<CheckResult, String>
         result.can_upgrade = true;
         result.release_notes = update.body.unwrap_or_default();
         result.published_at = update.date.map(|date| date.to_string()).unwrap_or_default();
+        eprintln!("[Updater] 发现新版本: {}", result.latest_version);
+    } else {
+        eprintln!("[Updater] 当前已是最新版本");
     }
     Ok(result)
 }
@@ -111,6 +129,7 @@ pub async fn desktop_upgrade(app: AppHandle, on_progress: Channel<Progress>) -> 
         .await
         .map_err(|e| e.to_string())?
         .ok_or("没有可安装的新版本")?;
+    eprintln!("[Updater] 开始更新: v{} -> v{}", update.current_version, update.version);
     let mut downloaded = 0;
     let bytes = update
         .download(
@@ -168,6 +187,7 @@ pub async fn desktop_upgrade(app: AppHandle, on_progress: Channel<Progress>) -> 
         eprintln!("[Updater] 完整 App 安装失败: {error}");
         app.restart();
     }
+    eprintln!("[Updater] 更新安装完成，准备重启");
     if let Err(error) = backup.installed() {
         eprintln!("[Updater] 安装提交标记写入失败: {error}");
         app.restart();

@@ -194,9 +194,9 @@ jobs:
       - name: Assemble desktop update manifest
         env:
           RELEASE_NOTES_FILE: ${{ steps.notes.outputs.notes_file }}
-        run: node scripts/merge-desktop-manifests.mjs artifacts windows-x86_64
+        run: node scripts/merge-desktop-manifests.mjs artifacts windows-x86_64,darwin-aarch64,darwin-x86_64
 
-      - name: Select nine programs and the GUI update index
+      - name: Select release programs, updater assets and index
         run: node scripts/release-assets.mjs artifacts desktop-latest.json release-assets
 
       - name: Create or update Release with verified notes

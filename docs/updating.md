@@ -43,9 +43,9 @@ Windows/Linux 的安装与签名校验由 Tauri 更新器处理，保留升级�
 
 根目录 `VERSION` 是正式版本源。修改后执行 `node scripts/sync-version.mjs`，同步前端、桌面配置、Cargo 包及锁文件和 Python SDK；`--check` 只校验。发布 tag 必须与 `VERSION` 相同。Python SDK 的 PyPI 版本去掉 `v` 前缀，主分支版本更新后由 `Publish Python SDK` 工作流自动发布；仓库需配置 `PYPI_API_TOKEN` Actions Secret，已发布的完整版本会跳过。
 
-从 v1.20.1 起，`.github/workflows/release.yml` 发布 5 个 CLI、Windows GUI exe/安装包和 macOS Intel/Apple Silicon 两种 GUI DMG，共 9 个程序。`desktop-latest.json` 只包含 Windows 安装包的签名更新信息；macOS 使用 DMG 手动安装和更新，Linux 使用 CLI。缺少约定资产或版本不一致时发布失败。Docker 继续使用 Linux AMD64 CLI。
+从 v1.20.1 起，`.github/workflows/release.yml` 发布 5 个 CLI、Windows GUI exe/安装包和 macOS Intel/Apple Silicon 两种 GUI DMG，共 9 个程序。`desktop-latest.json` 同时包含 Windows 安装包和两种 macOS 架构的签名更新包；macOS 自动更新使用 `.app.tar.gz`，DMG 继续作为首次安装和手动安装入口，Linux 使用 CLI。缺少约定资产或版本不一致时发布失败。Docker 继续使用 Linux AMD64 CLI。
 
-Windows 桌面更新使用 Tauri 官方更新器，校验 minisign 签名，安装包使用 NSIS。macOS 的 Tauri 自动更新需要另行发布完整 `.app.tar.gz`；当前仅发布用于手动安装的 DMG，其中包含 App 和配套服务程序。桌面便携目录不作为安装版更新包发布。
+Windows 桌面更新使用 Tauri 官方更新器，校验 minisign 签名，安装包使用 NSIS。macOS 由 `macos-dmg.yml` 生成并签名完整 `.app.tar.gz` 与 `.sig`，与 DMG 一并发布；缺少 `darwin-aarch64` 或 `darwin-x86_64` 时发布失败。桌面便携目录不作为安装版更新包发布。
 
 Actions 配置：
 
@@ -60,7 +60,7 @@ Actions 配置：
 
 ## 验证边界
 
-本机应运行 Go 测试/race/vet、前端构建、Rust check/clippy、Actions 语法检查、桌面服务集成检查、发布清单契约检查和原生 IPC 检查。原生验证构建使用独立应用标识 `com.farm.desktop.verification`，不会复用正式应用数据目录；交付前重新构建普通版本。
+本机应运行 Go 测试/race/vet、前端构建、Rust check/clippy、Actions 语法检查、桌面服务集成检查、发布清单契约检查、macOS 更新包归档检查和原生 IPC/菜单检查。原生验证构建使用独立应用标识 `com.farm.desktop.verification`，不会复用正式应用数据目录；原生“检查更新”菜单使用 `node scripts/verification/desktop-update-menu.mjs` 验证，交付前重新构建普通版本。
 
 完整 Release 上的真实版本升级、Windows/Linux 安装器、systemd 部署和 Docker 容器重建还需要各环境验收；单元测试和本机 macOS 打包不能替代这些验证。
 

@@ -14,6 +14,10 @@ pub fn start(app: &AppHandle) {
         crate::verify_players::start(app);
         return;
     }
+    if std::env::var_os("FARM_VERIFY_UPDATE_MENU").is_some() {
+        start_update_menu(app);
+        return;
+    }
     let app = app.clone();
     thread::spawn(move || {
         thread::sleep(Duration::from_secs(3));
@@ -52,6 +56,38 @@ pub fn start(app: &AppHandle) {
  })();
                 "#.replace("$HIDDEN",&hidden.to_string()).replace("$RESTORED",&restored.to_string());
                 let _ = window.eval(script);
+            }
+        });
+        let report=std::env::var("FARM_NATIVE_REPORT").unwrap();
+        for _ in 0..400 {if std::path::Path::new(&report).is_file(){app.exit(0);return};thread::sleep(Duration::from_millis(100));}
+        app.exit(1);
+    });
+}
+
+fn start_update_menu(app: &AppHandle) {
+    let app = app.clone();
+    thread::spawn(move || {
+        thread::sleep(Duration::from_secs(3));
+        let ui = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            crate::menu::action(&ui, "check-update");
+        });
+        thread::sleep(Duration::from_secs(2));
+        let ui = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            if let Some(window) = ui.get_webview_window("main") {
+                let script=r#"
+ fetch('/api/desktop/native-verification', {
+                      method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.__FARM_DESKTOP_TOKEN__},
+                      body:JSON.stringify({title:document.title,path:location.pathname,
+                        tauri:window.isTauri===true,
+                        mounted:!!document.querySelector('#app')?.childElementCount,
+                        check_update_dialog:document.querySelector('[data-slot="dialog-content"]')?.textContent.includes('软件更新')===true})
+                    });
+                "#;
+                if let Err(error) = window.eval(script) {
+                    eprintln!("[Verify] 检查更新菜单验证脚本失败: {error}");
+                }
             }
         });
         let report=std::env::var("FARM_NATIVE_REPORT").unwrap();

@@ -5,6 +5,7 @@ import { isTauri } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import ApprovalPopup from '@/components/ai-integration/ApprovalPopup.vue'
 import { Toaster } from '@/components/ui/sonner'
+import UpdateCenter from '@/components/updater/UpdateCenter.vue'
 
 const router = useRouter()
 let unlisten: UnlistenFn | undefined
@@ -40,5 +41,6 @@ onUnmounted(() => {
 <template>
   <RouterView />
   <ApprovalPopup />
+  <UpdateCenter />
   <Toaster position="bottom-center" />
 </template>

@@ -147,6 +147,7 @@ fn main() {
                     .permission("allow-set-window-always-on-top")
                     .permission("allow-is-window-always-on-top")
                     .permission("allow-list-player-windows")
+                    .permission("core:event:default")
                     .permission("allow-set-player-opacity")
                     .permission("allow-set-player-click-through")
                     .permission("allow-set-player-borderless")

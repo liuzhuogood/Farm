@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { useUpdaterStore } from '@/stores/updater'
-import { Download, RefreshCw, CheckCircle2, AlertCircle, Sparkles, Info } from 'lucide-vue-next'
+import { Download, RefreshCw, CheckCircle2, AlertCircle, Sparkles, Github } from 'lucide-vue-next'
 
 const updater = useUpdaterStore()
 
@@ -57,16 +57,15 @@ watch(() => updater.progress.state, state => {
 </script>
 
 <template>
-  <Dialog :open="updater.dialogOpen" @update:open="(val) => (updater.dialogOpen = val)">
+  <Dialog :open="updater.dialogOpen" @update:open="(val) => { if (!val) updater.closeDialog() }">
     <DialogContent class="sm:max-w-[620px]">
       <DialogHeader>
         <div class="flex items-center gap-2">
           <Sparkles v-if="hasUpdate" class="h-5 w-5 text-primary" />
-          <Info v-else class="h-5 w-5 text-muted-foreground" />
-          <DialogTitle class="text-lg">{{ hasUpdate ? '软件更新' : '版本信息' }}</DialogTitle>
+          <DialogTitle class="text-lg">软件更新</DialogTitle>
         </div>
         <DialogDescription class="text-sm">
-          {{ updater.errorMessage ? '检查或更新未完成' : updater.checkResult?.update_reason ? updater.checkResult.update_reason : hasUpdate ? '发现新版本' : updater.checkResult ? '当前已是最新版本' : '正在检查版本' }}
+          {{ updater.errorMessage || updater.checkResult?.update_reason || (hasUpdate ? `可更新至 ${updater.checkResult?.latest_version}` : updater.checkResult ? '当前已是最新版本' : '正在检查版本') }}
         </DialogDescription>
       </DialogHeader>
 
@@ -132,34 +131,45 @@ watch(() => updater.progress.state, state => {
         </div>
       </div>
 
-      <DialogFooter class="gap-2 sm:gap-2">
-        <template v-if="updater.progress.state === 'idle' || updater.progress.state === 'error'">
-          <template v-if="hasUpdate">
-            <Button variant="ghost" size="sm" @click="updater.closeDialog">稍后提醒</Button>
-            <Button v-if="updater.checkResult?.can_upgrade" size="sm" class="gap-1.5" :disabled="updater.isUpgrading" @click="updater.upgrade">
-              <Download class="h-4 w-4" />
-              立即更新
+      <DialogFooter class="flex-col-reverse items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <a
+          href="https://github.com/liuzhuogood/Farm/releases/latest"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground sm:justify-start"
+        >
+          <Github class="h-3.5 w-3.5" />
+          GitHub 发布页
+        </a>
+        <div class="flex items-center justify-end gap-2">
+          <template v-if="updater.progress.state === 'idle' || updater.progress.state === 'error'">
+            <template v-if="hasUpdate">
+              <Button variant="ghost" size="sm" @click="updater.closeDialog">稍后提醒</Button>
+              <Button v-if="updater.checkResult?.can_upgrade" size="sm" class="gap-1.5" :disabled="updater.isUpgrading" @click="updater.upgrade">
+                <Download class="h-4 w-4" />
+                立即更新
+              </Button>
+            </template>
+            <template v-else>
+              <Button variant="outline" size="sm" class="gap-1.5" :disabled="updater.isChecking" @click="updater.check">
+                <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': updater.isChecking }" />
+                检查更新
+              </Button>
+              <Button size="sm" @click="updater.closeDialog">确定</Button>
+            </template>
+          </template>
+          <template v-else-if="updater.progress.state === 'success'">
+            <Button size="sm" class="w-full gap-1.5" @click="handleRefresh">
+              <RefreshCw class="h-4 w-4" />
+              刷新网页
             </Button>
           </template>
           <template v-else>
-            <Button variant="outline" size="sm" class="gap-1.5" :disabled="updater.isChecking" @click="updater.check">
-              <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': updater.isChecking }" />
-              检查更新
+            <Button variant="outline" size="sm" disabled>
+              更新进行中，请勿关闭服务...
             </Button>
-            <Button size="sm" @click="updater.closeDialog">确定</Button>
           </template>
-        </template>
-        <template v-else-if="updater.progress.state === 'success'">
-          <Button size="sm" class="w-full gap-1.5" @click="handleRefresh">
-            <RefreshCw class="h-4 w-4" />
-            刷新网页
-          </Button>
-        </template>
-        <template v-else>
-          <Button variant="outline" size="sm" class="w-full" disabled>
-            更新进行中，请勿关闭服务...
-          </Button>
-        </template>
+        </div>
       </DialogFooter>
     </DialogContent>
   </Dialog>

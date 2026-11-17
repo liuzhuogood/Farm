@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { ArrowLeft, Bot, ChevronDown, Ellipsis, Github, Settings, Sparkles, X } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { ArrowLeft, Bot, ChevronDown, Ellipsis, Github, Settings, X } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { useUpdaterStore } from '@/stores/updater'
-import UpdateNoticeDialog from '@/components/updater/UpdateNoticeDialog.vue'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import SystemConfigDialog from '@/components/system/SystemConfigDialog.vue'
 import { useMainWindowEffects } from '@/composables/useMainWindowEffects'
 
@@ -24,7 +22,6 @@ interface Props {
   embedded?: boolean
   compactToolbar?: boolean
   showLogo?: boolean
-  showVersion?: boolean
   showNav?: boolean
   showConfig?: boolean
 }
@@ -41,7 +38,6 @@ const props = withDefaults(defineProps<Props>(), {
   embedded: false,
   compactToolbar: false,
   showLogo: undefined,
-  showVersion: undefined,
   showNav: undefined,
   showConfig: undefined,
 })
@@ -58,17 +54,11 @@ const isHeaderHovered = ref(false)
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent || navigator.platform)
 const isMacDesktop = computed(() => (effects.native || Boolean((window as any).__TAURI_INTERNALS__)) && isMac)
 
-const updater = useUpdaterStore()
 const appIconUrl = `${import.meta.env.BASE_URL}app-icon.png`
 
 const shouldShowLogo = computed(() => {
   if (props.showLogo !== undefined) return props.showLogo
   return !props.back && !props.closeable && !props.title
-})
-
-const shouldShowVersion = computed(() => {
-  if (props.showVersion !== undefined) return props.showVersion
-  return shouldShowLogo.value
 })
 
 const shouldShowNav = computed(() => {
@@ -117,10 +107,6 @@ function handleHeaderMouseDown(e: MouseEvent) {
   }
 }
 
-onMounted(() => {
-  // 进入页面自动检查一次更新
-  updater.check()
-})
 </script>
 
 <template>
@@ -212,24 +198,6 @@ onMounted(() => {
               </span>
             </RouterLink>
 
-            <!-- 版本号常显（点击可打开版本信息弹窗） -->
-            <button
-              v-if="shouldShowVersion && updater.checkResult?.current_version"
-              type="button"
-              class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200/80 bg-slate-100/80 px-2 py-0.5 font-mono text-xs text-slate-700 hover:bg-slate-200 hover:text-slate-900 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/20 dark:hover:text-white transition-colors cursor-pointer"
-              title="点击查看版本信息"
-              @click="updater.openDialog"
-            >
-              <span>{{ updater.checkResult.current_version }}</span>
-              <span
-                v-if="updater.checkResult?.has_update"
-                class="flex h-2 w-2 relative"
-                title="有新版本可用"
-              >
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-            </button>
           </template>
 
           <!-- 自定义图标 -->
@@ -268,19 +236,6 @@ onMounted(() => {
 
         <!-- 桌面端导航项（大屏监控、AI 集成、GitHub、API 文档） -->
         <div v-if="shouldShowNav" class="hidden shrink-0 items-center gap-2 xl:flex">
-          <!-- 发现新版本时的突出提醒按钮 -->
-          <Button
-            v-if="updater.checkResult?.has_update"
-            variant="outline"
-            size="sm"
-            class="max-w-full border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 gap-1.5 rounded-xl"
-            @click="updater.openDialog"
-          >
-            <Sparkles class="h-3.5 w-3.5 animate-pulse text-primary" />
-            <span class="min-w-0 truncate">发现新版本 {{ updater.checkResult.latest_version }}</span>
-            <Badge variant="default" class="h-4 px-1 text-[10px]">Update</Badge>
-          </Button>
-
           <Button
             variant="ghost"
             size="sm"
@@ -354,10 +309,6 @@ onMounted(() => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="rounded-2xl border-slate-200 bg-white/95 dark:border-white/10 dark:bg-slate-900/95 backdrop-blur-xl">
             <slot name="more" />
-            <DropdownMenuItem v-if="updater.checkResult?.has_update" @select="updater.openDialog">
-              <Sparkles class="h-4 w-4" />发现新版本 {{ updater.checkResult.latest_version }}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator v-if="updater.checkResult?.has_update" />
             <DropdownMenuItem as-child>
               <RouterLink to="/ai-integration"><Bot class="h-4 w-4" />AI 集成<Badge v-if="glass" variant="secondary" class="h-4 rounded-full px-1.5 text-[10px]">暂未实现</Badge></RouterLink>
             </DropdownMenuItem>
@@ -374,7 +325,6 @@ onMounted(() => {
         </DropdownMenu>
       </div>
     </div>
-    <UpdateNoticeDialog />
     <SystemConfigDialog v-model:open="configOpen" />
   </header>
 </template>

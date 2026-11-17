@@ -4,6 +4,7 @@ import path from 'node:path'
 import os from 'node:os'
 import assert from 'node:assert/strict'
 const bundle=path.resolve(process.argv[2] ?? 'desktop/target/release/bundle')
+const publicKey=path.resolve(process.argv[3] ?? 'desktop/updater.pub')
 function files(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(item=>item.isDirectory()?files(path.join(dir,item.name)):[path.join(dir,item.name)])}
 const signatures=files(bundle).filter(file=>file.endsWith('.sig'))
 assert.equal(signatures.length,1,'expected one signed updater artifact')
@@ -30,5 +31,5 @@ try{
  const file=path.join(temp,'verify.rs'), executable=path.join(temp,process.platform==='win32'?'verify.exe':'verify')
  writeFileSync(file,source)
  run('rustc',['--edition=2021',file,'-L',`dependency=${deps}`,'--extern',`base64=${library('base64')}`,'--extern',`minisign_verify=${library('minisign_verify')}`,'-o',executable])
- run(executable,[signatures[0].slice(0,-4),path.resolve('desktop/updater.pub'),signatures[0]])
+ run(executable,[signatures[0].slice(0,-4),publicKey,signatures[0]])
 }finally{rmSync(temp,{recursive:true,force:true,maxRetries:10,retryDelay:200})}

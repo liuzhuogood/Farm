@@ -50,6 +50,9 @@
 | ADB 终端 | Web Shell、交互式终端 | 右侧抽屉内 xterm.js 终端,真实 PTY 分配 |
 | 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏 | 系统设置 → 通用设置中的开关，默认关闭；开启后按设备计算，无投屏、ADB 终端、命令及设备操作满 10 分钟后由后端自动熄屏，后台遥测与屏幕状态轮询不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
 | 系统配置 | 设置、系统设置、系统配置弹窗 | 首页入口弹窗 `frontend/src/components/system/SystemConfigDialog.vue`,页签:通用设置 / 投屏设置 / 服务 / 依赖（内含模板匹配与 OCR）；本次打开期间保留面板实例，切换不重建投屏控件 |
+| 更新设置 | 检查更新开关、自动更新开关 | 系统配置 → 通用设置 → 更新；`frontend/src/composables/useUpdateSettings.ts` 持久化“检查更新”“自动更新”，关闭检查更新时自动更新同步关闭 |
+| 底部更新提示 | 新版本提示、版本提醒 | `frontend/src/components/updater/UpdateCenter.vue`；主窗口底部胶囊提示，点击打开统一更新弹窗，不再在首页顶栏展示更新标签 |
+| 检查更新菜单 | 菜单检查更新、托盘检查更新 | macOS 主菜单 Farm 与托盘菜单同名项；`desktop/src/menu.rs` 通过 `check-update` 事件唤醒主窗口并打开更新弹窗 |
 | 大屏磁贴 | 磁贴、tile | `frontend/src/components/dashboard/DashTile.vue` |
 | 手机卡片视图 | 手机卡片、卡片视图、甲板、3D全息 | `frontend/src/components/home/HomePhoneView.vue` (`viewMode === 'deck'`)；首页卡片与手机两种视图之一，采用手机拟物卡片展示设备遥测（温度、电量）与当前运行应用，熄屏或锁屏时展示已锁定状态，不挂载实时投屏流；卡片按持久化拖动顺序靠左紧凑排列（8px 间隙），默认按 serial 排序；底部仅显示真实 serial/地址，不展示连接类型标志，点击卡片进入设备详情页，支持鼠标拉框批量框选 |
 | 首页手机视图 | 手机视图、第三视图、手机样式视图、手机墙、首页多设备投屏、紧密设备墙 | `frontend/src/components/home/HomePhoneView.vue`；首页卡片与手机两种视图之一，以紧密设备墙规格挂载实时画面（同档位同宽同高，相邻横纵间距统一 8px，画面黑底 contain 等比居中黑边填充、不拉伸不裁图；首页为实时预览，左键拖动框选、单击打开小窗，直接操控在小窗/详情页进行），设备显隐由 iOS 悬浮底栏的编号小方块控制，支持页面全屏 |
