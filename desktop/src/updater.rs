@@ -127,7 +127,10 @@ pub async fn desktop_upgrade(app: AppHandle, on_progress: Channel<Progress>) -> 
     let update = builder(&app)?
         .check()
         .await
-        .map_err(|e| e.to_string())?
+        .map_err(|e| {
+            eprintln!("[Updater] 检查可安装更新失败: {e}");
+            e.to_string()
+        })?
         .ok_or("没有可安装的新版本")?;
     eprintln!("[Updater] 开始更新: v{} -> v{}", update.current_version, update.version);
     let mut downloaded = 0;
@@ -152,13 +155,20 @@ pub async fn desktop_upgrade(app: AppHandle, on_progress: Channel<Progress>) -> 
             || {},
         )
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            eprintln!("[Updater] 下载或校验更新包失败: {e}");
+            e.to_string()
+        })?;
     let ready = {
         let state = app.state::<State>();
         let backend = state.backend.lock().map_err(|e| e.to_string())?;
         backend.as_ref().ok_or("服务未运行")?.ready.clone()
     };
-    backend::request(&ready, "POST", "/api/desktop/update-prepare")?;
+    backend::request(&ready, "POST", "/api/desktop/update-prepare")
+        .map_err(|e| {
+            eprintln!("[Updater] 进入更新准备态失败: {e}");
+            e
+        })?;
     let _ = on_progress.send(Progress {
         state: "applying",
         percent: 100.0,
