@@ -29,7 +29,7 @@ func registerVerification(mux *http.ServeMux, authorize func(http.HandlerFunc) h
 			VideoDecoder      bool            `json:"video_decoder"`
 			AudioDecoder      bool            `json:"audio_decoder"`
 			Path              string          `json:"path"`
-			DependencyHeading bool            `json:"dependency_heading"`
+			HomePath          bool            `json:"home_path"`
 			CheckUpdateDialog bool            `json:"check_update_dialog"`
 		}
 		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&report); err != nil {

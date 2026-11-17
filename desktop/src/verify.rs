@@ -24,7 +24,7 @@ pub fn start(app: &AppHandle) {
         let ui = app.clone();
         let _ = app.run_on_main_thread(move || {
             // Exercise the same handler used by native menu items.
-            crate::menu::action(&ui, "dependencies");
+            crate::menu::action(&ui, "home");
         });
         thread::sleep(Duration::from_secs(2));
         let ui = app.clone();
@@ -49,7 +49,7 @@ pub fn start(app: &AppHandle) {
                       body:JSON.stringify({title:document.title,path:location.pathname,
                         tauri:window.isTauri===true, updater_invokable:updater?.runtime_mode==='desktop',updater_error:updaterError,
                         mounted:!!document.querySelector('#app')?.childElementCount,
-                        dependency_heading:document.querySelector('h1')?.textContent==='依赖管理',
+                        home_path:location.pathname==='/',
                         close_hides:$HIDDEN,restore_visible:$RESTORED,
                         video_decoder:typeof VideoDecoder!=='undefined',audio_decoder:typeof AudioDecoder!=='undefined'})
                     });

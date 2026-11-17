@@ -18,7 +18,7 @@
 | 投屏小窗 | 小窗、画中画小窗、画中画、画中画微窗 | 设备详情页顶部「打开小窗」按钮打开的投屏小窗；小窗“更多”菜单提供「设备详情」入口。桌面端为系统级独立原生小窗（路由 `/player?serial=<序列号>&embedded=1`，由 `desktop/src/links.rs` 的 `open_device_window` 创建），Web 端为内嵌可拖拽浮动小窗（`frontend/src/components/player/FloatingPlayer.vue`，浮窗列表由 `frontend/src/composables/useFloatingPlayers.ts` 在首页与详情页共享） |
 | 大屏监控页 | 大屏、监控墙、dashboard | 路由 `/dashboard` · `frontend/src/views/DashboardView.vue` |
 | 文件管理页 | 文件页、文件管理器 | 路由 `/files?serial=<序列号>` · `frontend/src/views/FilesView.vue`;亦内嵌于投屏详情页抽屉(`DevicePlayer.vue`,embedded) |
-| 依赖管理页 | 依赖页 | 路由 `/dependencies` · `frontend/src/views/DependenciesView.vue` |
+| 依赖管理 | 依赖页、依赖面板 | 已无独立页面；入口为系统配置 → 依赖页签（`frontend/src/components/system/SystemConfigDialog.vue` 内 `DependencyPanel`、`MatchingServicePanel`、`OcrServicePanel`） |
 | AI 集成页 | 与 AI 集成、AI 集成、接入指南 | 路由 `/ai-integration` · `frontend/src/views/AiIntegrationView.vue` |
 | MCP 接入 | MCP 安装、MCP 卸载、MCP 配置 | AI 集成页内 `frontend/src/components/ai-integration/McpPanel.vue`；后端 `internal/mcpconfig`，接口 `/api/ai-integrations/mcp` |
 | 技能详情页 | 技能详情、技能二级页面 | 路由 `/ai-integration/skills/:id` · `frontend/src/views/SkillDetailView.vue` |

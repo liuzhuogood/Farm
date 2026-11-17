@@ -13,7 +13,7 @@ try {
  const [code]=await once(child,'exit')
  assert.equal(code,0,errors)
  const result=JSON.parse(await readFile(report,'utf8'))
- for (const key of ['tauri','updater_invokable','mounted','dependency_heading','close_hides','restore_visible']) assert.equal(result[key],true,`${key}: ${JSON.stringify(result)}`)
+ for (const key of ['tauri','updater_invokable','mounted','home_path','close_hides','restore_visible']) assert.equal(result[key],true,`${key}: ${JSON.stringify(result)}`)
  assert.equal(result.updater_error,'')
  console.log('PASS: native WebView, updater IPC, private control, menu, hide/restore and clean App exit')
 } finally {clearTimeout(timer);if(child.exitCode===null)child.kill();await rm(directory,{recursive:true,force:true})}

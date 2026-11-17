@@ -66,14 +66,10 @@ pub fn action(app: &AppHandle, id: &str) {
                 eprintln!("[Desktop] 打开浏览器失败: {error}");
             }
         }
-        "home" | "dependencies" => {
-            let path = match id {
-                "home" => "/",
-                _ => "/dependencies",
-            };
+        "home" => {
             let state = app.state::<State>();
             if let Some(window) = app.get_webview_window("main") {
-                let url = format!("{}{path}", state.url)
+                let url = format!("{}/", state.url)
                     .parse()
                     .expect("validated local URL");
                 if let Err(error) = window.navigate(url) {
@@ -136,7 +132,6 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
         .item(&PredefinedMenuItem::about(app, Some("关于 Farm"), None)?)
         .text("check-update", "检查更新…")
         .separator()
-        .text("dependencies", "依赖管理")
         .text("browser", "在浏览器中打开")
         .separator()
         .text("quit", "退出 Farm")
@@ -188,7 +183,6 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
         .text("restore-main", "恢复主窗口")
         .text("restore-players", "恢复所有小窗")
         .text("home", "设备列表")
-        .text("dependencies", "依赖管理")
         .text("adb-restart", "重启 ADB 服务")
         .separator()
         .text("browser", "在浏览器中打开")
