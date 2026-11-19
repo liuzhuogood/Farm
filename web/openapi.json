@@ -576,7 +576,7 @@
           "设备与控制"
         ],
         "summary": "列出设备",
-        "description": "查询设备注册表，包括在线与保留的离线设备，返回 serial、identifier（标识名）、状态、型号等。界面默认隐藏离线设备，可在“设备”卡开启显示；MCP phone_devices 只返回在线设备。",
+        "description": "查询设备注册表，包括在线与保留的离线设备，每个 ADB serial 返回一条记录，包含 serial、identifier（标识名）、状态、型号、设备身份和当前通道信息。界面默认隐藏离线设备，可在“设备”卡开启显示；MCP phone_devices 只返回在线设备。",
         "responses": {
           "200": {
             "description": "在线设备列表",
@@ -6994,7 +6994,7 @@
     "schemas": {
       "Device": {
         "type": "object",
-        "description": "ADB 在线设备信息",
+        "description": "ADB 设备记录，每个 serial 对应一条记录",
         "properties": {
           "serial": {
             "type": "string",
@@ -7005,6 +7005,29 @@
             "type": "string",
             "description": "设备连接状态 (如 device, offline)",
             "example": "device"
+          },
+          "identity": {
+            "type": "string",
+            "description": "通道采集到的设备身份，带 hw: 或 aid: 前缀。待采集、采集失败或离线时为空。",
+            "example": "hw:31040209940025Z"
+          },
+          "identity_source": {
+            "type": "string",
+            "enum": ["ro.serialno", "ro.boot.serialno", "android_id", "pending"]
+          },
+          "active_kind": {
+            "type": "string",
+            "enum": ["usb", "wifi", ""],
+            "description": "当前在线通道的类型，离线时为空。"
+          },
+          "connections": {
+            "type": "array",
+            "description": "本条记录对应的 ADB 通道。",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/DeviceConnection"
+            }
           },
           "product": {
             "type": "string",
@@ -7050,8 +7073,35 @@
         "required": [
           "serial",
           "state",
-          "identifier"
+          "identifier",
+          "identity",
+          "identity_source",
+          "active_kind",
+          "connections"
         ]
+      },
+      "DeviceConnection": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["usb", "wifi"]
+          },
+          "serial": {"type": "string"},
+          "address": {
+            "type": "string",
+            "description": "已知的无线连接地址，USB 或仅有 mDNS 服务名时为空。"
+          },
+          "state": {"type": "string"},
+          "online": {"type": "boolean"},
+          "active": {"type": "boolean"},
+          "last_seen_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "最近出现在 ADB 列表中的 Unix 毫秒时间戳，未观察到时为 0。"
+          }
+        },
+        "required": ["kind", "serial", "address", "state", "online", "active", "last_seen_at"]
       },
       "RotateResponse": {
         "type": "object",

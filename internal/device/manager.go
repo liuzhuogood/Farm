@@ -42,6 +42,12 @@ type Device struct {
 	ScreenOn           *bool    `json:"screen_on,omitempty"`
 	ScreenLocked       *bool    `json:"screen_locked,omitempty"`
 	TelemetryUpdatedAt int64    `json:"telemetry_updated_at,omitempty"`
+
+	Identity       string             `json:"identity"`
+	IdentitySource string             `json:"identity_source"`
+	ActiveKind     string             `json:"active_kind"`
+	Connections    []DeviceConnection `json:"connections"`
+	adbUSB         bool
 }
 
 // IdentifierName derives the editable public device identifier from the saved
@@ -69,10 +75,17 @@ type Manager struct {
 	hardwareCache  map[string]HardwareInfo
 	telemetryCache map[string]TelemetryInfo
 	fetchingHW     map[string]bool
+	refreshMu      sync.Mutex
+	channels       map[string]*deviceChannel // guarded by mu
+	identityCtx    context.Context
+	cancelIdentity context.CancelFunc
+	identityProbes sync.WaitGroup
+	probesRunning  int // guarded by mu
 }
 
 // NewManager 创建设备管理器。
 func NewManager(adbPath string, database *db.DB) *Manager {
+	identityCtx, cancelIdentity := context.WithCancel(context.Background())
 	return &Manager{
 		adbPath:        adbPath,
 		db:             database,
@@ -80,6 +93,9 @@ func NewManager(adbPath string, database *db.DB) *Manager {
 		hardwareCache:  make(map[string]HardwareInfo),
 		telemetryCache: make(map[string]TelemetryInfo),
 		fetchingHW:     make(map[string]bool),
+		channels:       make(map[string]*deviceChannel),
+		identityCtx:    identityCtx,
+		cancelIdentity: cancelIdentity,
 	}
 }
 
@@ -92,6 +108,11 @@ func (m *Manager) Start() {
 // Stop 停止轮询。
 func (m *Manager) Stop() {
 	close(m.stop)
+	m.cancelIdentity()
+	// Synchronize with the last refresh that may have started a probe.
+	m.mu.Lock()
+	m.mu.Unlock()
+	m.identityProbes.Wait()
 }
 
 func (m *Manager) loop() {
@@ -131,6 +152,12 @@ func (m *Manager) RestartADB(ctx context.Context) error {
 
 // refresh 执行 adb devices -l 并与 SQLite 手动设备合并。
 func (m *Manager) refresh() {
+	m.refreshWithReconnect("")
+}
+
+func (m *Manager) refreshWithReconnect(reconnectedSerial string) {
+	m.refreshMu.Lock()
+	defer m.refreshMu.Unlock()
 	m.mu.RLock()
 	aliasRevision := m.aliasRevision
 	m.mu.RUnlock()
@@ -235,6 +262,7 @@ func (m *Manager) refresh() {
 			}
 		}
 	}
+	m.refreshChannels(combined, adbMap, reconnectedSerial, time.Now().UnixMilli())
 	m.devices = combined
 	m.mu.Unlock()
 }
@@ -315,7 +343,7 @@ func (m *Manager) Connect(serial string) error {
 	}
 
 	// 触发一次即刻刷新（包含 failed to authenticate 变为 unauthorized 的情况）
-	m.refresh()
+	m.refreshWithReconnect(connectedADBSerial(output))
 
 	// adb connect 成功通常输出: connected to ... 或 already connected to ...
 	// 未授权时输出: failed to authenticate to ...（此时已建立连接并处于 unauthorized 状态）
@@ -368,10 +396,12 @@ func (m *Manager) AddManualDevice(serial, alias string) (*Device, error) {
 	if !found {
 		m.devices = append(m.devices, *dev)
 	}
+	result := *dev
+	m.attachChannel(&result)
 	m.mu.Unlock()
 
 	go m.refresh()
-	return dev, nil
+	return &result, nil
 }
 
 // RemoveManualDevice 移除手动设备
@@ -475,6 +505,8 @@ func parseDevices(s string) []Device {
 				continue
 			}
 			switch kv[0] {
+			case "usb":
+				d.adbUSB = true
 			case "product":
 				d.Product = kv[1]
 			case "model":
@@ -498,6 +530,7 @@ func (m *Manager) Devices() []Device {
 	copy(res, m.devices)
 	for i := range res {
 		res[i].Identifier = res[i].IdentifierName()
+		m.attachChannel(&res[i])
 	}
 	return res
 }
@@ -508,6 +541,7 @@ func (m *Manager) GetDevice(serial string) (Device, bool) {
 	defer m.mu.RUnlock()
 	for _, d := range m.devices {
 		if d.Serial == serial && d.State == "device" {
+			m.attachChannel(&d)
 			return d, true
 		}
 	}

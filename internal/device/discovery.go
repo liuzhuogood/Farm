@@ -354,7 +354,8 @@ func (d *Discovery) command(ctx context.Context, stdin string, args ...string) (
 	return strings.TrimSpace(string(out)), nil
 }
 func (d *Discovery) connectDevice(ctx context.Context, address string) error {
-	if _, err := d.command(ctx, "", "connect", address); err != nil {
+	output, err := d.command(ctx, "", "connect", address)
+	if err != nil {
 		return err
 	}
 	state, err := d.command(ctx, "", "-s", address, "get-state")
@@ -366,6 +367,15 @@ func (d *Discovery) connectDevice(ctx context.Context, address string) error {
 	}
 	if ctx.Err() != nil {
 		return ctx.Err()
+	}
+	// A new connection discovered between polls must invalidate any previous
+	// identity for this endpoint. Continuous scans also see "already connected".
+	if serial, ok := strings.CutPrefix(output, "connected to "); ok {
+		d.manager.mu.Lock()
+		if ch := d.manager.channels[serial]; ch != nil {
+			ch.invalidateIdentity()
+		}
+		d.manager.mu.Unlock()
 	}
 	if d.manager.db == nil {
 		return fmt.Errorf("数据库未初始化")
