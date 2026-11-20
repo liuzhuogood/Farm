@@ -5,11 +5,9 @@ import {
 import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { invoke, isTauri } from '@tauri-apps/api/core'
-import AppHeader from '@/components/layout/AppHeader.vue'
 import HomeAuroraBackground from '@/components/home/HomeAuroraBackground.vue'
 import HomePhoneView from '@/components/home/HomePhoneView.vue'
 import HomeIosDockBar from '@/components/home/HomeIosDockBar.vue'
-import SystemConfigDialog from '@/components/system/SystemConfigDialog.vue'
 import { Button } from '@/components/ui/button'
 import AddDeviceDialog from '@/components/home/AddDeviceDialog.vue'
 import DeviceIdentifierDialog from '@/components/home/DeviceIdentifierDialog.vue'
@@ -32,7 +30,6 @@ type ViewMode = HomeViewMode
 const router = useRouter()
 const store = useDeviceStore()
 const playerSettings = usePlayerSettings()
-const isConfigOpen = ref(false)
 
 // 投屏小窗按需加载，避免首页首屏加载完整投屏器代码
 const FloatingPlayer = defineAsyncComponent(() => import('@/components/player/FloatingPlayer.vue'))
@@ -273,12 +270,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="home-shell relative flex h-dvh min-h-0 flex-col overflow-hidden text-slate-900 dark:text-slate-100 select-none">
+  <div class="home-shell relative flex h-full min-h-0 flex-col overflow-hidden text-slate-900 dark:text-slate-100 select-none">
     <!-- 极光背景 -->
     <HomeAuroraBackground />
-
-    <!-- 顶部应用导航栏 -->
-    <AppHeader glass class="shrink-0" />
 
     <!-- 主工作区：单列铺满主视口，底部预留悬浮底栏安全边距 -->
     <div class="home-content relative z-10 min-h-0 w-full min-w-0 flex-1 overflow-y-auto overscroll-contain">
@@ -417,14 +411,11 @@ onUnmounted(() => {
       @update:show-offline="setShowOffline"
       @restore-hidden="restoreHiddenDevices"
       @device-action="handleDeviceAction"
-      @open-config="isConfigOpen = true"
+      @open-config="router.push('/settings/general')"
       @open-ai="handleOpenAi"
       @open-shortcuts="handleOpenShortcuts"
       @open-docs="handleOpenDocs"
     />
-
-    <!-- 系统配置弹窗 -->
-    <SystemConfigDialog v-model:open="isConfigOpen" />
 
     <AddDeviceDialog v-model:open="isAddDialogOpen" />
     <DeviceIdentifierDialog :serial="identifierSerial" @close="identifierSerial = null" />

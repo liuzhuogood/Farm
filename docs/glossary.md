@@ -18,7 +18,9 @@
 | 投屏小窗 | 小窗、画中画小窗、画中画、画中画微窗 | 设备详情页顶部「打开小窗」按钮打开的投屏小窗；小窗“更多”菜单提供「设备详情」入口。桌面端为系统级独立原生小窗（路由 `/player?serial=<序列号>&embedded=1`，由 `desktop/src/links.rs` 的 `open_device_window` 创建），Web 端为内嵌可拖拽浮动小窗（`frontend/src/components/player/FloatingPlayer.vue`，浮窗列表由 `frontend/src/composables/useFloatingPlayers.ts` 在首页与详情页共享） |
 | 大屏监控页 | 大屏、监控墙、dashboard | 路由 `/dashboard` · `frontend/src/views/DashboardView.vue` |
 | 文件管理页 | 文件页、文件管理器 | 路由 `/files?serial=<序列号>` · `frontend/src/views/FilesView.vue`;亦内嵌于投屏详情页抽屉(`DevicePlayer.vue`,embedded) |
-| 依赖管理 | 依赖页、依赖面板 | 已无独立页面；入口为系统配置 → 依赖页签（`frontend/src/components/system/SystemConfigDialog.vue` 内 `DependencyPanel`、`MatchingServicePanel`、`OcrServicePanel`） |
+| 任务记录页 | 任务记录、所有任务、任务历史 | 路由 `/tasks` · `frontend/src/views/TaskRecordsView.vue`；汇总所有设备任务，详情按任务懒加载 |
+| API 页 | API、接口入口、接口文档入口 | 路由 `/api` · `frontend/src/views/ApiView.vue`；汇总自动化接口、全量接口、OpenAPI 与常用调用 |
+| 依赖管理 | 依赖页、依赖面板 | 路由 `/settings/dependencies` · `frontend/src/views/settings/DependencySettingsView.vue`；修改后自动保存并生效，首次进入显示骨架屏 |
 | AI 集成页 | 与 AI 集成、AI 集成、接入指南 | 路由 `/ai-integration` · `frontend/src/views/AiIntegrationView.vue` |
 | MCP 接入 | MCP 安装、MCP 卸载、MCP 配置 | AI 集成页内 `frontend/src/components/ai-integration/McpPanel.vue`；后端 `internal/mcpconfig`，接口 `/api/ai-integrations/mcp` |
 | 技能详情页 | 技能详情、技能二级页面 | 路由 `/ai-integration/skills/:id` · `frontend/src/views/SkillDetailView.vue` |
@@ -35,22 +37,24 @@
 |---|---|---|
 | 设备卡片 | 卡片 | `frontend/src/components/device/DeviceCard.vue` |
 | macOS 托盘图标 | 菜单栏图标、状态栏图标、托盘 | `desktop/src/menu.rs` 的 `main-tray`；macOS 使用独立 `desktop/icons/tray-white.png`，纯白图形、透明背景，无包围外框；保留原有托盘菜单和点击行为 |
-| 顶栏 | header、顶部导航 | `frontend/src/components/layout/AppHeader.vue`；首页顶栏与主内容滚动区分离，使用 Liquid Glass 材质，其他页面保留原有默认样式 |
+| 左侧菜单 | 侧边菜单、侧栏、主导航、菜单栏 | `frontend/src/components/layout/AppSidebar.vue`；主导航设备列表 / 任务记录 / AI 集成 / API，底部设置可展开；可收起并持久化宽度状态 |
+| 顶栏 | header、顶部导航 | `frontend/src/components/layout/AppHeader.vue`；仅投屏、文件、大屏等非主菜单页面保留；首页、任务记录、AI 集成、API 与设置页不再显示顶部操作栏 |
 | 小窗顶栏 | 小窗工具条、投屏工具栏、收边条、指示灯 | `frontend/src/components/player/DevicePlayer.vue` 内的工具栏；小窗默认收起，顶部把手（含连接指示灯）仅在指针进入窗口顶部 24px 热区时出现，平时完全隐藏以免遮挡画面，悬停或点击把手时展开工具条，顶部其余区域不唤出；展开后移出工具条延时收起，使用菜单期间保持展开；恢复小窗快捷键或菜单“视图 → 恢复所有小窗”保留 |
 | 小窗窗口设置 | 透明度菜单、鼠标穿透菜单 | `frontend/src/components/player/WindowEffectsControl.vue`;原生小窗的透明度、鼠标穿透与无边框开关 |
 | 主窗口窗口设置 | 主窗口透明度菜单、主窗口效果 | 原生菜单栏“窗口”菜单 · `desktop/src/menu.rs` 与 `desktop/src/main_window.rs`；主窗口置顶、无边框、透明度调节、鼠标穿透与恢复默认；置顶/无边框/穿透收进“窗口效果”二级菜单、透明度收进“透明度”二级菜单，顶栏不再显示这些控件（前端控件组件已移除） |
 | 原生菜单设备列表 | 菜单设备列表、视图设备列表 | 原生菜单栏“视图 → 设备列表”二级菜单；每 5 秒刷新 `GET /api/devices`（3 秒超时），仅列出 `state == "device"` 的在线设备，点击直接打开该设备投屏小窗（`desktop/src/menu_devices.rs`、`desktop/src/links.rs` 的 `open_device_window_internal`） |
 | ADB 服务重启 | 重启 ADB、ADB 重启服务 | 原生菜单栏“视图 → 重启 ADB 服务”与托盘菜单同名项；桌面端调用 `POST /api/adb/restart`，后端 `internal/device` 的 `RestartADB` 依次执行 `adb kill-server`、`adb start-server`（`desktop/src/menu.rs`） |
 | 无边框 | 隐藏系统标题栏 | 原生投屏小窗默认无系统边框；窗口、设置与菜单中的切换入口已移除。小窗工具栏为半透明覆盖层，显隐不改变视频尺寸；主窗口保持原有系统标题栏覆盖外观 |
-| 投屏设置 | 播放器设置 | 系统设置页签 `frontend/src/components/system/PlayerSettingsContent.vue` 保存默认配置;投屏详情页侧栏 `frontend/src/components/player/PlayerSettingsPanel.vue` 调整当前投屏 |
+| 投屏设置 | 播放器设置 | 设置 → 通用设置内 `frontend/src/components/system/PlayerSettingsContent.vue` 保存默认配置;投屏详情页侧栏 `frontend/src/components/player/PlayerSettingsPanel.vue` 调整当前投屏 |
 | 右侧抽屉 | 抽屉、侧栏、侧边栏 | 投屏详情页右侧自适应面板,默认展示设备任务，收纳检查器、文件管理、模板管理、ADB 终端(`frontend/src/components/player/DevicePlayer.vue`) |
 | 设备任务面板 | 任务面板、任务情况、Pinky任务界面 | 投屏详情页默认右侧 `frontend/src/components/player/DeviceTasksPanel.vue`；小窗默认不展开，工具栏可打开；按当前serial展示完整任务、已提交步骤进度、指令与结果、错误、截图录像产物及结束摘要，不推算完整任务百分比 |
 | 播放器检查器 | 检查器、取色器、放大镜 | 右侧抽屉内:取色坐标、像素放大镜、XML 树、XPath 与元素定位联动 |
 | 检查模式 | 拾取模式、检查开关 | 检查器顶栏的显式开关,仅开启后拦截画面输入;打开面板默认可操控设备,完成取色、元素选择或 OCR 框选后自动退出 |
 | ADB 终端 | Web Shell、交互式终端 | 右侧抽屉内 xterm.js 终端,真实 PTY 分配 |
 | 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏 | 系统设置 → 通用设置中的开关，默认关闭；开启后按设备计算，无投屏、ADB 终端、命令及设备操作满 10 分钟后由后端自动熄屏，后台遥测与屏幕状态轮询不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
-| 系统配置 | 设置、系统设置、系统配置弹窗 | 首页入口弹窗 `frontend/src/components/system/SystemConfigDialog.vue`,页签:通用设置 / 投屏设置 / 服务 / 依赖（内含模板匹配与 OCR）；本次打开期间保留面板实例，切换不重建投屏控件 |
-| 更新设置 | 检查更新开关、自动更新开关 | 系统配置 → 通用设置 → 更新；`frontend/src/composables/useUpdateSettings.ts` 持久化“检查更新”“自动更新”，关闭检查更新时自动更新同步关闭 |
+| 系统设置 | 设置、设置页、系统配置 | 路由 `/settings/general`、`/settings/service`、`/settings/dependencies`（`frontend/src/views/settings/`）；左侧菜单底部设置展开后进入，不再使用弹窗 |
+| 更新设置 | 检查更新开关、自动更新开关 | 设置 → 通用设置 → 更新；`frontend/src/composables/useUpdateSettings.ts` 持久化“检查更新”“自动更新”，关闭检查更新时自动更新同步关闭 |
+| 设置页底部操作 | 恢复所有小窗入口、重启 ADB 入口 | `frontend/src/components/layout/AppSidebar.vue`；恢复所有小窗仅桌面端可用（`restore_all_player_windows`），重启 ADB 调用 `POST /api/adb/restart` |
 | 底部更新提示 | 新版本提示、版本提醒 | `frontend/src/components/updater/UpdateCenter.vue`；主窗口底部胶囊提示，点击打开统一更新弹窗，不再在首页顶栏展示更新标签 |
 | 检查更新菜单 | 菜单检查更新、托盘检查更新 | macOS 主菜单 Farm 与托盘菜单同名项；`desktop/src/menu.rs` 通过 `check-update` 事件唤醒主窗口并打开更新弹窗 |
 | 大屏磁贴 | 磁贴、tile | `frontend/src/components/dashboard/DashTile.vue` |

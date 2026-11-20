@@ -12,22 +12,69 @@ import PythonModulesPanel from '@/components/system/PythonModulesPanel.vue'
 
 const props = withDefaults(defineProps<{ active?: boolean }>(), { active: true })
 const w = useDependencies()
-const { status, error, message, loading, saving, pending, checking, checks } = w
+const { status, error, message, saving, pending, checking, checks, load } = w
 const uninstallTarget = ref<ManagedTool>()
 const licenseOpen = ref(false)
 const licenseAccepted = ref(false)
 const pythonChangeOpen = ref(false)
+const hydrated = ref(false)
 let disposed = false
 let activation = 0
-onUnmounted(() => { disposed = true })
+let autoTimer: ReturnType<typeof setTimeout> | undefined
+onUnmounted(() => { disposed = true; clearTimeout(autoTimer) })
 watch(() => props.active, async (active) => {
   const current = ++activation
+  hydrated.value = false
   w.stopPolling()
   if (!active) return
   if (status.value) await w.refresh()
   else await w.load()
-  if (current === activation && props.active && !disposed) w.startPolling()
+  if (current === activation && props.active && !disposed) {
+    hydrated.value = true
+    w.startPolling()
+  }
 }, { immediate: true })
+
+function differs() {
+  return Boolean(status.value) && JSON.stringify(w.draft.value) !== JSON.stringify(status.value?.config)
+}
+
+function queueSave() {
+  if (!hydrated.value || !status.value || w.loading.value || w.saving.value || w.pending.value || pythonChangeOpen.value) return
+  clearTimeout(autoTimer)
+  if (!differs()) {
+    error.value = ''
+    message.value = ''
+    return
+  }
+  autoTimer = setTimeout(() => { void autoSave() }, 700)
+}
+
+async function autoSave() {
+  if (!hydrated.value || !status.value || !differs() || w.saving.value || pythonChangeOpen.value) return
+  const previous = status.value.config.python
+  const next = w.selection('python')
+  if (previous && (previous.source !== next.source || previous.path !== next.path)) {
+    pythonChangeOpen.value = true
+    return
+  }
+  await w.save(true)
+}
+
+async function confirmPythonChange() {
+  pythonChangeOpen.value = false
+  await w.save(true)
+}
+
+function cancelPythonChange() {
+  pythonChangeOpen.value = false
+  if (status.value) w.draft.value.python = structuredClone(status.value.config.python)
+  queueSave()
+}
+
+watch(() => w.draft.value, () => { queueSave() }, { deep: true })
+watch(() => w.saving.value, (value) => { if (!value) queueSave() })
+
 function change(id: DependencyId, key: keyof Selection, value: unknown) {
   if (typeof value !== 'string') return
   if (key === 'source' && value !== 'system' && value !== 'builtin') return
@@ -43,19 +90,6 @@ async function uninstall() {
   const tool = uninstallTarget.value
   uninstallTarget.value = undefined
   if (tool) await w.action(tool.id, `/api/dependencies/installed/${tool.id}`, 'DELETE')
-}
-function save() {
-  const previous = status.value?.config.python
-  const next = w.selection('python')
-  if (previous && (previous.source !== next.source || previous.path !== next.path)) {
-    pythonChangeOpen.value = true
-    return
-  }
-  void w.save()
-}
-function confirmPythonChange() {
-  pythonChangeOpen.value = false
-  void w.save()
 }
 function result(tool: ManagedTool) {
   if (checks.value[tool.id]) return checks.value[tool.id]
@@ -73,7 +107,23 @@ function label(tool: ManagedTool) {
   <div class="flex min-h-0 flex-col">
     <div class="min-h-0 space-y-3 overflow-y-auto px-5 py-5">
       <p class="text-xs text-muted-foreground">内置依赖按需下载，保存在应用数据目录。</p>
-      <p v-if="loading" role="status" class="text-sm text-muted-foreground">正在检测依赖…</p>
+      <div v-if="!status && !error" class="space-y-3" role="status" aria-label="正在检测依赖">
+        <div v-for="index in 3" :key="index" class="animate-pulse rounded-lg border p-4">
+          <div class="flex items-center justify-between gap-4">
+            <div class="space-y-2">
+              <div class="h-4 w-24 rounded bg-slate-200 dark:bg-white/10" />
+              <div class="h-3 w-40 rounded bg-slate-100 dark:bg-white/5" />
+            </div>
+            <div class="h-8 w-28 rounded-md bg-slate-100 dark:bg-white/5" />
+          </div>
+          <div class="mt-4 h-9 w-full rounded-md bg-slate-100 dark:bg-white/5" />
+        </div>
+        <p class="text-xs text-muted-foreground">正在检测依赖…</p>
+      </div>
+      <div v-else-if="!status" class="rounded-lg border border-destructive/30 bg-destructive/5 p-4" role="alert">
+        <p class="text-sm text-destructive">{{ error }}</p>
+        <Button variant="outline" size="sm" class="mt-3" @click="load">重新检测</Button>
+      </div>
       <template v-if="status">
         <div class="flex items-center justify-between gap-3 rounded-lg border p-4"><div><p class="text-sm font-medium">scrcpy-server.jar</p><p class="mt-1 text-xs text-muted-foreground">设备投屏 · 4.0</p></div><Badge variant="secondary">随应用内置</Badge></div>
         <div v-for="tool in status.managed" :key="tool.id" class="space-y-3 rounded-lg border p-4">
@@ -104,17 +154,15 @@ function label(tool: ManagedTool) {
           <PythonModulesPanel v-if="tool.id === 'python'" :runtime="result(tool)" :task="tool.modules_task" :disabled="Boolean(pending) || saving" @install="w.action('python', '/api/dependencies/python/modules', 'POST', { selection: w.selection('python') })" @cancel="w.action('python', '/api/dependencies/python/modules', 'DELETE')" />
         </div>
       </template>
-      <slot />
+      <slot v-if="status" />
     </div>
     <footer class="flex shrink-0 items-center gap-3 border-t px-5 py-3">
       <p v-if="error" role="alert" class="flex-1 text-xs text-destructive">{{ error }}</p>
       <p v-else-if="message" role="status" class="flex-1 text-xs text-muted-foreground">{{ message }}</p>
-      <div class="ml-auto flex items-center gap-2">
-        <slot name="actions" />
-        <Button size="sm" :disabled="!status || loading || pending || saving" @click="save"><Loader2 v-if="saving" class="size-3.5 animate-spin" />保存</Button>
-      </div>
+      <p v-else class="flex-1 text-xs text-muted-foreground">修改后自动保存并生效</p>
+      <Loader2 v-if="saving" class="size-3.5 animate-spin text-muted-foreground" />
     </footer>
-    <Dialog v-model:open="pythonChangeOpen"><DialogContent class="sm:max-w-md"><DialogHeader><DialogTitle>切换 Python</DialogTitle><DialogDescription>切换将结束本应用使用旧 Python 的模板匹配、PaddleOCR 和 Indra OCR 进程，并中断正在准备的服务依赖。切换后需手动重新启动相关服务。</DialogDescription></DialogHeader><DialogFooter class="gap-2"><Button variant="outline" @click="pythonChangeOpen = false">取消</Button><Button @click="confirmPythonChange">切换并保存</Button></DialogFooter></DialogContent></Dialog>
+    <Dialog v-model:open="pythonChangeOpen"><DialogContent class="sm:max-w-md"><DialogHeader><DialogTitle>切换 Python</DialogTitle><DialogDescription>切换将结束本应用使用旧 Python 的模板匹配、PaddleOCR 和 Indra OCR 进程，并中断正在准备的服务依赖。确认后会立即切换，需手动重新启动相关服务。</DialogDescription></DialogHeader><DialogFooter class="gap-2"><Button variant="outline" @click="cancelPythonChange">取消</Button><Button @click="confirmPythonChange">切换并生效</Button></DialogFooter></DialogContent></Dialog>
     <Dialog :open="Boolean(uninstallTarget)" @update:open="value => { if (!value) uninstallTarget = undefined }"><DialogContent class="sm:max-w-sm"><DialogHeader><DialogTitle>卸载内置 {{ uninstallTarget?.name }}</DialogTitle><DialogDescription>将删除应用安装的依赖文件。{{ uninstallTarget?.selection.source === 'builtin' ? '重新安装后才能使用相关功能。' : '不会删除系统安装的依赖。' }}</DialogDescription></DialogHeader><DialogFooter class="gap-2"><Button variant="outline" @click="uninstallTarget = undefined">取消</Button><Button variant="destructive" @click="uninstall">卸载</Button></DialogFooter></DialogContent></Dialog>
     <Dialog v-model:open="licenseOpen"><DialogContent class="sm:max-w-md"><DialogHeader><DialogTitle>安装 ADB</DialogTitle><DialogDescription>下载并安装 Android SDK Platform-Tools 36.0.2。</DialogDescription></DialogHeader><a href="https://developer.android.com/studio/terms" target="_blank" rel="noopener" class="text-sm underline">阅读 Android SDK 许可协议</a><label class="flex items-center gap-2 text-sm"><Checkbox :model-value="licenseAccepted" @update:model-value="value => licenseAccepted = value === true" />我已阅读并同意许可协议</label><DialogFooter><Button variant="outline" @click="licenseOpen = false">取消</Button><Button :disabled="!licenseAccepted" @click="licenseOpen = false; w.action('adb', '/api/dependencies/install', 'POST', { id: 'adb', accept_license: true })">安装</Button></DialogFooter></DialogContent></Dialog>
   </div>

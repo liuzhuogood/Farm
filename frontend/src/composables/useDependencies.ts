@@ -81,9 +81,14 @@ export function useDependencies() {
     catch (cause) { error.value = cause instanceof Error ? cause.message : '检测失败' }
     finally { checking.value = undefined }
   }
-  async function save() {
+  async function save(silent = false) {
     saving.value = true; error.value = ''; message.value = ''
-    try { await refreshing?.catch(() => undefined); await request('/api/dependencies/config', { method: 'PUT', body: JSON.stringify(draft.value) }); await refresh(); message.value = '已保存' }
+    try {
+      await refreshing?.catch(() => undefined)
+      await request('/api/dependencies/config', { method: 'PUT', body: JSON.stringify(draft.value) })
+      await refresh()
+      message.value = silent ? '已自动保存' : '已保存'
+    }
     catch (cause) { error.value = cause instanceof Error ? cause.message : '保存失败' }
     finally { saving.value = false }
   }

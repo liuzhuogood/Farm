@@ -2,7 +2,7 @@
 import type { AiTool, AiToolId, SkillCategory, SkillInstallTargetResult, SkillItem } from '@/api/aiIntegrations'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { AlertCircle, Bot, Loader2, RotateCcw } from 'lucide-vue-next'
+import { AlertCircle, Loader2, RotateCcw } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -12,7 +12,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
-import AppHeader from '@/components/layout/AppHeader.vue'
 import HomeAuroraBackground from '@/components/home/HomeAuroraBackground.vue'
 import AiGuidePanel from '@/components/ai-integration/AiGuidePanel.vue'
 import AiToolSelector from '@/components/ai-integration/AiToolSelector.vue'
@@ -267,20 +266,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative min-h-screen text-slate-900 dark:text-slate-100 select-none pb-20 overflow-x-clip">
+  <div class="relative h-full overflow-x-clip overflow-y-auto pb-20 text-slate-900 select-none dark:text-slate-100">
     <!-- 极光光斑渐变与星芒网格背景 -->
     <HomeAuroraBackground />
 
-    <!-- 顶部应用导航栏 -->
-    <AppHeader
-      back
-      back-to="/"
-      title="AI 集成"
-      :icon="Bot"
-    />
-
-    <main class="relative z-10 flex-1 pb-16 pt-5">
+    <main class="relative z-10 flex-1 pb-16 pt-6">
       <div class="mx-auto max-w-6xl space-y-8 px-4 sm:px-6">
+        <header>
+          <h1 class="text-2xl font-bold tracking-tight">AI 集成</h1>
+          <p class="mt-1 text-sm text-muted-foreground">把 Farm 的设备能力接入常用 AI 助手，按指引安装技能与 MCP。</p>
+        </header>
         <!-- 加载中状态 -->
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 text-muted-foreground">
           <Loader2 class="h-8 w-8 animate-spin" />

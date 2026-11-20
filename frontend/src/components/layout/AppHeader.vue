@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ArrowLeft, Bot, ChevronDown, Ellipsis, Github, Settings, X } from 'lucide-vue-next'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import SystemConfigDialog from '@/components/system/SystemConfigDialog.vue'
 import { useMainWindowEffects } from '@/composables/useMainWindowEffects'
 
 interface Props {
@@ -47,7 +46,7 @@ const emit = defineEmits<{
   (e: 'back'): void
 }>()
 
-const configOpen = ref(false)
+const router = useRouter()
 const effects = useMainWindowEffects()
 const isHeaderHovered = ref(false)
 
@@ -294,7 +293,7 @@ function handleHeaderMouseDown(e: MouseEvent) {
           size="sm"
           class="h-8 rounded-xl border border-slate-200/80 bg-slate-100/70 text-slate-800 hover:bg-slate-200/80 hover:text-slate-950 dark:border-white/15 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20 dark:hover:text-white text-xs font-medium px-3 gap-1.5 shadow-2xs backdrop-blur-md transition-all cursor-pointer"
           aria-label="系统设置"
-          @click="configOpen = true"
+          @click="router.push('/settings/general')"
         >
           <Settings class="size-4" />
           <span class="hidden sm:inline">系统设置</span>
@@ -325,6 +324,5 @@ function handleHeaderMouseDown(e: MouseEvent) {
         </DropdownMenu>
       </div>
     </div>
-    <SystemConfigDialog v-model:open="configOpen" />
   </header>
 </template>

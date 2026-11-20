@@ -40,6 +40,37 @@ func (h *HistoryStore) ListTasks(ctx context.Context, serial string, limit int) 
 	return tasks, nil
 }
 
+// ListAllTasks reads audited tasks across devices for the read-only task
+// records page. It does not change task ownership or MCP recording behavior.
+func (h *HistoryStore) ListAllTasks(ctx context.Context, limit int) ([]TaskRecord, error) {
+	if limit < 1 || limit > 500 {
+		return nil, fmt.Errorf("history task limit must be 1..500")
+	}
+	rows, err := h.db.QueryContext(ctx, `SELECT id, device_id, agent, title, state, summary, started_at, ended_at, step_count, approval_count
+		FROM tasks ORDER BY started_at DESC, id DESC LIMIT ?`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	tasks := make([]TaskRecord, 0)
+	for rows.Next() {
+		var task TaskRecord
+		var started, ended int64
+		if err := rows.Scan(&task.ID, &task.DeviceID, &task.Agent, &task.Title, &task.State, &task.Summary, &started, &ended, &task.StepCount, &task.ApprovalCount); err != nil {
+			return nil, err
+		}
+		task.StartedAt = time.UnixMilli(started)
+		if ended != 0 {
+			task.EndedAt = time.UnixMilli(ended)
+		}
+		tasks = append(tasks, task)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
+
 // GetTaskDetailLimited reads only a device's most recent audited steps. It is
 // intentionally separate from GetTaskDetail: existing MCP exports retain their
 // complete history, while the live panel has bounded rows and field sizes.

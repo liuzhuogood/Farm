@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, RouterView } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { isTauri } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import ApprovalPopup from '@/components/ai-integration/ApprovalPopup.vue'
+import AppShell from '@/components/layout/AppShell.vue'
 import { Toaster } from '@/components/ui/sonner'
 import UpdateCenter from '@/components/updater/UpdateCenter.vue'
 
 const router = useRouter()
+const route = useRoute()
+const useShell = computed(() => route.meta.shell === true)
 let unlisten: UnlistenFn | undefined
 
 onMounted(async () => {
@@ -39,7 +43,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <RouterView />
+  <AppShell v-if="useShell">
+    <RouterView />
+  </AppShell>
+  <RouterView v-else />
   <ApprovalPopup />
   <UpdateCenter />
   <Toaster position="bottom-center" />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Loader2, Play, RefreshCw, Square } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { Badge } from '@/components/ui/badge'
@@ -26,8 +26,10 @@ const indraPreparing = computed(() => status.value?.indra_status === 'installing
 const saving = ref(false)
 const preparing = computed(() => status.value?.paddle_status === 'installing' || status.value?.paddle_status === 'starting')
 let pollTimer: ReturnType<typeof setTimeout> | undefined
+let saveTimer: ReturnType<typeof setTimeout> | undefined
 let disposed = false
 let statusEpoch = 0
+let hydrating = false
 
 const macUrl = ref('')
 const macAuth = ref('')
@@ -40,6 +42,7 @@ const testMsg = ref<{ mac?: string, paddle?: string, indra?: string }>({})
 
 async function loadStatus() {
   loading.value = true
+  hydrating = true
   try {
     const res = await getOCRStatus()
     status.value = res
@@ -53,6 +56,7 @@ async function loadStatus() {
   }
   finally {
     loading.value = false
+    window.setTimeout(() => { hydrating = false }, 0)
   }
 }
 
@@ -103,25 +107,43 @@ async function testIndra() {
   }
 }
 
-async function save() {
+function configPayload() {
+  return {
+    macocr_url: macUrl.value.trim(),
+    macocr_auth: macAuth.value.trim(),
+    paddleocr_url: paddleUrl.value.trim(),
+    indraocr_url: indraUrl.value.trim(),
+    engine: engine.value,
+  }
+}
+
+function scheduleSave() {
+  if (hydrating || !status.value || loading.value || saving.value) return
+  clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => { void autoSave() }, 700)
+}
+
+async function autoSave() {
+  if (hydrating || !status.value || saving.value) return
+  const payload = configPayload()
+  if (payload.macocr_url === status.value.macocr_url
+    && payload.paddleocr_url === status.value.paddleocr_url
+    && payload.indraocr_url === status.value.indraocr_url
+    && payload.engine === (status.value.engine || 'auto')
+    && !payload.macocr_auth) return
   saving.value = true
   try {
-    status.value = await saveOCRConfig({
-      macocr_url: macUrl.value.trim(),
-      macocr_auth: macAuth.value.trim(),
-      paddleocr_url: paddleUrl.value.trim(),
-      indraocr_url: indraUrl.value.trim(),
-      engine: engine.value,
-    })
-    toast.success('OCR 配置已保存')
+    status.value = await saveOCRConfig(payload)
   }
   catch (e) {
-    toast.error(e instanceof Error ? e.message : '保存失败')
+    toast.error(e instanceof Error ? e.message : 'OCR 配置自动保存失败')
   }
   finally {
     saving.value = false
   }
 }
+
+watch([macUrl, macAuth, paddleUrl, indraUrl, engine], scheduleSave)
 
 async function testPaddle() {
   const url = paddleUrl.value || status.value?.paddleocr_url || 'http://127.0.0.1:8031/upload'
@@ -165,7 +187,11 @@ onMounted(() => {
   }
   pollTimer = setTimeout(poll, 2500)
 })
-onUnmounted(() => { disposed = true; if (pollTimer) clearTimeout(pollTimer) })
+onUnmounted(() => {
+  disposed = true
+  if (pollTimer) clearTimeout(pollTimer)
+  if (saveTimer) clearTimeout(saveTimer)
+})
 </script>
 
 <template>
@@ -291,9 +317,12 @@ onUnmounted(() => { disposed = true; if (pollTimer) clearTimeout(pollTimer) })
     <!-- OCR 引擎模式与远程地址配置 -->
     <Card>
       <CardHeader class="pb-3">
-        <CardTitle class="text-sm font-semibold">OCR 引擎与远程服务配置</CardTitle>
+        <CardTitle class="flex items-center gap-2 text-sm font-semibold">
+          OCR 引擎与远程服务配置
+          <Badge v-if="saving" variant="secondary" class="text-[10px]">保存中</Badge>
+        </CardTitle>
         <CardDescription class="text-xs">
-          配置全局默认 OCR 引擎类型，及各引擎的服务地址。
+          配置全局默认 OCR 引擎类型，及各引擎的服务地址；修改后自动保存。
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4 pt-0">
@@ -387,13 +416,6 @@ onUnmounted(() => { disposed = true; if (pollTimer) clearTimeout(pollTimer) })
           </p>
         </div>
 
-        <!-- 保存按钮 -->
-        <div class="flex justify-end pt-2">
-          <Button size="sm" :disabled="saving" @click="save">
-            <Loader2 v-if="saving" class="mr-1.5 h-3.5 w-3.5 animate-spin" />
-            保存配置
-          </Button>
-        </div>
       </CardContent>
     </Card>
   </div>

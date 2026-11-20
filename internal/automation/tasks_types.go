@@ -21,6 +21,22 @@ type Task struct {
 	Directory      string         `json:"directory,omitempty"`
 }
 
+// TaskRecordSummary is the read-only index row used by the all-device task
+// records page. Steps and artifacts are loaded from the existing per-task API.
+type TaskRecordSummary struct {
+	ID        string     `json:"id"`
+	Serial    string     `json:"serial"`
+	Title     string     `json:"title"`
+	Source    string     `json:"source"`
+	State     string     `json:"state"`
+	Summary   string     `json:"summary"`
+	StartedAt time.Time  `json:"started_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	EndedAt   *time.Time `json:"ended_at,omitempty"`
+	Active    bool       `json:"active"`
+	StepCount int        `json:"step_count"`
+}
+
 type TaskStep struct {
 	reserve   int64
 	Index     int            `json:"index"`

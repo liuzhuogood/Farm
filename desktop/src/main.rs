@@ -116,6 +116,7 @@ fn main() {
             player_windows::set_player_borderless,
             player_windows::set_player_toolbar_visible,
             player_windows::restore_player_window,
+            player_windows::restore_all_player_windows,
             main_window::get_main_window_state,
             main_window::set_main_window_opacity,
             main_window::set_main_window_click_through,
@@ -154,6 +155,7 @@ fn main() {
                     .permission("allow-set-player-toolbar-visible")
                     .permission("core:window:allow-start-dragging")
                     .permission("allow-restore-player-window")
+                    .permission("allow-restore-all-player-windows")
                     .permission("allow-get-main-window-state")
                     .permission("allow-set-main-window-opacity")
                     .permission("allow-set-main-window-click-through")

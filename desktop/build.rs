@@ -28,6 +28,7 @@ fn main() {
             "set_player_borderless",
             "set_player_toolbar_visible",
             "restore_player_window",
+            "restore_all_player_windows",
             "get_main_window_state",
             "set_main_window_opacity",
             "set_main_window_click_through",

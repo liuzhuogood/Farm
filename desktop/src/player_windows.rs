@@ -286,6 +286,12 @@ pub async fn restore_player_window(app: AppHandle, serial: String) -> Result<(),
     restore(&app, &label)
 }
 
+#[tauri::command]
+pub async fn restore_all_player_windows(app: AppHandle) -> Result<(), String> {
+    restore_all(&app);
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

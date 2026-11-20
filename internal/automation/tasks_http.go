@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -20,6 +21,7 @@ func (s *Service) registerTaskRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/automation/tasks", s.handleListTasks)
 	mux.HandleFunc("GET /api/automation/tasks/{task_id}", s.handleGetTask)
 	mux.HandleFunc("POST /api/automation/tasks/{task_id}/finish", s.handleFinishTask)
+	mux.HandleFunc("GET /api/automation/task-records", s.handleListTaskRecords)
 }
 func taskSerial(r *http.Request) (string, error) {
 	values, ok := r.URL.Query()["serial"]
@@ -75,6 +77,85 @@ func (s *Service) handleListTasks(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, 200, map[string]any{"tasks": tasks})
+}
+
+func taskRecordState(state string) bool {
+	return state == "running" || state == "done" || state == "failed" || state == "stopped"
+}
+
+func (s *Service) handleListTaskRecords(w http.ResponseWriter, r *http.Request) {
+	limit := 200
+	if value := r.URL.Query().Get("limit"); value != "" {
+		parsed, err := strconv.Atoi(value)
+		if err != nil || parsed < 1 || parsed > 500 {
+			writeTaskError(w, taskError(400, "invalid_limit", "limit 必须是 1..500 的整数"))
+			return
+		}
+		limit = parsed
+	}
+	records, err := s.taskRecords(r.Context(), limit)
+	if err != nil {
+		writeTaskError(w, err)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	writeJSON(w, 200, map[string]any{"tasks": records})
+}
+
+func (s *Service) taskRecords(ctx context.Context, limit int) ([]TaskRecordSummary, error) {
+	rt := s.taskRuntime()
+	rt.mu.Lock()
+	records := make([]TaskRecordSummary, 0, len(rt.tasks))
+	seen := make(map[string]bool, len(rt.tasks))
+	for _, task := range rt.tasks {
+		view := task.view
+		records = append(records, TaskRecordSummary{
+			ID: view.ID, Serial: view.Serial, Title: view.Title, Source: view.Source,
+			State: view.State, Summary: view.Summary, StartedAt: view.StartedAt, UpdatedAt: view.UpdatedAt,
+			EndedAt: view.EndedAt, Active: view.Active, StepCount: len(view.Steps),
+		})
+		seen[view.ID] = true
+	}
+	history := rt.history
+	rt.mu.Unlock()
+	if history != nil {
+		readCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		defer cancel()
+		rows, err := history.ListAllTasks(readCtx, limit)
+		if err != nil {
+			return nil, fmt.Errorf("读取任务记录: %w", err)
+		}
+		for _, row := range rows {
+			if seen[row.ID] {
+				continue
+			}
+			if !taskRecordState(row.State) {
+				return nil, fmt.Errorf("任务记录 %s 包含未支持状态 %q", row.ID, row.State)
+			}
+			updated := row.StartedAt
+			var ended *time.Time
+			if !row.EndedAt.IsZero() {
+				value := row.EndedAt
+				ended = &value
+				updated = value
+			}
+			records = append(records, TaskRecordSummary{
+				ID: row.ID, Serial: row.DeviceID, Title: row.Title, Source: "mcp",
+				State: row.State, Summary: row.Summary, StartedAt: row.StartedAt, UpdatedAt: updated,
+				EndedAt: ended, Active: false, StepCount: row.StepCount,
+			})
+		}
+	}
+	sort.Slice(records, func(i, j int) bool {
+		if records[i].StartedAt.Equal(records[j].StartedAt) {
+			return records[i].ID > records[j].ID
+		}
+		return records[i].StartedAt.After(records[j].StartedAt)
+	})
+	if len(records) > limit {
+		records = records[:limit]
+	}
+	return records, nil
 }
 func (s *Service) handleGetTask(w http.ResponseWriter, r *http.Request) {
 	serial, err := taskSerial(r)

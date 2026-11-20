@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-restore-all-player-windows"
+description = "Enables the restore_all_player_windows command without any pre-configured scope."
+commands.allow = ["restore_all_player_windows"]
+
+[[permission]]
+identifier = "deny-restore-all-player-windows"
+description = "Denies the restore_all_player_windows command without any pre-configured scope."
+commands.deny = ["restore_all_player_windows"]
