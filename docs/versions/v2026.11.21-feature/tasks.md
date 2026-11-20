@@ -26,11 +26,11 @@
   - 桌面端新增“恢复所有小窗”命令；重启 ADB 走 `POST /api/adb/restart`。
   - 更新术语字典与相关页面指向。
 
-- [ ] **S6 构建、自测与 beta 发布**
+- [x] **S6 构建、自测与 beta 发布**
   - [x] 本地 `pnpm --dir frontend build`、`go test ./...`、Rust 测试。
   - [x] 修复生产二进制直接访问 `/tasks`、`/settings/*` 等路由时的 SPA fallback。
   - [x] Mac mini（10.0.0.11）实机自测并留存证据。
-  - beta 发布流水线支持 `v*-beta.N`，推送 `v2026.11.21-beta.1` 并核对 Release。
+  - [x] beta 发布流水线支持 `v*-beta.N`，推送 `v2026.11.21-beta.1` 并核对 Release。
 
 ## 验收记录
 
@@ -42,4 +42,4 @@
 | S4 | 通过 | `evidence/macmini/{settings-menu,settings-general,settings-service,settings-dependencies,settings-dependencies-skeleton}.png` |
 | S5 | 通过 | 桌面命令与权限测试通过；Mac mini 浏览器实测“重启 ADB 服务”，设备重新发现；`evidence/macmini/restart-adb.png` |
 | S6 构建与自测 | 通过 | 前端构建、完整 Go 测试、Rust 测试、版本同步测试；`evidence/local-smoke/`、`evidence/macmini/` |
-| S6 beta 发布 | 待发布 | 推送 tag 后核对 GitHub Release |
+| S6 beta 发布 | 通过 | [Release](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.1)；[Actions](https://github.com/liuzhuogood/Farm/actions/runs/44797883718)；[发布验收](evidence/release-beta.md) |

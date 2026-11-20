@@ -40,4 +40,5 @@
 - 2026-11-21 S1–S5 完成，前端、Go、Rust 与版本同步测试通过。
 - 2026-11-21 修复生产二进制子路由 404：无扩展名的页面路径回退 `index.html`，缺失静态资源及 `/api/*`、`/ws*` 保持 404。
 - 2026-11-21 Mac mini（`10.0.0.11:8090`）完成菜单、任务记录、设置、依赖骨架屏、自动保存与 ADB 重启自测，证据见 `evidence/macmini/`。
-- 2026-11-21 beta 预发布待推送 `v2026.11.21-beta.1`。
+- 2026-11-21 beta 已发布：[v2026.11.21-beta.1](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.1)，标记为预发布，正式最新版仍为 `v2026.11.17-1`。
+- 2026-11-21 Mac mini 使用 GitHub Release 下载的 `farm-macos-arm64-cli` 完成发布版复测，DMG 版本与代码签名校验通过；详见 `evidence/release-beta.md`。
