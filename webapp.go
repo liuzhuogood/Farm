@@ -5,11 +5,11 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"path"
 	"strings"
 	"time"
 
 	"farm/internal/apidocs"
-	"farm/internal/skillsmarket"
 )
 
 var automationAPIsManager *apidocs.Manager
@@ -42,7 +42,7 @@ func serveOpenAPISpec(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(openAPISpec)
 }
 
-// Only Vue routes receive the shell. Missing assets and API paths must stay 404.
+// Vue routes receive the shell. Missing assets and API paths must stay 404.
 func newAppHandler(appRoot fs.FS) http.Handler {
 	index, indexErr := fs.ReadFile(appRoot, "index.html")
 	if indexErr != nil {
@@ -56,10 +56,7 @@ func newAppHandler(appRoot fs.FS) http.Handler {
 			return
 		}
 		switch {
-		case r.URL.Path == "/" || r.URL.Path == "/index.html" || r.URL.Path == "/player" ||
-			r.URL.Path == "/dashboard" || r.URL.Path == "/approval" || r.URL.Path == "/files" ||
-			r.URL.Path == "/dependencies" || r.URL.Path == "/ai-integration" ||
-			skillsmarket.IsSkillDetailRoutePath(r.URL.Path):
+		case isSPAPath(r.URL.Path):
 			if indexErr != nil {
 				http.Error(w, "web app unavailable", http.StatusServiceUnavailable)
 				return
@@ -75,4 +72,11 @@ func newAppHandler(appRoot fs.FS) http.Handler {
 			files.ServeHTTP(w, r)
 		}
 	})
+}
+
+func isSPAPath(requestPath string) bool {
+	if strings.HasPrefix(requestPath, "/api/") || strings.HasPrefix(requestPath, "/ws") {
+		return false
+	}
+	return requestPath == "/api" || path.Ext(requestPath) == ""
 }

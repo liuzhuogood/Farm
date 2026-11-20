@@ -32,19 +32,23 @@ func TestAppRoutesAndStaticAssets(t *testing.T) {
 		{"GET", "/player?serial=device-1", 200, `id="app"`},
 		{"GET", "/dashboard", 200, `id="app"`},
 		{"GET", "/approval", 200, `id="app"`},
-		{"GET", "/scripts", 404, ""},
-		{"GET", "/tasks", 404, ""},
+		{"GET", "/scripts", 200, `id="app"`},
+		{"GET", "/tasks", 200, `id="app"`},
+		{"GET", "/api", 200, `id="app"`},
+		{"GET", "/settings", 200, `id="app"`},
+		{"GET", "/settings/general", 200, `id="app"`},
+		{"GET", "/settings/dependencies", 200, `id="app"`},
 		{"GET", "/dependencies", 200, `id="app"`},
 		{"GET", "/ai-integration", 200, `id="app"`},
 		{"GET", "/ai-integration/skills/farm-device-base", 200, `id="app"`},
 		{"GET", "/ai-integration/skills/unknown-skill", 200, `id="app"`},
-		{"GET", "/ai-integration/skills/unknown-skill/extra", 404, ""},
+		{"GET", "/ai-integration/skills/unknown-skill/extra", 200, `id="app"`},
 		{"GET", "/files?serial=device-1", 200, `id="app"`},
 		{"GET", "/assets/app.js", 200, "console.log"},
 		{"GET", "/assets/missing.js", 404, ""},
 		{"GET", "/api/missing", 404, ""},
 		{"GET", "/ws", 404, ""},
-		{"GET", "/app/", 404, ""},
+		{"GET", "/app/", 200, `id="app"`},
 		{"GET", "/player.html", 404, ""},
 		{"GET", "/dashboard.html", 404, ""},
 		{"GET", "/files.html", 404, ""},
@@ -68,6 +72,25 @@ func TestAppRoutesAndStaticAssets(t *testing.T) {
 			}
 			if w.Header().Get("Location") != "" {
 				t.Fatal("unexpected compatibility redirect")
+			}
+		})
+	}
+}
+
+func TestAppRouteFallbackContentType(t *testing.T) {
+	app := fstest.MapFS{
+		"index.html": {Data: []byte(`<div id="app"></div>`)},
+	}
+	handler := newAppHandler(app)
+	for _, route := range []string{"/tasks", "/settings/general", "/settings/service", "/settings/dependencies", "/api"} {
+		t.Run(route, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, route, nil))
+			if w.Code != http.StatusOK {
+				t.Fatalf("status=%d", w.Code)
+			}
+			if contentType := w.Header().Get("Content-Type"); !strings.HasPrefix(contentType, "text/html") {
+				t.Fatalf("content type=%q", contentType)
 			}
 		})
 	}
