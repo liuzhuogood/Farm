@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Monitor, Moon, Sun } from 'lucide-vue-next'
+import { Monitor, Moon, RefreshCw, Sun } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,6 +45,11 @@ watch(open, (value) => {
   }
 })
 
+async function checkNow() {
+  if (updater.isChecking) return
+  await updater.checkAndOpen()
+}
+
 async function handleChannel(value: 'stable' | 'beta') {
   if (value === updateChannel.value) return
   try {
@@ -87,20 +92,22 @@ async function handleServiceSave() {
             <p class="text-sm font-medium">更新</p>
             <div class="divide-y rounded-lg border">
               <div class="flex items-center justify-between gap-4 px-4 py-3">
-                <label for="update-channel" class="text-sm">更新通道</label>
-                <Select :model-value="updateChannel" @update:model-value="value => handleChannel(value as 'stable' | 'beta')">
-                  <SelectTrigger id="update-channel" class="w-36" aria-label="更新通道">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="stable">正式版</SelectItem>
-                    <SelectItem value="beta">beta 测试版</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div class="flex items-center justify-between gap-4 px-4 py-3">
                 <label for="update-check" class="text-sm">检查更新</label>
-                <Switch id="update-check" :model-value="updateSettings.checkOnStartup" aria-label="检查更新" @update:model-value="(value) => setCheckOnStartup(value === true)" />
+                <div class="flex items-center gap-2">
+                  <Select :model-value="updateChannel" @update:model-value="value => handleChannel(value as 'stable' | 'beta')">
+                    <SelectTrigger class="w-32" aria-label="更新通道">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="stable">正式版</SelectItem>
+                      <SelectItem value="beta">beta 测试版</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="ghost" size="icon-sm" aria-label="立即检查更新" :disabled="updater.isChecking" @click="checkNow">
+                    <RefreshCw class="size-4" :class="{ 'animate-spin': updater.isChecking }" />
+                  </Button>
+                  <Switch id="update-check" :model-value="updateSettings.checkOnStartup" aria-label="检查更新" @update:model-value="(value) => setCheckOnStartup(value === true)" />
+                </div>
               </div>
               <div class="flex items-center justify-between gap-4 px-4 py-3">
                 <label for="update-auto" class="text-sm" :class="{ 'text-muted-foreground': !updateSettings.checkOnStartup }">自动更新</label>
