@@ -180,6 +180,11 @@ func main() {
 	if err != nil {
 		log.Printf("警告: 初始化更新器失败: %v", err)
 	} else {
+		if database != nil {
+			if attachErr := updaterService.AttachStore(database); attachErr != nil {
+				log.Printf("警告: 读取更新通道失败，按正式通道运行: %v", attachErr)
+			}
+		}
 		updater.RegisterRoutes(mux, updaterService)
 		updaterService.ConfigureRuntime(serviceUpdatePolicy(*readyFlag != "", addr), func() error { return updatePrepare() }, func() { close(updateStop) }, func() { updateResume() })
 	}

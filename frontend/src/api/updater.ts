@@ -76,6 +76,24 @@ export function subscribeUpgradeStream(onProgress: (p: UpgradeProgress) => void,
 }
 
 export function isDesktopUpdate(): boolean { return isTauri() }
+
+export type UpdateChannel = 'stable' | 'beta'
+
+export async function getUpdateChannel(): Promise<UpdateChannel> {
+  const res = await fetch('/api/version/channel')
+  if (!res.ok) throw new Error(`读取更新通道失败: ${res.statusText}`)
+  const data = await res.json() as { channel?: string }
+  return data.channel === 'beta' ? 'beta' : 'stable'
+}
+
+export async function setUpdateChannel(channel: UpdateChannel): Promise<void> {
+  const res = await fetch('/api/version/channel', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel }),
+  })
+  if (!res.ok) throw new Error((await res.text()) || `保存更新通道失败: ${res.statusText}`)
+}
 export async function upgradeDesktop(onProgress: (value: UpgradeProgress) => void): Promise<void> {
  const channel = new Channel<UpgradeProgress>()
  channel.onmessage = onProgress

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import CopyValueButton from '@/components/common/CopyValueButton.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -17,6 +18,8 @@ import OcrServicePanel from './OcrServicePanel.vue'
 import PlayerSettingsContent from './PlayerSettingsContent.vue'
 import IdleScreenSettings from './IdleScreenSettings.vue'
 import { useUpdateSettings } from '@/composables/useUpdateSettings'
+import { useUpdaterStore } from '@/stores/updater'
+import { toast } from 'vue-sonner'
 
 const props = defineProps<{ initialTab?: 'general' | 'player' | 'theme' | 'service' | 'dependencies' | 'matching' | 'ocr' }>()
 
@@ -24,7 +27,8 @@ const open = defineModel<boolean>('open', { default: false })
 const tab = ref('general')
 const desktopConfig = useDesktopConfig()
 const serviceConfig = useServiceConfig()
-const { settings: updateSettings, setCheckOnStartup, setAutoUpdate } = useUpdateSettings()
+const { settings: updateSettings, channel: updateChannel, loadChannel, changeChannel, setCheckOnStartup, setAutoUpdate } = useUpdateSettings()
+const updater = useUpdaterStore()
 const themes = [{ id: 'auto' as const, name: '系统', icon: Monitor }, { id: 'light' as const, name: '明亮', icon: Sun }, { id: 'dark' as const, name: '黑暗', icon: Moon }]
 
 watch(open, (value) => {
@@ -37,8 +41,21 @@ watch(open, (value) => {
     }
     void desktopConfig.load()
     void serviceConfig.load()
+    void loadChannel()
   }
 })
+
+async function handleChannel(value: 'stable' | 'beta') {
+  if (value === updateChannel.value) return
+  try {
+    await changeChannel(value)
+    await updater.check()
+  }
+  catch (error) {
+    console.error('[更新通道] 切换失败', error)
+    toast.error('切换更新通道失败')
+  }
+}
 
 async function handleServiceSave() {
   if (desktopConfig.isDesktop.value && !desktopConfig.config.value?.is_overridden) {
@@ -69,6 +86,18 @@ async function handleServiceSave() {
             </div>
             <p class="text-sm font-medium">更新</p>
             <div class="divide-y rounded-lg border">
+              <div class="flex items-center justify-between gap-4 px-4 py-3">
+                <label for="update-channel" class="text-sm">更新通道</label>
+                <Select :model-value="updateChannel" @update:model-value="value => handleChannel(value as 'stable' | 'beta')">
+                  <SelectTrigger id="update-channel" class="w-36" aria-label="更新通道">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="stable">正式版</SelectItem>
+                    <SelectItem value="beta">beta 测试版</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div class="flex items-center justify-between gap-4 px-4 py-3">
                 <label for="update-check" class="text-sm">检查更新</label>
                 <Switch id="update-check" :model-value="updateSettings.checkOnStartup" aria-label="检查更新" @update:model-value="(value) => setCheckOnStartup(value === true)" />

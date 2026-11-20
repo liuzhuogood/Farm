@@ -5,6 +5,54 @@ use tauri::{ipc::Channel, AppHandle, Manager};
 use tauri_plugin_updater::UpdaterExt;
 
 static UPGRADING: AtomicBool = AtomicBool::new(false);
+
+const STABLE_DESKTOP_ENDPOINT: &str =
+    "https://github.com/liuzhuogood/Farm/releases/latest/download/desktop-latest.json";
+
+/// 解析后端返回的更新地址；缺失或非 https 时回退正式通道。
+fn parse_endpoint(body: &str) -> Option<String> {
+    let value: serde_json::Value = serde_json::from_str(body).ok()?;
+    value
+        .get("endpoint")
+        .and_then(|endpoint| endpoint.as_str())
+        .filter(|endpoint| endpoint.starts_with("https://"))
+        .map(str::to_string)
+}
+
+/// 桌面更新索引由后端按已保存的更新通道解析；后端不可用时按正式通道运行。
+async fn desktop_endpoint(app: &AppHandle) -> String {
+    let url = format!("{}/api/version/desktop-endpoint", app.state::<State>().url);
+    let client = match crate::menu_devices::polling_client() {
+        Ok(client) => client,
+        Err(error) => {
+            eprintln!("[Updater] 创建更新地址查询客户端失败，使用正式通道: {error}");
+            return STABLE_DESKTOP_ENDPOINT.into();
+        }
+    };
+    let response = match client.get(&url).send().await {
+        Ok(response) => response,
+        Err(error) => {
+            eprintln!("[Updater] 获取更新地址失败，使用正式通道: {error}");
+            return STABLE_DESKTOP_ENDPOINT.into();
+        }
+    };
+    match response.text().await {
+        Ok(body) => match parse_endpoint(&body) {
+            Some(endpoint) => {
+                eprintln!("[Updater] 使用更新地址: {endpoint}");
+                endpoint
+            }
+            None => {
+                eprintln!("[Updater] 更新地址响应缺失，使用正式通道");
+                STABLE_DESKTOP_ENDPOINT.into()
+            }
+        },
+        Err(error) => {
+            eprintln!("[Updater] 读取更新地址响应失败，使用正式通道: {error}");
+            STABLE_DESKTOP_ENDPOINT.into()
+        }
+    }
+}
 struct UpgradeGuard;
 impl Drop for UpgradeGuard {
     fn drop(&mut self) {
@@ -35,7 +83,7 @@ pub struct Progress {
     total: u64,
     speed: &'static str,
 }
-fn builder(app: &AppHandle) -> Result<tauri_plugin_updater::Updater, String> {
+async fn builder(app: &AppHandle) -> Result<tauri_plugin_updater::Updater, String> {
     #[cfg(windows)]
     if std::env::current_exe().map_err(|e| e.to_string())?.file_name()
         .is_some_and(|name| name == "farm-windows-gui-amd64.exe") {
@@ -50,10 +98,10 @@ fn builder(app: &AppHandle) -> Result<tauri_plugin_updater::Updater, String> {
     if std::env::var_os("APPIMAGE").is_none() {
         return Err("此安装方式请通过完整安装包更新".into());
     }
-    let endpoint = tauri::Url::parse(
-        "https://github.com/liuzhuogood/Farm/releases/latest/download/desktop-latest.json",
-    )
-    .map_err(|e| e.to_string())?;
+    let endpoint = desktop_endpoint(app).await;
+    let endpoint = tauri::Url::parse(&endpoint)
+        .or_else(|_| tauri::Url::parse(STABLE_DESKTOP_ENDPOINT))
+        .map_err(|e| e.to_string())?;
     app.updater_builder()
         .pubkey(key)
  .timeout(std::time::Duration::from_secs(30))
@@ -79,7 +127,7 @@ pub async fn desktop_check_update(app: AppHandle) -> Result<CheckResult, String>
         asset_size: 0,
         download_url: String::new(),
     };
-    let updater = match builder(&app) {
+    let updater = match builder(&app).await {
         Ok(value) => value,
         Err(reason) => {
             eprintln!("[Updater] 更新器不可用: {reason}");
@@ -124,7 +172,8 @@ pub async fn desktop_upgrade(app: AppHandle, on_progress: Channel<Progress>) -> 
         return Err("更新正在进行".into());
     }
     let _guard = UpgradeGuard;
-    let update = builder(&app)?
+    let update = builder(&app)
+        .await?
         .check()
         .await
         .map_err(|e| {
@@ -227,4 +276,31 @@ pub fn record_backend_pid(data: &std::path::Path, pid: u32) -> Result<(), String
         .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod endpoint_tests {
+    use super::{parse_endpoint, STABLE_DESKTOP_ENDPOINT};
+
+    #[test]
+    fn parses_backend_endpoint() {
+        let body = r#"{"channel":"beta","endpoint":"https://github.com/liuzhuogood/Farm/releases/download/v2026.11.21-beta.1/desktop-latest.json"}"#;
+        assert_eq!(
+            parse_endpoint(body).as_deref(),
+            Some("https://github.com/liuzhuogood/Farm/releases/download/v2026.11.21-beta.1/desktop-latest.json")
+        );
+    }
+
+    #[test]
+    fn rejects_missing_or_unsafe_endpoint() {
+        assert_eq!(parse_endpoint("{}"), None);
+        assert_eq!(parse_endpoint("not json"), None);
+        assert_eq!(parse_endpoint(r#"{"endpoint":"http://evil.example/x.json"}"#), None);
+        assert_eq!(parse_endpoint(r#"{"endpoint":""}"#), None);
+    }
+
+    #[test]
+    fn stable_endpoint_stays_on_github_https() {
+        assert!(STABLE_DESKTOP_ENDPOINT.starts_with("https://github.com/liuzhuogood/Farm/releases/latest/download/"));
+    }
 }

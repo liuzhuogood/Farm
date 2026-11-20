@@ -5113,7 +5113,22 @@
           "系统版本与更新"
         ],
         "summary": "检查应用版本更新",
-        "description": "联网查询 GitHub Release 检查是否有新版本，获取更新日志、下载链接及更新包哈希摘要",
+        "description": "联网查询 GitHub Release 检查是否有新版本，获取更新日志、下载链接及更新包哈希摘要；显式传入 channel 时只对本次检查生效",
+        "parameters": [
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "description": "临时覆盖更新通道，不保存设置；缺省使用已保存的通道",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "stable",
+                "beta"
+              ]
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "版本检测结果",
@@ -5127,6 +5142,101 @@
           },
           "500": {
             "description": "检查更新网络失败"
+          }
+        }
+      }
+    },
+    "/api/version/channel": {
+      "get": {
+        "tags": [
+          "系统版本与更新"
+        ],
+        "summary": "读取更新通道",
+        "description": "返回当前客户端的更新通道：stable 只取正式发布，beta 额外包含 v*-beta.* 预发布；Web 与桌面共用同一份配置",
+        "responses": {
+          "200": {
+            "description": "当前更新通道",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateChannelSetting"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "系统版本与更新"
+        ],
+        "summary": "切换更新通道",
+        "description": "保存更新通道设置，Web 与桌面共用同一份配置",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChannelSetting"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "已保存的更新通道",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateChannelSetting"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "通道取值非法或请求正文格式错误"
+          },
+          "500": {
+            "description": "保存更新通道设置失败"
+          }
+        }
+      }
+    },
+    "/api/version/desktop-endpoint": {
+      "get": {
+        "tags": [
+          "系统版本与更新"
+        ],
+        "summary": "获取桌面更新索引地址",
+        "description": "按通道解析桌面端更新索引：正式通道固定指向 releases/latest，beta 通道指向最新 v*-beta.* 预发布的索引；无可用 beta 时回退正式通道",
+        "parameters": [
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "description": "临时覆盖更新通道，不保存设置",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "stable",
+                "beta"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "解析后的桌面更新索引地址",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateChannelEndpoint"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "更新索引地址解析失败"
           }
         }
       }
@@ -9912,6 +10022,15 @@
             "description": "当前运行环境是否支持直接在线自动升级",
             "example": true
           },
+          "channel": {
+            "type": "string",
+            "description": "本次检查使用的更新通道",
+            "enum": [
+              "stable",
+              "beta"
+            ],
+            "example": "stable"
+          },
           "has_update": {
             "type": "boolean",
             "description": "是否有更高的新版本发布",
@@ -9963,6 +10082,48 @@
           "has_update",
           "current_version",
           "latest_version"
+        ]
+      },
+      "UpdateChannelSetting": {
+        "type": "object",
+        "description": "更新通道设置",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "stable：只取正式发布；beta：额外包含 v*-beta.* 预发布",
+            "enum": [
+              "stable",
+              "beta"
+            ],
+            "example": "stable"
+          }
+        },
+        "required": [
+          "channel"
+        ]
+      },
+      "UpdateChannelEndpoint": {
+        "type": "object",
+        "description": "按通道解析出的桌面更新索引地址",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "实际采用的通道，解析 beta 失败时回退 stable",
+            "enum": [
+              "stable",
+              "beta"
+            ],
+            "example": "beta"
+          },
+          "endpoint": {
+            "type": "string",
+            "description": "桌面端 Tauri 更新索引 URL",
+            "example": "https://github.com/liuzhuogood/Farm/releases/download/v2026.11.21-beta.1/desktop-latest.json"
+          }
+        },
+        "required": [
+          "channel",
+          "endpoint"
         ]
       },
       "VersionProgressInfo": {

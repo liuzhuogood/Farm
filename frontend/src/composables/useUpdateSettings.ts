@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { getUpdateChannel, setUpdateChannel, type UpdateChannel } from '@/api/updater'
 
 export const UPDATE_SETTINGS_KEY = 'farm.update-settings'
 
@@ -39,6 +40,9 @@ function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> | undefined {
 
 const settings = ref<UpdateSettings>(loadUpdateSettings(browserStorage()))
 
+// 通道存后端配置，Web 与桌面共用；读取失败时按正式通道处理。
+const channel = ref<UpdateChannel>('stable')
+
 function persist() {
   browserStorage()?.setItem(UPDATE_SETTINGS_KEY, JSON.stringify(settings.value))
 }
@@ -60,7 +64,22 @@ export function useUpdateSettings() {
     persist()
   }
 
-  return { settings, setCheckOnStartup, setAutoUpdate }
+  async function loadChannel() {
+    try {
+      channel.value = await getUpdateChannel()
+    }
+    catch (error) {
+      console.warn('[更新通道] 读取失败，按正式通道处理', error)
+      channel.value = 'stable'
+    }
+  }
+
+  async function changeChannel(value: UpdateChannel) {
+    await setUpdateChannel(value)
+    channel.value = value
+  }
+
+  return { settings, channel, loadChannel, changeChannel, setCheckOnStartup, setAutoUpdate }
 }
 
 export function updateActionFor(result: { has_update: boolean; can_upgrade: boolean } | null | undefined, value: UpdateSettings) {
