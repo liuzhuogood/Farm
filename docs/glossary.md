@@ -144,3 +144,13 @@
 | 安全审核小窗 | 审核弹窗、审核置顶窗口 | 全局 `ApprovalPopup.vue`；桌面端独立原生置顶窗 `/approval`，Web 端右下角浮动卡片；待审请求自动弹出，允许一次/拒绝/接管，队列为空关闭原生窗 |
 
 | 审核小窗 | 置顶审核窗、单条审核弹窗 | `ApprovalPopup.vue` 与 `desktop/src/links.rs`；每个审核 ID 独立原生置顶窗口 `/approval?approval=<ID>`，多请求错位打开，处理后仅关闭对应窗口；Web 为各请求独立浮层 |
+
+## 双连接设备归并（S1 / S2 已实现，S3–S6 待开发）
+
+见 [designs/2026-11-19-dual-link-device-merge.md](designs/2026-11-19-dual-link-device-merge.md)。
+
+| 术语 | 别名(口语) | 指向 |
+| --- | --- | --- |
+| 设备身份 | 归并键、设备唯一身份、硬件序列号身份 | 同一台设备的稳定标识；取 `ro.serialno` → `ro.boot.serialno` → `android_id`，加 `hw:` / `aid:` 前缀；取不到不参与归并 |
+| 连接方式 | 通道、链路、USB 连接、无线连接 | 同一设备的一条 adb 连接，`kind` 为 `usb` 或 `wifi`；接口字段 `connections[]`，`active` 表示当前使用 |
+| 双连接设备 | 两条连接、双链路、一台两路 | 同一台手机同时插 USB 与开无线调试，归并为一个设备条目，卡片显示两个连接图标 |

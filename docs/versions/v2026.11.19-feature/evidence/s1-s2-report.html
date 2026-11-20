@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>v2026.11.19-feature S1/S2 验收报告</title>
+<style>
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;margin:32px auto;max-width:1080px;color:#1f2328;padding:0 20px}
+h1{font-size:22px;margin-bottom:4px} h2{font-size:17px;margin-top:28px;border-bottom:1px solid #d8dee4;padding-bottom:6px}
+.meta{color:#57606a;font-size:13px} table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13px}
+th,td{border:1px solid #d0d7de;padding:6px 8px;text-align:left;vertical-align:top} th{background:#f6f8fa}
+code,pre{background:#f6f8fa;border-radius:6px} pre{padding:12px;overflow:auto;font-size:12px}
+.pass{color:#1a7f37;font-weight:600} .todo{color:#9a6700;font-weight:600} .fail{color:#cf222e;font-weight:600}
+</style></head><body>
+<h1>v2026.11.19-feature · S1/S2 验收报告</h1>
+<p class="meta">2026-11-20 · 环境 10.0.0.6 · 被测构建：S1+S2（基线 v2026.11.17-1）· 临时端口 18090，验收后已停止并清理</p>
+
+<h2>1. 结论</h2>
+<table><thead><tr><th>用例</th><th>结果</th><th>说明</th></tr></thead><tbody>
+<tr><td>T1 双连接合并</td><td class="pass">通过</td><td>6 条 adb 记录归并为 3 个设备条目，每台两条连接</td></tr>
+<tr><td>T2 默认 USB</td><td class="pass">通过</td><td>3 台均 active_kind=usb，serial 为硬件序列号</td></tr>
+<tr><td>T4 无线关掉</td><td class="pass">通过</td><td>条目保留，无线标离线，USB 仍为当前；重连后恢复</td></tr>
+<tr><td>T7 不同设备不误并</td><td class="pass">通过</td><td>3 个身份各自独立</td></tr>
+<tr><td>标识名按身份</td><td class="pass">通过</td><td>用无线 serial 改别名，落在合并条目上</td></tr>
+<tr><td>T12 自动化口径</td><td class="pass">部分通过</td><td>一行一设备已生效；/fram.skill 契约属 S6 未改</td></tr>
+<tr><td>T3 USB 拔掉</td><td class="todo">未执行</td><td>远程无法插拔，由假 ADB 单测覆盖</td></tr>
+<tr><td>T5/T8/T9/T10/T11</td><td class="todo">未执行</td><td>依赖 S3–S6 或现场人工操作</td></tr>
+</tbody></table>
+
+<h2>2. 对照：旧代码 6 条，新代码 3 条</h2>
+<p>生产 <code>8080</code>（v2026.11.17-1，S2 之前）：6 个条目。</p>
+<table><thead><tr><th>serial</th><th>state</th><th>identity</th><th>active_kind</th><th>connections</th></tr></thead><tbody><tr><td>31040209940025Z</td><td>device</td><td></td><td></td><td></td></tr>
+<tr><td>3105357943002BH</td><td>device</td><td></td><td></td><td></td></tr>
+<tr><td>9lmn897livkzprnf</td><td>device</td><td></td><td></td><td></td></tr>
+<tr><td>10.0.0.104:5555</td><td>device</td><td></td><td></td><td></td></tr>
+<tr><td>10.0.0.244:5555</td><td>device</td><td></td><td></td><td></td></tr>
+<tr><td>10.0.0.30:5555</td><td>device</td><td></td><td></td><td></td></tr></tbody></table>
+<p>临时 <code>18090</code>（S1+S2 构建）：3 个条目。</p>
+<table><thead><tr><th>serial</th><th>state</th><th>identity</th><th>active_kind</th><th>connections</th></tr></thead><tbody><tr><td>31040209940025Z</td><td>device</td><td>hw:31040209940025Z</td><td>usb</td><td>usb✔·当前, wifi✔</td></tr>
+<tr><td>3105357943002BH</td><td>device</td><td>hw:3105357943002BH</td><td>usb</td><td>usb✔·当前, wifi✔</td></tr>
+<tr><td>9lmn897livkzprnf</td><td>device</td><td>hw:9lmn897livkzprnf</td><td>usb</td><td>usb✔·当前, wifi✔</td></tr></tbody></table>
+
+<h2>3. 无线断开与恢复</h2>
+<p>执行 <code>adb disconnect 10.0.0.104:5555</code> 后：3 个条目（未增加），该机无线连接离线、USB 仍为当前。</p>
+<table><thead><tr><th>serial</th><th>state</th><th>identity</th><th>active_kind</th><th>connections</th></tr></thead><tbody><tr><td>31040209940025Z</td><td>device</td><td>hw:31040209940025Z</td><td>usb</td><td>usb✔·当前, wifi✘</td></tr>
+<tr><td>3105357943002BH</td><td>device</td><td>hw:3105357943002BH</td><td>usb</td><td>usb✔·当前, wifi✔</td></tr>
+<tr><td>9lmn897livkzprnf</td><td>device</td><td>hw:9lmn897livkzprnf</td><td>usb</td><td>usb✔·当前, wifi✔</td></tr></tbody></table>
+<p>执行 <code>adb connect 10.0.0.104:5555</code> 后恢复：</p>
+<table><thead><tr><th>serial</th><th>state</th><th>identity</th><th>active_kind</th><th>connections</th></tr></thead><tbody><tr><td>31040209940025Z</td><td>device</td><td>hw:31040209940025Z</td><td>usb</td><td>usb✔·当前, wifi✔</td></tr>
+<tr><td>3105357943002BH</td><td>device</td><td>hw:3105357943002BH</td><td>usb</td><td>usb✔·当前, wifi✔</td></tr>
+<tr><td>9lmn897livkzprnf</td><td>device</td><td>hw:9lmn897livkzprnf</td><td>usb</td><td>usb✔·当前, wifi✔</td></tr></tbody></table>
+
+<h2>4. 自动化设备列表</h2>
+<pre>设备 &quot;vivo&quot; · serial &quot;31040209940025Z&quot; · 在线
+设备 &quot;vivo&quot; · serial &quot;3105357943002BH&quot; · 在线
+设备 &quot;Redmi&quot; · serial &quot;9lmn897livkzprnf&quot; · 在线</pre>
+
+<h2>5. 本地门禁</h2>
+<pre>go test ./... -count=1            # 全部通过
+GOOS=linux GOARCH=amd64 go build  # 成功
+pnpm --dir frontend build          # 成功</pre>
+
+<h2>6. 未覆盖</h2>
+<ul>
+<li>T3 USB 物理拔插、T5 全离线、T8 IP 复用、T9 恢复出厂、T10 顺序、T11 会话解析：现场条件不具备或依赖后续步骤。</li>
+<li>S3 前端并列图标与本地偏好迁移、S4 详情页连接面板、S5 数据库迁移、S6 /fram.skill 契约：尚未实施。</li>
+<li>本次没有截图类图片，未使用 OSS 上传。</li>
+</ul>
+</body></html>

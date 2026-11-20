@@ -598,8 +598,16 @@ func (m *Manager) updateDeviceTelemetryInMemory(serial string, tel TelemetryInfo
 	}
 }
 
+// telemetryKey 返回设备级缓存键：已采到身份时按身份，未采到时退回通道 serial。
+func (m *Manager) telemetryKey(d *Device) string {
+	if d.Identity != "" {
+		return d.Identity
+	}
+	return d.Serial
+}
+
 // runHardwareFetch 异步执行 adb 命令获取设备静态硬件属性
-func (m *Manager) runHardwareFetch(serial string) {
+func (m *Manager) runHardwareFetch(key, serial string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 6*time.Second)
 	defer cancel()
 
@@ -609,7 +617,7 @@ func (m *Manager) runHardwareFetch(serial string) {
 	out, err := cmd.Output()
 	if len(out) == 0 {
 		m.telemetryMu.Lock()
-		delete(m.fetchingHW, serial)
+		delete(m.fetchingHW, key)
 		m.telemetryMu.Unlock()
 		return
 	}
@@ -617,15 +625,15 @@ func (m *Manager) runHardwareFetch(serial string) {
 
 	hw := parseHardwareProps(string(out))
 	m.telemetryMu.Lock()
-	m.hardwareCache[serial] = hw
-	delete(m.fetchingHW, serial)
+	m.hardwareCache[key] = hw
+	delete(m.fetchingHW, key)
 	m.telemetryMu.Unlock()
 
 	m.updateDeviceHardwareInMemory(serial, hw)
 }
 
 // runTelemetryFetch 异步执行 adb 命令获取单台设备的电量、温度及当前前台应用
-func (m *Manager) runTelemetryFetch(serial string) {
+func (m *Manager) runTelemetryFetch(key, serial string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -640,7 +648,7 @@ func (m *Manager) runTelemetryFetch(serial string) {
 
 	tel := parseBatteryAndThermal(string(out))
 	m.telemetryMu.Lock()
-	m.telemetryCache[serial] = tel
+	m.telemetryCache[key] = tel
 	m.telemetryMu.Unlock()
 
 	m.updateDeviceTelemetryInMemory(serial, tel)
@@ -669,23 +677,22 @@ func (m *Manager) telemetryLoop() {
 	}
 }
 
-// pollOnlineDevicesTelemetry 遍历在线设备并串行采集遥测（避免打满 adb 连接）
+// pollOnlineDevicesTelemetry 按设备遍历并在其当前通道上串行采集遥测（避免打满 adb 连接）
 func (m *Manager) pollOnlineDevicesTelemetry() {
 	m.mu.RLock()
-	var onlineSerials []string
-	for _, d := range m.devices {
-		if d.State == "device" {
-			onlineSerials = append(onlineSerials, d.Serial)
-		}
-	}
+	devices := m.groupedSnapshotLocked()
 	m.mu.RUnlock()
 
-	for _, serial := range onlineSerials {
+	for i := range devices {
+		d := devices[i]
+		if d.State != "device" {
+			continue
+		}
 		select {
 		case <-m.stop:
 			return
 		default:
-			m.runTelemetryFetch(serial)
+			m.runTelemetryFetch(m.telemetryKey(&d), d.Serial)
 		}
 	}
 }

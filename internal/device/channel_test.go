@@ -66,7 +66,7 @@ ro.serialno) `+tc.commands+"\nesac\n")
 	}
 }
 
-func TestRefreshCachesIdentityBySerialAndResamplesOnReconnect(t *testing.T) {
+func TestRefreshResamplesChannelIdentityOnReconnect(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("FAKE_CHANNEL_DIR", dir)
 	adb := fakeChannelADB(t, dir, `
@@ -86,27 +86,20 @@ esac
 
 	m := NewManager(adb, nil)
 	defer m.Stop()
-	m.hardwareCache[usb] = HardwareInfo{}
-	m.hardwareCache[wifi] = HardwareInfo{}
 	m.refresh()
 	m.identityProbes.Wait()
+
 	devices := m.Devices()
-	if len(devices) != 3 {
-		t.Fatalf("want 3 rows, got %+v", devices)
+	if len(devices) != 2 {
+		t.Fatalf("want one merged device plus one pending row, got %+v", devices)
 	}
-	for i, kind := range []string{"usb", "wifi"} {
-		d := devices[i]
-		if d.Identity != "hw:Phone123" || d.IdentitySource != "ro.serialno" || d.ActiveKind != kind ||
-			len(d.Connections) != 1 || d.Connections[0].Kind != kind || d.Connections[0].Serial != d.Serial ||
-			!d.Connections[0].Online || !d.Connections[0].Active || d.Connections[0].LastSeenAt <= 0 {
-			t.Fatalf("unexpected %s row %+v", kind, d)
-		}
+	if d := devices[0]; d.Identity != "hw:Phone123" || d.IdentitySource != "ro.serialno" ||
+		d.ActiveKind != "usb" || len(d.Connections) != 2 ||
+		d.Connections[0].Kind != "usb" || d.Connections[1].Kind != "wifi" {
+		t.Fatalf("merged row %+v", d)
 	}
-	if devices[0].Connections[0].Address != "" || devices[1].Connections[0].Address != wifi {
-		t.Fatalf("unexpected addresses: %+v", devices)
-	}
-	if d := devices[2]; d.Identity != "" || d.IdentitySource != "pending" || d.ActiveKind != "" ||
-		len(d.Connections) != 1 || d.Connections[0].State != "unauthorized" || d.Connections[0].Online || d.Connections[0].Active {
+	if d := devices[1]; d.Identity != "" || d.IdentitySource != "pending" || d.ActiveKind != "" ||
+		len(d.Connections) != 1 || d.Connections[0].State != "unauthorized" || d.Connections[0].Online {
 		t.Fatalf("unauthorized row %+v", d)
 	}
 	devices[0].Connections[0].Serial = "mutated snapshot"
@@ -117,45 +110,49 @@ esac
 	m.identityProbes.Wait()
 	assertChannelCalls(t, dir, 2)
 
-	seenAt := m.Devices()[0].Connections[0].LastSeenAt
-	writeChannelFixture(t, dir, "devices", "USB123 offline\n192.0.2.2:5555 device transport_id:2\n")
+	// An unplugged USB keeps its identity for grouping: the card stays merged
+	// and the current channel moves to wifi.
+	writeChannelFixture(t, dir, "devices", "192.0.2.2:5555 device transport_id:2\n")
 	m.refresh()
-	m.identityProbes.Wait()
-	if d := m.Devices()[0]; d.ActiveKind != "" || d.IdentitySource != "pending" ||
-		d.Connections[0].Online || d.Connections[0].LastSeenAt < seenAt {
-		t.Fatalf("offline row %+v", d)
+	if d := m.Devices()[0]; d.Serial != wifi || d.ActiveKind != "wifi" || d.Identity != "hw:Phone123" ||
+		d.Connections[0].Kind != "usb" || d.Connections[0].Online ||
+		d.Connections[1].Kind != "wifi" || !d.Connections[1].Online || !d.Connections[1].Active {
+		t.Fatalf("failover row %+v", d)
 	}
 	assertChannelCalls(t, dir, 2)
 
+	// Replugging replays identity collection on the USB channel.
 	writeChannelFixture(t, dir, "identity", "Phone456\n")
 	writeChannelFixture(t, dir, "devices", both)
 	m.refresh()
 	m.identityProbes.Wait()
 	assertChannelCalls(t, dir, 3)
-	if got := m.Devices()[0].Identity; got != "hw:Phone456" {
-		t.Fatalf("USB identity after offline: %q", got)
+	if got := m.channels[usb].identity; got != "hw:Phone456" {
+		t.Fatalf("USB identity after replug: %q", got)
 	}
-	if got := m.Devices()[1].Identity; got != "hw:Phone123" {
-		t.Fatalf("WiFi cache was replaced by USB identity: %q", got)
+	if got := m.channels[wifi].identity; got != "hw:Phone123" {
+		t.Fatalf("wifi identity was overwritten by the USB channel: %q", got)
 	}
 
+	// A successful reconnect resamples the wifi channel.
 	writeChannelFixture(t, dir, "identity", "Phone789\n")
 	if err := m.Connect("192.0.2.2"); err != nil {
 		t.Fatal(err)
 	}
 	m.identityProbes.Wait()
 	assertChannelCalls(t, dir, 4)
-	if got := m.Devices()[1].Identity; got != "hw:Phone789" {
-		t.Fatalf("WiFi identity after successful Connect: %q", got)
+	if got := m.channels[wifi].identity; got != "hw:Phone789" {
+		t.Fatalf("wifi identity after successful Connect: %q", got)
 	}
 
+	// A new transport id may mean the address now belongs to another phone.
 	writeChannelFixture(t, dir, "identity", "Phone999\n")
 	writeChannelFixture(t, dir, "devices", strings.Replace(both, "transport_id:2", "transport_id:3", 1))
 	m.refresh()
 	m.identityProbes.Wait()
 	assertChannelCalls(t, dir, 5)
-	if got := m.Devices()[1].Identity; got != "hw:Phone999" {
-		t.Fatalf("WiFi identity after transport change between polls: %q", got)
+	if got := m.channels[wifi].identity; got != "hw:Phone999" {
+		t.Fatalf("wifi identity after transport change: %q", got)
 	}
 }
 
@@ -179,9 +176,9 @@ func TestRefreshDoesNotProbeStoredOnlineState(t *testing.T) {
 	m.refresh()
 	m.identityProbes.Wait()
 	d := m.Devices()[0]
-	if d.State != "device" || d.Alias != "Desk" || d.IdentitySource != "pending" || d.ActiveKind != "" ||
+	if d.State != "offline" || d.Alias != "Desk" || d.IdentitySource != "pending" || d.ActiveKind != "" ||
 		len(d.Connections) != 1 || d.Connections[0].State != "offline" || d.Connections[0].Online || d.Connections[0].LastSeenAt != 0 {
-		t.Fatalf("legacy state must not make a channel online: %+v", d)
+		t.Fatalf("legacy state must not make a channel online or the device online: %+v", d)
 	}
 	m.mu.RLock()
 	defer m.mu.RUnlock()

@@ -64,38 +64,40 @@ func (d Device) IdentifierName() string {
 
 // Manager 负责跟踪 adb 设备列表并守护手动添加设备的连接与持久化。
 type Manager struct {
-	adbPath        string
-	db             *db.DB
-	mu             sync.RWMutex
-	aliasMu        sync.Mutex
-	aliasRevision  uint64
-	devices        []Device
-	stop           chan struct{}
-	telemetryMu    sync.RWMutex
-	hardwareCache  map[string]HardwareInfo
-	telemetryCache map[string]TelemetryInfo
-	fetchingHW     map[string]bool
-	refreshMu      sync.Mutex
-	channels       map[string]*deviceChannel // guarded by mu
-	identityCtx    context.Context
-	cancelIdentity context.CancelFunc
-	identityProbes sync.WaitGroup
-	probesRunning  int // guarded by mu
+	adbPath         string
+	db              *db.DB
+	mu              sync.RWMutex
+	aliasMu         sync.Mutex
+	aliasRevision   uint64
+	devices         []Device
+	stop            chan struct{}
+	telemetryMu     sync.RWMutex
+	hardwareCache   map[string]HardwareInfo
+	telemetryCache  map[string]TelemetryInfo
+	fetchingHW      map[string]bool
+	refreshMu       sync.Mutex
+	channels        map[string]*deviceChannel // guarded by mu
+	identityAliases map[string]string         // device identity → alias, guarded by mu
+	identityCtx     context.Context
+	cancelIdentity  context.CancelFunc
+	identityProbes  sync.WaitGroup
+	probesRunning   int // guarded by mu
 }
 
 // NewManager 创建设备管理器。
 func NewManager(adbPath string, database *db.DB) *Manager {
 	identityCtx, cancelIdentity := context.WithCancel(context.Background())
 	return &Manager{
-		adbPath:        adbPath,
-		db:             database,
-		stop:           make(chan struct{}),
-		hardwareCache:  make(map[string]HardwareInfo),
-		telemetryCache: make(map[string]TelemetryInfo),
-		fetchingHW:     make(map[string]bool),
-		channels:       make(map[string]*deviceChannel),
-		identityCtx:    identityCtx,
-		cancelIdentity: cancelIdentity,
+		adbPath:         adbPath,
+		db:              database,
+		stop:            make(chan struct{}),
+		hardwareCache:   make(map[string]HardwareInfo),
+		telemetryCache:  make(map[string]TelemetryInfo),
+		fetchingHW:      make(map[string]bool),
+		channels:        make(map[string]*deviceChannel),
+		identityAliases: make(map[string]string),
+		identityCtx:     identityCtx,
+		cancelIdentity:  cancelIdentity,
 	}
 }
 
@@ -234,7 +236,6 @@ func (m *Manager) refreshWithReconnect(reconnectedSerial string) {
 				go m.db.UpdateDeviceStatus(d.Serial, "offline", "", "", "", "", false)
 			}
 		}
-		m.attachTelemetry(&d)
 		combined = append(combined, d)
 	}
 
@@ -243,12 +244,14 @@ func (m *Manager) refreshWithReconnect(reconnectedSerial string) {
 		if !seen[adbDev.Serial] {
 			adbDev.Source = "auto"
 			adbDev.Alias = aliases[adbDev.Serial]
-			m.attachTelemetry(&adbDev)
 			combined = append(combined, adbDev)
 		}
 	}
 
 	m.mu.Lock()
+	// A channel that dropped off `adb devices` but belongs to an identity with
+	// another live channel stays on the card as an offline connection.
+	combined = m.retainMergedChannelsLocked(combined)
 	// A refresh may have read the database before a rename completed. Preserve
 	// the current aliases when publishing that older device snapshot.
 	if m.aliasRevision != aliasRevision {
@@ -267,12 +270,36 @@ func (m *Manager) refreshWithReconnect(reconnectedSerial string) {
 	m.mu.Unlock()
 }
 
-// attachTelemetry 将缓存的静态硬件信息与最新遥测指标附加至 Device 实例
+// retainMergedChannelsLocked appends offline rows for channels that vanished
+// from `adb devices` while another channel of the same identity is still
+// present. Without this a dual-link card would lose its USB icon the moment
+// the cable is unplugged. Caller must hold m.mu.
+func (m *Manager) retainMergedChannelsLocked(combined []Device) []Device {
+	present := make(map[string]bool, len(combined))
+	identities := make(map[string]bool, len(combined))
+	for _, d := range combined {
+		present[d.Serial] = true
+		if ch := m.channels[d.Serial]; ch != nil && ch.identity != "" {
+			identities[ch.identity] = true
+		}
+	}
+	for serial, ch := range m.channels {
+		if present[serial] || ch.identity == "" || !identities[ch.identity] {
+			continue
+		}
+		combined = append(combined, Device{Serial: serial, Source: "auto", State: "offline"})
+	}
+	return combined
+}
+
+// attachTelemetry 将缓存的静态硬件信息与最新遥测指标附加至 Device 实例。
+// 设备级数据按身份缓存，同一台设备切换通道后仍然命中。
 func (m *Manager) attachTelemetry(d *Device) {
+	key := m.telemetryKey(d)
 	m.telemetryMu.RLock()
-	hw, hasHW := m.hardwareCache[d.Serial]
-	tel, hasTel := m.telemetryCache[d.Serial]
-	isFetching := m.fetchingHW[d.Serial]
+	hw, hasHW := m.hardwareCache[key]
+	tel, hasTel := m.telemetryCache[key]
+	isFetching := m.fetchingHW[key]
 	m.telemetryMu.RUnlock()
 
 	if hasHW {
@@ -291,9 +318,9 @@ func (m *Manager) attachTelemetry(d *Device) {
 		d.BuildDisplayID = hw.BuildDisplayID
 	} else if d.State == "device" && !isFetching {
 		m.telemetryMu.Lock()
-		m.fetchingHW[d.Serial] = true
+		m.fetchingHW[key] = true
 		m.telemetryMu.Unlock()
-		go m.runHardwareFetch(d.Serial)
+		go m.runHardwareFetch(key, d.Serial)
 	}
 
 	if hasTel {
@@ -396,8 +423,7 @@ func (m *Manager) AddManualDevice(serial, alias string) (*Device, error) {
 	if !found {
 		m.devices = append(m.devices, *dev)
 	}
-	result := *dev
-	m.attachChannel(&result)
+	result, _ := m.groupedDeviceLocked(dev.Serial)
 	m.mu.Unlock()
 
 	go m.refresh()
@@ -443,30 +469,27 @@ func (m *Manager) UpdateAlias(serial, alias string) error {
 	m.aliasMu.Lock()
 	defer m.aliasMu.Unlock()
 	m.mu.RLock()
-	exists := false
-	for _, d := range m.devices {
-		if d.Serial == serial {
-			exists = true
-			break
-		}
-	}
+	dev, ok := m.groupedDeviceLocked(serial)
 	m.mu.RUnlock()
-	if !exists {
+	if !ok {
 		return fmt.Errorf("设备不存在: %s", serial)
 	}
 	alias = strings.TrimSpace(alias)
-	if err := m.db.UpdateAlias(serial, alias); err != nil {
+	if err := m.db.UpdateAlias(dev.Serial, alias); err != nil {
 		return err
 	}
 	m.mu.Lock()
 	for i := range m.devices {
-		if m.devices[i].Serial == serial {
+		if m.devices[i].Serial == dev.Serial {
 			m.devices[i].Alias = alias
 		}
 	}
+	if dev.Identity != "" {
+		m.identityAliases[dev.Identity] = alias
+	}
 	m.aliasRevision++
 	m.mu.Unlock()
-	log.Printf("[Device] identifier updated serial=%s", serial)
+	log.Printf("[Device] identifier updated serial=%s identity=%s", dev.Serial, dev.Identity)
 	return nil
 }
 
@@ -522,28 +545,27 @@ func parseDevices(s string) []Device {
 	return devices
 }
 
-// Devices 返回当前缓存的全部设备列表（在线或配置的手动设备）。
+// Devices 返回按设备身份归并后的当前设备列表（在线或配置的手动设备）。
 func (m *Manager) Devices() []Device {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-	res := make([]Device, len(m.devices))
-	copy(res, m.devices)
+	res := m.groupedSnapshotLocked()
+	m.mu.RUnlock()
 	for i := range res {
+		m.attachTelemetry(&res[i])
 		res[i].Identifier = res[i].IdentifierName()
-		m.attachChannel(&res[i])
 	}
 	return res
 }
 
-// GetDevice 返回指定 serial 的设备。
+// GetDevice 返回指定 serial（任意通道）或 identity 对应的设备。
 func (m *Manager) GetDevice(serial string) (Device, bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-	for _, d := range m.devices {
-		if d.Serial == serial && d.State == "device" {
-			m.attachChannel(&d)
-			return d, true
-		}
+	dev, ok := m.groupedDeviceLocked(serial)
+	m.mu.RUnlock()
+	if !ok || dev.State != "device" {
+		return Device{}, false
 	}
-	return Device{}, false
+	m.attachTelemetry(&dev)
+	dev.Identifier = dev.IdentifierName()
+	return dev, true
 }

@@ -35,6 +35,7 @@ type deviceChannel struct {
 	identity     string
 	source       string
 	lastIdentity string
+	stale        bool           // identity must be resampled on the next online epoch
 	probe        *identityProbe // one attempt per online epoch, including failed attempts
 }
 
@@ -70,7 +71,8 @@ func (m *Manager) refreshChannels(devices []Device, adbDevices map[string]Device
 		}
 		ch.connection = conn
 		ch.transportID = adbDev.TransportID
-		if conn.Online && ch.probe == nil && m.probesRunning < maxIdentityProbes && m.identityCtx.Err() == nil {
+		if conn.Online && ch.probe == nil && (ch.identity == "" || ch.stale) &&
+			m.probesRunning < maxIdentityProbes && m.identityCtx.Err() == nil {
 			ctx, cancel := context.WithTimeout(m.identityCtx, identityTimeout)
 			probe := &identityProbe{cancel: cancel}
 			ch.probe = probe
@@ -79,27 +81,6 @@ func (m *Manager) refreshChannels(devices []Device, adbDevices map[string]Device
 			go m.probeChannelIdentity(ctx, d.Serial, probe)
 		}
 	}
-}
-
-// attachChannel runs with mu held and builds a fresh connection slice for each
-// returned snapshot. In S1 each device row represents its own serial only.
-func (m *Manager) attachChannel(d *Device) {
-	d.IdentitySource = identityPending
-	conn := channelConnection(*d, Device{})
-	if ch := m.channels[d.Serial]; ch != nil {
-		conn.LastSeenAt = ch.connection.LastSeenAt
-		if d.State != "connecting" {
-			conn = ch.connection
-			if ch.identity != "" {
-				d.Identity, d.IdentitySource = ch.identity, ch.source
-			}
-		}
-	}
-	conn.Active = conn.Online
-	if conn.Active {
-		d.ActiveKind = conn.Kind
-	}
-	d.Connections = []DeviceConnection{conn}
 }
 
 func channelConnection(d, adbDev Device) DeviceConnection {
@@ -124,12 +105,15 @@ func channelConnection(d, adbDev Device) DeviceConnection {
 	return conn
 }
 
+// invalidateIdentity keeps the last identity for grouping (an unplugged USB
+// channel must stay on the same device card) and marks it for resampling on the
+// next online epoch, which covers transport changes and address reuse.
 func (ch *deviceChannel) invalidateIdentity() {
 	if ch.probe != nil {
 		ch.probe.cancel()
 		ch.probe = nil
 	}
-	ch.identity, ch.source = "", ""
+	ch.stale = true
 }
 
 // ADB returns the canonical target in its successful connect messages.
@@ -157,7 +141,10 @@ func (m *Manager) probeChannelIdentity(ctx context.Context, serial string, probe
 		m.mu.Unlock()
 		return
 	}
-	ch.identity, ch.source = identity, source
+	if identity != "" {
+		ch.identity, ch.source = identity, source
+		ch.stale = false
+	}
 	old := ch.lastIdentity
 	if identity != "" {
 		ch.lastIdentity = identity
