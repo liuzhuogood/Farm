@@ -54,6 +54,10 @@ jobs:
         with:
           version: '11.7.0'
 
+      - name: Apply release version
+        shell: bash
+        run: node scripts/sync-version.mjs --version "${GITHUB_REF_NAME#v}"
+
       - name: Validate release version
         run: |
           test "$(cat VERSION | tr -d '\r\n')" = "${GITHUB_REF_NAME}"
@@ -108,6 +112,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: '1.90.0'
+      - name: Apply release version
+        shell: bash
+        run: node scripts/sync-version.mjs --version "${GITHUB_REF_NAME#v}"
       - name: Validate release version and signing configuration
         shell: bash
         run: |
@@ -178,6 +185,9 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Apply release version
+        run: node scripts/sync-version.mjs --version "${GITHUB_REF_NAME#v}"
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -203,6 +213,8 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           body_path: release-notes.md
+          prerelease: ${{ contains(github.ref_name, '-beta.') }}
+          make_latest: ${{ !contains(github.ref_name, '-beta.') }}
           files: |
             release-assets/*
         env:
@@ -226,6 +238,7 @@ jobs:
           NODE
 
   docker:
+    if: ${{ !contains(github.ref_name, '-beta.') }}
     needs: [build, desktop, macos-dmg]
     runs-on: ubuntu-latest
     steps:

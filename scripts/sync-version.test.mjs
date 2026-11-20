@@ -42,6 +42,11 @@ for (const newline of ['\n', '\r\n']) {
       if (newline === '\r\n') assert.ok(!/(?<!\r)\n/.test(contents), `${file} contains bare LF`)
       else assert.ok(!contents.includes('\r'), `${file} contains CRLF`)
     }
+    const beta = run('--version', 'v1.20.2-beta.1')
+    assert.equal(beta.status, 0, beta.stderr)
+    assert.equal(readFileSync(path.join(root, 'VERSION'), 'utf8'), `v1.20.2-beta.1${newline}`)
+    assert.equal(run('--check').status, 0)
+    assert.ok(readFileSync(path.join(root, 'frontend/package.json'), 'utf8').includes('1.20.2-beta.1'))
     writeFileSync(path.join(root, 'VERSION'), `v2026.11.01${newline}`)
     assert.notEqual(run().status, 0, 'versions with leading zeroes must fail SemVer validation')
   })

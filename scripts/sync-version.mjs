@@ -2,9 +2,17 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const version = readFileSync(path.join(root, 'VERSION'), 'utf8').trim().replace(/^v/, '')
-if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-([0-9A-Za-z.-]+))?$/.test(version)) throw new Error('VERSION 必须是正式 SemVer 版本')
 const check = process.argv.includes('--check')
+const versionFlag = process.argv.indexOf('--version')
+const override = versionFlag >= 0 ? process.argv[versionFlag + 1] : undefined
+if (versionFlag >= 0 && (!override || override.startsWith('--'))) throw new Error('--version 需要版本号')
+let version = override ? override.replace(/^v/, '') : readFileSync(path.join(root, 'VERSION'), 'utf8').trim().replace(/^v/, '')
+if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-([0-9A-Za-z.-]+))?$/.test(version)) throw new Error('VERSION 必须是正式 SemVer 版本')
+if (override && !check) {
+  const file = path.join(root, 'VERSION')
+  const newline = readFileSync(file, 'utf8').includes('\r\n') ? '\r\n' : '\n'
+  writeFileSync(file, `v${version}${newline}`)
+}
 function update(file, transform) {
  const full = path.join(root,file), old = readFileSync(full,'utf8')
  // Windows checkout uses CRLF; compare values while preserving its line endings.

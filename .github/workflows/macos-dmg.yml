@@ -51,6 +51,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: '1.90.0'
+      - name: Apply release version
+        run: node scripts/sync-version.mjs --version "${RELEASE_TAG#v}"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
