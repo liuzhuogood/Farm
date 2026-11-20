@@ -15,7 +15,7 @@
 - [x] **S2 桌面与前端通道接入**
   - `desktop/src/updater.rs`：`builder()` 改为异步，先向本机后端取 `GET /api/version/desktop-endpoint`；后端不可用或地址非 https 时回退正式通道并记日志；检查与安装共用同一地址；新增 3 项单测。
   - `frontend/src/api/updater.ts`、`useUpdateSettings.ts`：通道读写走后端配置，读取失败按正式通道处理。
-  - `frontend/src/components/system/SystemConfigDialog.vue`：通用设置「更新」卡片内新增「更新通道」（正式版 / beta 测试版），切换后立即重新检查，失败弹提示。
+  - `frontend/src/components/system/SystemConfigDialog.vue`：「检查更新」行内加入通道下拉与「立即检查更新」图标按钮，切换通道后立即重新检查，失败弹提示。
   - 验证：`pnpm --dir frontend build`（含 `vue-tsc`）、`cargo test` 13 项、macmini 浏览器真机切换通过。
 
 ## 待开发
@@ -45,5 +45,5 @@
 | 步骤 | 结论 | 证据 |
 | --- | --- | --- |
 | S1 | macmini 真机隔离实例通过：通道读写、非法值 400、beta 取正式、重启持久化 | [evidence/s1-s2-macmini-selftest.md](evidence/s1-s2-macmini-selftest.md) |
-| S2 | 浏览器真机验证通道切换与后端一致；自测发现并修复「无 beta 时把正式 tag 拼成下载地址」 | [evidence/s1-s2-macmini-selftest.md](evidence/s1-s2-macmini-selftest.md)、`evidence/farm-channel-beta.png`、`evidence/farm-channel-stable.png` |
+| S2 | macmini 真机验证下拉切换与后端一致、立即检查弹窗可用；自测发现并修复「无 beta 时把正式 tag 拼成下载地址」 | [evidence/s1-s2-macmini-selftest.md](evidence/s1-s2-macmini-selftest.md)、`evidence/farm-channel-ui-beta.png`、`evidence/farm-channel-ui-check.png` |
 | S3–S7 | 待开工 | — |
