@@ -476,7 +476,7 @@ defineExpose({ handleEscape })
 </script>
 
 <template>
-  <div v-if="!serial" class="flex min-h-screen items-center justify-center">
+  <div v-if="!serial" class="flex h-full items-center justify-center">
     <Empty>
       <EmptyHeader>
         <EmptyMedia variant="icon"><TriangleAlert /></EmptyMedia>
@@ -487,7 +487,7 @@ defineExpose({ handleEscape })
     </Empty>
   </div>
 
-  <div v-else :ref="p.stageRef" class="relative flex min-h-0 min-w-0 flex-col" :class="embedded ? 'h-full overflow-hidden bg-black' : 'h-dvh bg-slate-100/90 text-slate-900 dark:bg-[#060810] dark:text-white transition-colors duration-200'" @pointermove="onStagePointer" @pointerdown="onStagePointer" @pointerleave="hideTopHandle">
+  <div v-else :ref="p.stageRef" class="relative flex min-h-0 min-w-0 flex-col" :class="embedded ? 'h-full overflow-hidden bg-black' : 'h-full bg-slate-100/90 text-slate-900 dark:bg-[#060810] dark:text-white transition-colors duration-200'" @pointermove="onStagePointer" @pointerdown="onStagePointer" @pointerleave="hideTopHandle">
     <!-- 工具栏隐藏时的顶部唤出把手：指针靠近顶部才显示 -->
     <div
       v-if="!toolbarVisible && showTopHandle"
@@ -515,6 +515,7 @@ defineExpose({ handleEscape })
       :compact-toolbar="compactToolbar"
       :show-nav="false"
       :show-config="false"
+      :window-inset="false"
       :class="[
         embedded ? 'absolute top-0 inset-x-0 z-40' : '',
       ]"

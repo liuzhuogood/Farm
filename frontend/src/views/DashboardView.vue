@@ -148,13 +148,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col bg-background" :class="{ 'h-screen overflow-hidden': size === 'fit' }">
+  <div class="flex h-full min-h-0 flex-col bg-background" :class="{ 'overflow-hidden': size === 'fit' }">
     <AppHeader
       back
       back-to="/"
       title="大屏监控"
       :subtitle="countText"
       :icon="MonitorSmartphone"
+      :show-nav="false"
+      :window-inset="false"
     >
       <template #actions>
         <!-- 设备显隐选择 -->
@@ -303,7 +305,7 @@ onUnmounted(() => {
     </AppHeader>
 
     <main
-      class="w-full flex-1 min-h-0"
+      class="w-full flex-1 min-h-0 overflow-y-auto"
       :class="size === 'fit' ? 'p-1 overflow-hidden flex flex-col h-full' : 'px-4 py-6'"
     >
       <div v-if="loading && devices.length === 0" class="flex flex-wrap gap-4">

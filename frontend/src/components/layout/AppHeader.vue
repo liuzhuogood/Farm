@@ -23,6 +23,7 @@ interface Props {
   showLogo?: boolean
   showNav?: boolean
   showConfig?: boolean
+  windowInset?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -39,6 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   showLogo: undefined,
   showNav: undefined,
   showConfig: undefined,
+  windowInset: true,
 })
 
 const emit = defineEmits<{
@@ -141,7 +143,7 @@ function handleHeaderMouseDown(e: MouseEvent) {
         embedded
           ? 'h-11 px-2.5 cursor-move'
           : isMacDesktop
-            ? 'h-11 pl-[82px] pr-4'
+            ? (props.windowInset ? 'h-11 pl-[82px] pr-4' : 'h-11 px-4')
             : 'h-14 px-4',
       ]"
       @dblclick="handleHeaderDblClick"

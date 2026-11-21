@@ -1,20 +1,15 @@
 <script setup lang="ts">
-import { computed, nextTick, onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { onKeyStroke } from '@vueuse/core'
 import {
   ArrowLeft,
   ChevronDown,
   Home,
-  Info,
-  Keyboard,
   Layers,
   LayoutGrid,
-  MoreHorizontal,
   Maximize2,
   Minimize2,
   Plus,
-  Search,
-  Settings,
   SlidersHorizontal,
   Smartphone,
   Sparkles,
@@ -24,7 +19,6 @@ import DeviceContextMenu from './DeviceContextMenu.vue'
 import { GLASS_CARD_SURFACE } from '@/lib/surfaces'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import type { Device } from '@/api/devices'
 import type { HomeViewMode } from '@/composables/usePlayerSettings'
@@ -36,11 +30,10 @@ import {
   usePlayerSettings,
 } from '@/composables/usePlayerSettings'
 
-type TabKey = 'actions' | 'view' | 'devices' | 'more'
+type TabKey = 'actions' | 'view' | 'devices'
 
 const props = withDefaults(
   defineProps<{
-    keyword: string
     viewMode: HomeViewMode
     devices: Device[]
     numberMap: Map<string, string>
@@ -50,7 +43,6 @@ const props = withDefaults(
     showOffline: boolean
     mockEnabled?: boolean
     selectedSerials: string[]
-    onlineCount: number
     isAllSelected?: boolean
     batchRunning?: boolean
     isSyncActive?: boolean
@@ -65,7 +57,6 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  (e: 'update:keyword', val: string): void
   (e: 'update:viewMode', val: HomeViewMode): void
   (e: 'update:selectedSerials', val: string[]): void
   (e: 'toggleSelect', serial: string): void
@@ -75,10 +66,6 @@ const emit = defineEmits<{
   (e: 'toggleSync'): void
   (e: 'cancelBatch'): void
   (e: 'openAdd'): void
-  (e: 'openConfig'): void
-  (e: 'openAi'): void
-  (e: 'openShortcuts'): void
-  (e: 'openDocs'): void
   (e: 'update:onlySelected', val: boolean): void
   (e: 'update:showOffline', val: boolean): void
   (e: 'restoreHidden'): void
@@ -101,7 +88,6 @@ onKeyStroke('Escape', event => {
 // 底部浮动栏自身是否最小化为悬浮气泡
 const isDockMinimized = ref(false)
 
-const searchInputRef = ref<HTMLInputElement | null>(null)
 const gridContainerRef = ref<HTMLElement | null>(null)
 const devicesExpanded = ref(false)
 let cleanupMarquee: (() => void) | undefined
@@ -114,11 +100,6 @@ function toggleTab(tab: TabKey) {
   }
   else {
     activeTab.value = tab
-    if (tab === 'devices') {
-      nextTick(() => {
-        searchInputRef.value?.focus()
-      })
-    }
   }
 }
 
@@ -289,11 +270,22 @@ function handleDeviceClick(serial: string) {
               {{
                 activeTab === 'actions' ? '批量操作控制' :
                 activeTab === 'view' ? '显示与视图设置' :
-                activeTab === 'devices' ? '设备筛选与管理' : '系统扩展与更多'
+                '设备筛选与管理'
               }}
             </h3>
           </div>
           <div class="flex items-center gap-1">
+            <Button
+              v-if="activeTab === 'devices'"
+              variant="ghost"
+              size="icon"
+              class="h-6 w-6 text-blue-600 hover:bg-blue-500/10 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-500/15 dark:hover:text-blue-300"
+              aria-label="添加设备"
+              title="添加设备"
+              @click="emit('openAdd')"
+            >
+              <Plus class="h-3.5 w-3.5" />
+            </Button>
             <Button v-if="activeTab === 'devices'" variant="ghost" size="icon" class="h-6 w-6" :aria-label="devicesExpanded ? '收起设备区域' : '展开设备区域'" :title="devicesExpanded ? '收起设备区域' : '展开设备区域'" @click="devicesExpanded = !devicesExpanded">
               <Minimize2 v-if="devicesExpanded" class="h-3.5 w-3.5" /><Maximize2 v-else class="h-3.5 w-3.5" />
             </Button>
@@ -507,53 +499,8 @@ function handleDeviceClick(serial: string) {
           </div>
         </div>
 
-        <!-- 3. 设备管理面板内容 (集成搜索 + 连接 + 编号方块 + 原生拉框框选) -->
+        <!-- 3. 设备管理面板内容 (编号方块 + 原生拉框框选) -->
         <div v-if="activeTab === 'devices'" class="space-y-2 pt-2">
-          <!-- 搜索框与添加按钮 -->
-          <div class="flex items-center gap-2">
-            <div class="relative flex-1">
-              <Search class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-              <Input
-                ref="searchInputRef"
-                :model-value="keyword"
-                placeholder="搜索设备名称、型号或序列号"
-                class="h-9 rounded-xl pl-9 pr-8 text-xs border-slate-200/80 bg-white/70 dark:border-white/10 dark:bg-black/20"
-                @update:model-value="emit('update:keyword', String($event))"
-              />
-              <button
-                v-if="keyword"
-                type="button"
-                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
-                aria-label="清除搜索"
-                @click="emit('update:keyword', '')"
-              >
-                <X class="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <Button
-              size="sm"
-              class="h-9 rounded-xl bg-blue-600 text-white hover:bg-blue-700 px-3 cursor-pointer shadow-sm shrink-0"
-              @click="emit('openAdd')"
-            >
-              <Plus class="h-4 w-4 mr-1" />
-              <span class="text-xs">添加</span>
-            </Button>
-          </div>
-
-          <label class="flex cursor-pointer items-center gap-2 text-xs" for="show-offline-devices">
-            <Switch id="show-offline-devices" :model-value="showOffline" @update:model-value="emit('update:showOffline', $event)" />
-            显示离线设备
-          </label>
-          <div class="flex items-center justify-between gap-2">
-            <label class="flex cursor-pointer items-center gap-2 text-xs" for="only-selected-devices">
-              <Switch id="only-selected-devices" :model-value="onlySelected" @update:model-value="emit('update:onlySelected', $event)" />
-              只显示已选
-            </label>
-            <div class="flex items-center gap-1">
-              <Button variant="outline" size="sm" class="h-7 rounded-xl text-xs" @click="emit('selectAll')">{{ isAllSelected ? '取消全选' : '全选' }}</Button>
-              <Button v-if="hiddenSerials.length" variant="ghost" size="sm" class="h-7 rounded-xl text-xs" @click="emit('restoreHidden')">显示隐藏设备</Button>
-            </div>
-          </div>
           <!-- 01..N 设备编号方块矩阵（支持原生拖拽拉框多选） -->
           <div
             ref="gridContainerRef"
@@ -597,83 +544,25 @@ function handleDeviceClick(serial: string) {
             </button>
             </DeviceContextMenu>
           </div>
-        </div>
 
-        <!-- 4. 更多面板内容 -->
-        <div v-else-if="activeTab === 'more'" class="space-y-3.5 pt-3.5">
-          <div class="grid grid-cols-2 gap-2.5">
-            <button
-              type="button"
-              class="group flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/70 p-3 text-left transition-all hover:border-blue-500/40 hover:bg-blue-50/50 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-blue-400/30 dark:hover:bg-blue-950/20 cursor-pointer"
-              @click="emit('openConfig'); closePanel()"
-            >
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 transition-transform group-hover:scale-105 dark:bg-blue-500/20 dark:text-blue-300">
-                <Settings class="h-4 w-4" />
-              </div>
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-slate-800 dark:text-slate-100">系统配置</div>
-                <div class="truncate text-[10px] text-slate-400">ADB / Python / OCR</div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              class="group flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/70 p-3 text-left transition-all hover:border-indigo-500/40 hover:bg-indigo-50/50 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-indigo-400/30 dark:hover:bg-indigo-950/20 cursor-pointer"
-              @click="emit('openAi'); closePanel()"
-            >
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 transition-transform group-hover:scale-105 dark:bg-indigo-500/20 dark:text-indigo-300">
-                <Sparkles class="h-4 w-4" />
-              </div>
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-slate-800 dark:text-slate-100">AI 技能市场</div>
-                <div class="truncate text-[10px] text-slate-400">自动化与决策助手</div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              class="group flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/70 p-3 text-left transition-all hover:border-emerald-500/40 hover:bg-emerald-50/50 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-emerald-400/30 dark:hover:bg-emerald-950/20 cursor-pointer"
-              @click="emit('openShortcuts'); closePanel()"
-            >
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 transition-transform group-hover:scale-105 dark:bg-emerald-500/20 dark:text-emerald-300">
-                <Keyboard class="h-4 w-4" />
-              </div>
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-slate-800 dark:text-slate-100">快捷键指南</div>
-                <div class="truncate text-[10px] text-slate-400">高效键盘操控手册</div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              class="group flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/70 p-3 text-left transition-all hover:border-cyan-500/40 hover:bg-cyan-50/50 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-cyan-400/30 dark:hover:bg-cyan-950/20 cursor-pointer"
-              @click="emit('openDocs'); closePanel()"
-            >
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-600 transition-transform group-hover:scale-105 dark:bg-cyan-500/20 dark:text-cyan-300">
-                <Info class="h-4 w-4" />
-              </div>
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-slate-800 dark:text-slate-100">关于与文档</div>
-                <div class="truncate text-[10px] text-slate-400">OpenAPI 规范与版本</div>
-              </div>
-            </button>
-          </div>
-
-          <!-- 系统状态概要卡片 -->
-          <div class="rounded-2xl border border-slate-200/70 bg-slate-50/70 p-3 dark:border-white/10 dark:bg-black/20 text-xs space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-500 dark:text-slate-400">版本</span>
-              <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">Farm v1.34.0</span>
+          <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-slate-200/60 pt-2 dark:border-white/10">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <label class="flex cursor-pointer items-center gap-2 text-xs" for="show-offline-devices">
+                <Switch id="show-offline-devices" :model-value="showOffline" @update:model-value="emit('update:showOffline', $event)" />
+                显示离线设备
+              </label>
+              <label class="flex cursor-pointer items-center gap-2 text-xs" for="only-selected-devices">
+                <Switch id="only-selected-devices" :model-value="onlySelected" @update:model-value="emit('update:onlySelected', $event)" />
+                只显示已选
+              </label>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-500 dark:text-slate-400">设备状态</span>
-              <span class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                {{ onlineCount }} 在线
-              </span>
+            <div class="flex items-center gap-1">
+              <Button variant="outline" size="sm" class="h-7 rounded-xl text-xs" @click="emit('selectAll')">{{ isAllSelected ? '取消全选' : '全选' }}</Button>
+              <Button v-if="hiddenSerials.length" variant="ghost" size="sm" class="h-7 rounded-xl text-xs" @click="emit('restoreHidden')">显示隐藏设备</Button>
             </div>
           </div>
         </div>
+
       </div>
     </Transition>
 
@@ -744,26 +633,6 @@ function handleDeviceClick(serial: string) {
           :class="activeTab === 'devices' ? 'text-emerald-300 dark:text-emerald-600' : 'text-emerald-600 dark:text-emerald-400'"
         />
         <span class="tracking-wide">设备</span>
-      </button>
-
-      <!-- 分隔线 -->
-      <div class="h-4 w-px bg-slate-300/60 dark:bg-white/15" />
-
-      <!-- 按钮 4：更多 -->
-      <button
-        type="button"
-        data-tab="more"
-        class="group relative flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium transition-all cursor-pointer"
-        :class="activeTab === 'more'
-          ? 'bg-slate-900 text-white shadow-md dark:bg-white dark:text-slate-900'
-          : 'text-slate-700 hover:bg-black/5 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white'"
-        @click="toggleTab('more')"
-      >
-        <MoreHorizontal
-          class="h-4 w-4 transition-transform group-hover:scale-110"
-          :class="activeTab === 'more' ? 'text-blue-300 dark:text-blue-600' : 'text-slate-500 dark:text-slate-400'"
-        />
-        <span class="tracking-wide">更多</span>
       </button>
 
       <!-- 最小化折叠开关 -->

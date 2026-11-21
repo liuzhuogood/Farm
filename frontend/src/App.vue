@@ -4,6 +4,7 @@ import { useRouter, RouterView } from 'vue-router'
 import { useRoute } from 'vue-router'
 import { isTauri } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import ApprovalPopup from '@/components/ai-integration/ApprovalPopup.vue'
 import AppShell from '@/components/layout/AppShell.vue'
 import { Toaster } from '@/components/ui/sonner'
@@ -11,7 +12,13 @@ import UpdateCenter from '@/components/updater/UpdateCenter.vue'
 
 const router = useRouter()
 const route = useRoute()
-const useShell = computed(() => route.meta.shell === true)
+const embeddedRoute = computed(() => route.query.embedded === '1' || route.query.embedded === 'true')
+const standaloneWindow = (() => {
+  if (!isTauri()) return false
+  const label = getCurrentWindow().label
+  return label.startsWith('player-') || label.startsWith('safety-approval-')
+})()
+const useShell = computed(() => !embeddedRoute.value && !standaloneWindow && route.meta.shell !== false)
 let unlisten: UnlistenFn | undefined
 
 onMounted(async () => {

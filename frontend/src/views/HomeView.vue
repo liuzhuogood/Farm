@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import {
+  Search,
   Smartphone,
+  X,
 } from 'lucide-vue-next'
 import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -8,6 +10,7 @@ import { invoke, isTauri } from '@tauri-apps/api/core'
 import HomeAuroraBackground from '@/components/home/HomeAuroraBackground.vue'
 import HomePhoneView from '@/components/home/HomePhoneView.vue'
 import HomeIosDockBar from '@/components/home/HomeIosDockBar.vue'
+import AppHeader from '@/components/layout/AppHeader.vue'
 import { Button } from '@/components/ui/button'
 import AddDeviceDialog from '@/components/home/AddDeviceDialog.vue'
 import DeviceIdentifierDialog from '@/components/home/DeviceIdentifierDialog.vue'
@@ -147,18 +150,6 @@ async function handleOpenFloating(serial: string) {
   openFloatingPlayer(serial)
 }
 
-function handleOpenAi() {
-  router.push('/ai-integration')
-}
-
-function handleOpenShortcuts() {
-  toast.info('快捷键指南：双击投屏全屏，Esc 退出；Option/Alt + P 恢复小窗')
-}
-
-function handleOpenDocs() {
-  window.open('/api-docs.html', '_blank')
-}
-
 // 批量调度管理：传入派发前实时在线复查回调
 function checkTargetOperable(serial: string): boolean {
   if (store.mockEnabled)
@@ -274,6 +265,41 @@ onUnmounted(() => {
     <!-- 极光背景 -->
     <HomeAuroraBackground />
 
+    <AppHeader
+      glass
+      :show-logo="false"
+      :show-nav="false"
+      :show-config="false"
+      :window-inset="false"
+      class="relative z-20 shrink-0"
+    >
+      <template #left>
+        <div class="flex min-w-0 flex-1 items-center gap-2.5">
+          <Search class="h-4 w-4 shrink-0 text-slate-400" />
+          <Input
+            :model-value="store.keyword"
+            placeholder="搜索设备名称、型号或序列号"
+            class="h-8 min-w-0 flex-1 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
+            @update:model-value="store.keyword = String($event)"
+          />
+          <button
+            v-if="store.keyword"
+            type="button"
+            class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-slate-400 hover:bg-black/5 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
+            aria-label="清除搜索"
+            @click="store.keyword = ''"
+          >
+            <X class="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </template>
+      <template #actions>
+        <span class="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500 dark:bg-white/10 dark:text-slate-300">
+          {{ onlineCount }} 在线
+        </span>
+      </template>
+    </AppHeader>
+
     <!-- 主工作区：单列铺满主视口，底部预留悬浮底栏安全边距 -->
     <div class="home-content relative z-10 min-h-0 w-full min-w-0 flex-1 overflow-y-auto overscroll-contain">
       <main class="flex min-h-full w-full min-w-0 flex-col px-4 pt-4 pb-24 sm:px-6">
@@ -382,7 +408,6 @@ onUnmounted(() => {
 
     <!-- iOS 风格贴底居中悬浮控制栏 -->
     <HomeIosDockBar
-      :keyword="store.keyword"
       :view-mode="viewMode"
       :devices="homeFilteredDevices"
       :number-map="store.numberMap"
@@ -392,12 +417,10 @@ onUnmounted(() => {
       :show-offline="showOffline"
       :mock-enabled="store.mockEnabled"
       :selected-serials="selectedSerials"
-      :online-count="onlineCount"
       :is-all-selected="isAllSelected"
       :batch-running="batchRunning"
       :is-sync-active="isSyncActive"
       :display-name="store.displayName"
-      @update:keyword="store.keyword = $event"
       @update:view-mode="setViewMode"
       @update:selected-serials="handleUpdateSelectedSerials"
       @toggle-select="toggleSelect"
@@ -411,10 +434,6 @@ onUnmounted(() => {
       @update:show-offline="setShowOffline"
       @restore-hidden="restoreHiddenDevices"
       @device-action="handleDeviceAction"
-      @open-config="router.push('/settings/general')"
-      @open-ai="handleOpenAi"
-      @open-shortcuts="handleOpenShortcuts"
-      @open-docs="handleOpenDocs"
     />
 
     <AddDeviceDialog v-model:open="isAddDialogOpen" />

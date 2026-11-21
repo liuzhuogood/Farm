@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  ArrowLeft,
   ArrowDownWideNarrow,
   Download,
   Eye,
@@ -14,8 +13,9 @@ import {
   TriangleAlert,
 } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { toast } from 'vue-sonner'
+import AppHeader from '@/components/layout/AppHeader.vue'
 import SidePanelHeader from '@/components/layout/SidePanelHeader.vue'
 import {
   AlertDialog,
@@ -74,7 +74,7 @@ const route = useRoute()
 const props = withDefaults(defineProps<{ embedded?: boolean, serial?: string }>(), { embedded: false })
 const emit = defineEmits<{ close: [] }>()
 const serial = computed(() => props.serial !== undefined ? props.serial : typeof route.query.serial === 'string' ? route.query.serial : '')
-const backTo = computed(() => (serial.value ? { name: 'player', query: { serial: serial.value } } : '/'))
+const backTo = computed(() => (serial.value ? `/player?serial=${encodeURIComponent(serial.value)}` : '/'))
 const f = useFiles(serial.value)
 
 type ActionMode = 'folder' | 'rename' | 'move'
@@ -266,7 +266,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col" :class="props.embedded ? 'h-full min-h-0' : 'min-h-screen'">
+  <div class="flex h-full min-h-0 flex-col">
     <SidePanelHeader v-if="props.embedded" title="文件管理" @close="emit('close')">
       <template #title>
         <div class="flex min-w-0 items-center gap-2">
@@ -275,19 +275,22 @@ onMounted(() => {
         </div>
       </template>
     </SidePanelHeader>
-    <header v-if="!props.embedded" class="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
-      <div class="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
-        <Button variant="ghost" size="icon" aria-label="返回" as-child>
-          <RouterLink :to="backTo"><ArrowLeft class="h-5 w-5" /></RouterLink>
-        </Button>
-        <span class="text-base font-semibold">文件管理</span>
-        <div v-if="serial" class="flex min-w-0 items-center gap-0.5">
-          <span class="max-w-48 truncate font-mono text-xs text-muted-foreground" :title="serial">{{ serial }}</span>
-          <CopyValueButton :value="serial" label="设备地址" />
-        </div>
-        <span class="ml-auto text-xs text-muted-foreground" aria-live="polite">{{ storageText }}</span>
-      </div>
-    </header>
+    <AppHeader
+      v-if="!props.embedded"
+      back
+      :back-to="backTo"
+      title="文件管理"
+      :subtitle="serial || undefined"
+      :show-nav="false"
+      :show-config="false"
+      :window-inset="false"
+      class="shrink-0"
+    >
+      <template #actions>
+        <CopyValueButton v-if="serial" :value="serial" label="设备地址" />
+        <span class="text-xs text-muted-foreground" aria-live="polite">{{ storageText }}</span>
+      </template>
+    </AppHeader>
 
     <main class="w-full max-w-6xl flex-1 overflow-auto px-4 py-4" :class="props.embedded ? 'max-w-none' : 'mx-auto'">
       <!-- 路径 + 主要操作 -->

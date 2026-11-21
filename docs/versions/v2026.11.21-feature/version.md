@@ -42,3 +42,4 @@
 - 2026-11-21 Mac mini（`10.0.0.11:8090`）完成菜单、任务记录、设置、依赖骨架屏、自动保存与 ADB 重启自测，证据见 `evidence/macmini/`。
 - 2026-11-21 beta 已发布：[v2026.11.21-beta.1](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.1)，标记为预发布，正式最新版仍为 `v2026.11.17-1`。
 - 2026-11-21 Mac mini 使用 GitHub Release 下载的 `farm-macos-arm64-cli` 完成发布版复测，DMG 版本与代码签名校验通过；详见 `evidence/release-beta.md`。
+- 2026-11-22 S7 界面收尾完成：收起态隐藏 Logo 并收紧到 64px；详情页继续使用左侧菜单与页面自身统一 `AppHeader`，不再叠加外层拖拽条；设备页恢复顶部搜索工具栏；设备弹窗移除搜索、添加按钮图标化并下移筛选开关；底部移除“更多”；设置新增“关于”。这些改动尚未包含在已发布的 `beta.1` 中。

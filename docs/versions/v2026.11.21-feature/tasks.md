@@ -32,6 +32,13 @@
   - [x] Mac mini（10.0.0.11）实机自测并留存证据。
   - [x] beta 发布流水线支持 `v*-beta.N`，推送 `v2026.11.21-beta.1` 并核对 Release。
 
+- [x] **S7 导航与设备页收尾**
+  - 收起态隐藏 Logo，侧栏宽度由 72px 收紧到 64px。
+  - 主窗口路由统一保留左侧菜单；内嵌投屏小窗与审核弹窗不套用侧栏。
+  - 设备页恢复统一 `AppHeader` 搜索工具栏；详情页沿用页面自身 `AppHeader`，不再叠加外层拖拽条。
+  - 设备筛选弹窗移除搜索框，添加按钮移入标题栏且只保留图标；两个显示开关同排置底。
+  - 底部胶囊移除“更多”；设置新增“关于”，展示版本与 GitHub 地址。
+
 ## 验收记录
 
 | 步骤 | 结论 | 证据 |
@@ -43,3 +50,4 @@
 | S5 | 通过 | 桌面命令与权限测试通过；Mac mini 浏览器实测“重启 ADB 服务”，设备重新发现；`evidence/macmini/restart-adb.png` |
 | S6 构建与自测 | 通过 | 前端构建、完整 Go 测试、Rust 测试、版本同步测试；`evidence/local-smoke/`、`evidence/macmini/` |
 | S6 beta 发布 | 通过 | [Release](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.1)；[Actions](https://github.com/liuzhuogood/Farm/actions/runs/44797883718)；[发布验收](evidence/release-beta.md) |
+| S7 | 通过 | 浏览器与原生桌面实测：`evidence/local-smoke/evidence-local-sidebar-collapsed-compact.png`、`evidence-local-home-device-panel.png`、`evidence-local-detail-shell.png`、`evidence-local-settings-about.png` |

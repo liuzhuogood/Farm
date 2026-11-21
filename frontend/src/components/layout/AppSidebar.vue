@@ -7,6 +7,7 @@ import {
   Braces,
   ChevronLeft,
   ChevronRight,
+  Info,
   ListChecks,
   Loader2,
   Package,
@@ -41,6 +42,7 @@ const settingsNav = [
   { label: '通用设置', to: '/settings/general', icon: SlidersHorizontal },
   { label: '服务', to: '/settings/service', icon: Server },
   { label: '依赖', to: '/settings/dependencies', icon: Package },
+  { label: '关于', to: '/settings/about', icon: Info },
 ]
 
 const settingsActive = computed(() => route.path.startsWith('/settings'))
@@ -107,7 +109,7 @@ async function restartAdb() {
 <template>
   <aside
     class="relative z-30 flex h-full shrink-0 flex-col border-r border-slate-200/80 bg-white/85 backdrop-blur-2xl transition-[width] duration-200 dark:border-white/10 dark:bg-slate-950/85"
-    :class="collapsed ? 'w-[72px]' : 'w-[236px]'"
+    :class="collapsed ? 'w-16' : 'w-[236px]'"
     aria-label="主导航"
   >
     <div
@@ -115,9 +117,9 @@ async function restartAdb() {
       class="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200/60 dark:border-white/10"
       :class="collapsed ? 'justify-center px-2' : isMacDesktop ? 'pl-[84px] pr-2' : 'px-3'"
     >
-      <RouterLink to="/" class="flex min-w-0 items-center gap-2" :title="collapsed ? 'Farm' : undefined">
+      <RouterLink v-if="!collapsed" to="/" class="flex min-w-0 items-center gap-2">
         <img :src="appIconUrl" alt="" class="size-7 shrink-0 object-contain" width="28" height="28">
-        <span v-if="!collapsed" class="truncate text-sm font-bold tracking-tight">Farm</span>
+        <span class="truncate text-sm font-bold tracking-tight">Farm</span>
       </RouterLink>
       <button
         v-if="!collapsed"
