@@ -8,6 +8,7 @@ import {
   Ellipsis,
   ExternalLink,
   FolderOpen,
+  Hand,
   Home,
   LayoutTemplate,
   ListChecks,
@@ -107,6 +108,11 @@ const windowEffects = usePlayerWindows(serial)
 const playerSettings = usePlayerSettings()
 const { open: openFloatingPlayer } = useFloatingPlayers()
 const nativePlayerWindow = isTauri() && getCurrentWindow().label.startsWith('player-')
+const virtualNavVisible = ref(!props.embedded)
+
+function toggleVirtualNav() {
+  virtualNavVisible.value = !virtualNavVisible.value
+}
 
 async function handleCloseSmallWindow() {
   if (isTauri()) {
@@ -172,7 +178,6 @@ const touchVisualizerRef = ref<InstanceType<typeof TouchVisualizer> | null>(null
 const deleteRecordingTarget = ref<RecordingEntry | null>(null)
 const { width: stageWidth } = useElementSize(p.stageRef)
 const compactToolbar = computed(() => stageWidth.value < 1280)
-const isVeryNarrow = computed(() => stageWidth.value < 270)
 const existingToolOpen = computed(() => filesOpen.value || shellOpen.value || inspectorVisible.value || replayOpen.value || templateOpen.value || settingsOpen.value)
 const tasksVisible = computed(() => taskPanelOpen.value && !captureOpen.value && !existingToolOpen.value)
 const sidePanel = computed(() => captureOpen.value ? 'capture' : existingToolOpen.value || taskPanelOpen.value ? 'tools' : null)
@@ -573,51 +578,17 @@ defineExpose({ handleEscape })
       </template>
 
       <template #actions>
-        <!-- 小窗保留音量入口；过窄时导航操作收入更多。 -->
+        <!-- 小窗默认仅保留三大导航键，其余操作收入更多。 -->
         <div v-if="embedded" class="flex shrink-0 items-center gap-0.5">
-        <WindowEffectsControl
-          v-if="nativePlayerWindow"
-          :opacity="windowEffects.player.value?.opacity ?? 100"
-          :click-through="windowEffects.player.value?.clickThrough ?? false"
-          :shortcut="windowEffects.shortcut.value"
-          :busy="windowEffects.busy.value"
-          @opacity="windowEffects.setOpacity"
-          @click-through="windowEffects.setClickThrough"
-          @restore="windowEffects.restore"
-          @active-change="isWindowEffectsActive = $event"
-        />
-        <Button
-          v-if="isGui"
-          variant="ghost"
-          size="icon"
-          :title="isAlwaysOnTop ? '取消置顶' : '保持窗口置顶'"
-          :aria-label="isAlwaysOnTop ? '取消置顶' : '保持窗口置顶'"
-          :class="{ 'text-primary bg-primary/10': isAlwaysOnTop }"
-          @click="toggleAlwaysOnTop()"
-        >
-          <PinOff v-if="isAlwaysOnTop" class="h-4 w-4" />
-          <Pin v-else class="h-4 w-4" />
-        </Button>
-        <template v-if="!isVeryNarrow">
           <Button variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
             <Undo2 class="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" title="主页" aria-label="主页" @click="p.pressHome()">
-            <Circle class="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" title="切换任务" aria-label="切换任务" @click="p.pressRecents()">
             <GalleryHorizontal class="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" title="设备详情" aria-label="设备详情" @click="openDeviceDetail()">
-            <ExternalLink class="h-4 w-4" />
+          <Button variant="ghost" size="icon" title="主页" aria-label="主页" @click="p.pressHome()">
+            <Circle class="h-4 w-4" />
           </Button>
-        </template>
-        <AudioControl
-          :ready="p.audioReady.value" :muted="p.audioMuted.value"
-          :volume="p.audioVolume.value" :title="p.audioTitle.value"
-          @toggle="p.toggleAudio()" @volume="p.setAudioVolume($event)"
-          @update:open="isAudioOpen = $event"
-        />
         <DropdownMenu :modal="false" v-model:open="isMoreMenuOpen">
           <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="icon" title="更多" aria-label="更多">
@@ -625,17 +596,35 @@ defineExpose({ handleEscape })
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="z-[9999]">
-            <template v-if="isVeryNarrow">
-              <DropdownMenuItem v-if="isGui" @select="toggleAlwaysOnTop()">
-                <PinOff v-if="isAlwaysOnTop" class="h-4 w-4" />
-                <Pin v-else class="h-4 w-4" />
-                {{ isAlwaysOnTop ? '取消置顶' : '保持窗口置顶' }}
-              </DropdownMenuItem>
-              <DropdownMenuItem @select="p.pressBack()"><Undo2 class="h-4 w-4" />返回</DropdownMenuItem>
-              <DropdownMenuItem @select="p.pressHome()"><Home class="h-4 w-4" />主页</DropdownMenuItem>
-              <DropdownMenuItem @select="p.pressRecents()"><GalleryHorizontal class="h-4 w-4" />切换任务</DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </template>
+            <div v-if="nativePlayerWindow" class="flex items-center justify-between gap-3 px-2 py-1.5 text-sm">
+              <span class="flex items-center gap-2"><Scaling class="h-4 w-4" />窗口效果</span>
+              <WindowEffectsControl
+                :opacity="windowEffects.player.value?.opacity ?? 100"
+                :click-through="windowEffects.player.value?.clickThrough ?? false"
+                :shortcut="windowEffects.shortcut.value"
+                :busy="windowEffects.busy.value"
+                @opacity="windowEffects.setOpacity"
+                @click-through="windowEffects.setClickThrough"
+                @restore="windowEffects.restore"
+                @active-change="isWindowEffectsActive = $event"
+              />
+            </div>
+            <div class="flex items-center justify-between gap-3 px-2 py-1.5 text-sm">
+              <span>音量</span>
+              <AudioControl
+                :ready="p.audioReady.value" :muted="p.audioMuted.value"
+                :volume="p.audioVolume.value" :title="p.audioTitle.value"
+                @toggle="p.toggleAudio()" @volume="p.setAudioVolume($event)"
+                @update:open="isAudioOpen = $event"
+              />
+            </div>
+            <DropdownMenuItem v-if="isGui" @select="toggleAlwaysOnTop()">
+              <PinOff v-if="isAlwaysOnTop" class="h-4 w-4" />
+              <Pin v-else class="h-4 w-4" />
+              {{ isAlwaysOnTop ? '取消置顶' : '保持窗口置顶' }}
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="openDeviceDetail()"><ExternalLink class="h-4 w-4" />设备详情</DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem :disabled="p.powerBusy.value" @select="p.pressPower()">
               <Power class="h-4 w-4" />电源键
             </DropdownMenuItem>
@@ -651,7 +640,6 @@ defineExpose({ handleEscape })
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem @select="toggleTasks()"><ListChecks class="h-4 w-4" />任务情况</DropdownMenuItem>
-            <DropdownMenuItem @select="openDeviceDetail()"><ExternalLink class="h-4 w-4" />设备详情</DropdownMenuItem>
             <DropdownMenuItem @select="openSettings()"><Settings class="h-4 w-4" />设置</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -659,19 +647,19 @@ defineExpose({ handleEscape })
 
       <!-- 完整页面模式工具栏 -->
       <div v-else class="flex shrink-0 items-center gap-1">
-        <Button variant="ghost" size="icon" title="打开小窗" aria-label="打开小窗" @click="openSmallWindow()">
-          <PictureInPicture2 class="h-5 w-5" />
-        </Button>
-        <Button class="toolbar-secondary" variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
+        <Button variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
           <Undo2 class="h-5 w-5" />
+        </Button>
+        <Button variant="ghost" size="icon" title="切换任务" aria-label="切换任务" @click="p.pressRecents()">
+          <GalleryHorizontal class="h-5 w-5" />
         </Button>
         <Button variant="ghost" size="icon" title="主页" aria-label="主页" @click="p.pressHome()">
           <Circle class="h-5 w-5" />
         </Button>
-        <Button class="toolbar-secondary" variant="ghost" size="icon" title="切换任务" aria-label="切换任务" @click="p.pressRecents()">
-          <GalleryHorizontal class="h-5 w-5" />
-        </Button>
         <span class="mx-0.5 h-5 w-px shrink-0 bg-slate-300/80 dark:bg-white/15" aria-hidden="true" />
+        <Button variant="ghost" size="icon" title="打开小窗" aria-label="打开小窗" @click="openSmallWindow()">
+          <PictureInPicture2 class="h-5 w-5" />
+        </Button>
         <Button variant="ghost" size="icon" title="任务情况" aria-label="任务情况" :aria-pressed="tasksVisible" :class="{ 'bg-accent': tasksVisible }" @click="toggleTasks()"><ListChecks class="h-5 w-5" /></Button>
         <Button class="toolbar-secondary" variant="ghost" size="icon" title="电源键" aria-label="电源键" :disabled="p.powerBusy.value" @click="p.pressPower()">
           <Power class="h-5 w-5" />
@@ -782,6 +770,7 @@ defineExpose({ handleEscape })
             <DropdownMenuLabel v-if="compactToolbar && p.showFps.value" class="font-mono text-xs text-muted-foreground">{{ p.fps.value }} fps</DropdownMenuLabel>
             <DropdownMenuItem v-if="compactToolbar" @select="p.pressBack()"><Undo2 class="h-4 w-4" />返回</DropdownMenuItem>
             <DropdownMenuItem v-if="compactToolbar" @select="p.pressRecents()"><GalleryHorizontal class="h-4 w-4" />切换任务</DropdownMenuItem>
+            <DropdownMenuItem v-if="compactToolbar" @select="p.pressHome()"><Home class="h-4 w-4" />主页</DropdownMenuItem>
             <DropdownMenuItem v-if="compactToolbar" :disabled="p.powerBusy.value" @select="p.pressPower()"><Power class="h-4 w-4" />电源键</DropdownMenuItem>
             <DropdownMenuItem v-if="compactToolbar" @select="p.rotate()"><RotateCw class="h-4 w-4" />横竖屏</DropdownMenuItem>
             <DropdownMenuSeparator v-if="compactToolbar" />
@@ -920,6 +909,30 @@ defineExpose({ handleEscape })
             aria-hidden="true"
           />
           <TouchVisualizer ref="touchVisualizerRef" :visible="touchVisible" :width="p.videoSize.value.w" :height="p.videoSize.value.h" />
+          <button
+            v-if="embedded"
+            type="button"
+            data-virtual-nav-toggle
+            class="absolute right-2 top-1/2 z-30 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/45 text-white/80 shadow-lg backdrop-blur-md transition hover:bg-black/65 hover:text-white"
+            :aria-label="virtualNavVisible ? '隐藏虚拟按键' : '显示虚拟按键'"
+            :title="virtualNavVisible ? '隐藏虚拟按键' : '显示虚拟按键'"
+            @click.stop="toggleVirtualNav"
+          >
+            <Hand class="h-4 w-4" />
+          </button>
+          <div v-if="virtualNavVisible" data-virtual-nav class="pointer-events-none absolute inset-x-0 bottom-2 z-30 flex justify-center">
+            <div class="pointer-events-auto flex items-center gap-1 rounded-full border border-white/20 bg-black/55 p-1 shadow-xl backdrop-blur-md">
+              <button type="button" class="grid size-10 place-items-center rounded-full text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="返回" title="返回" @click.stop="p.pressBack()">
+                <ArrowLeft class="h-5 w-5" />
+              </button>
+              <button type="button" class="grid size-10 place-items-center rounded-full text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="切换任务" title="切换任务" @click.stop="p.pressRecents()">
+                <Square class="h-4 w-4" />
+              </button>
+              <button type="button" class="grid size-10 place-items-center rounded-full text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="主页" title="主页" @click.stop="p.pressHome()">
+                <Circle class="h-4 w-4" />
+              </button>
+            </div>
+          </div>
           <CaptureLayer
             v-if="captureOpen" :serial="serial" :get-canvas="() => p.canvasRef.value"
             :actions-target="`#${captureHostId}`"

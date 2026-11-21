@@ -87,13 +87,6 @@ const s = usePlayerSettings()
       </div>
       <div class="flex items-center justify-between gap-4 border-t pt-3">
         <div>
-          <p class="text-sm font-medium">唤醒后尝试解锁</p>
-          <p class="text-xs text-muted-foreground">屏幕点亮时自动上滑解锁（有密码仍需手动验证）</p>
-        </div>
-        <Switch :model-value="s.autoUnlockOnWake.value" aria-label="唤醒后尝试解锁开关" @update:model-value="v => s.autoUnlockOnWake.value = !!v" />
-      </div>
-      <div class="flex items-center justify-between gap-4 border-t pt-3">
-        <div>
           <p class="text-sm font-medium">剪贴板双向同步</p>
           <p class="text-xs text-muted-foreground">在电脑与手机设备间实时同步剪贴板文本</p>
         </div>
@@ -112,6 +105,13 @@ const s = usePlayerSettings()
           <p class="text-xs text-muted-foreground">显示模板匹配和元素定位识别绿框</p>
         </div>
         <Switch :model-value="s.boxesVisible.value" aria-label="显示匹配绿框开关" @update:model-value="v => s.boxesVisible.value = !!v" />
+      </div>
+      <div class="flex items-center justify-between gap-4 border-t pt-3">
+        <div>
+          <p class="text-sm font-medium">唤醒后尝试解锁</p>
+          <p class="text-xs text-muted-foreground">屏幕点亮时自动上滑解锁（有密码仍需手动验证）</p>
+        </div>
+        <Switch :model-value="s.autoUnlockOnWake.value" aria-label="唤醒后尝试解锁开关" @update:model-value="v => s.autoUnlockOnWake.value = !!v" />
       </div>
     </div>
   </div>

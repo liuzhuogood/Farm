@@ -51,7 +51,7 @@
 | 播放器检查器 | 检查器、取色器、放大镜 | 右侧抽屉内:取色坐标、像素放大镜、XML 树、XPath 与元素定位联动 |
 | 检查模式 | 拾取模式、检查开关 | 检查器顶栏的显式开关,仅开启后拦截画面输入;打开面板默认可操控设备,完成取色、元素选择或 OCR 框选后自动退出 |
 | ADB 终端 | Web Shell、交互式终端 | 右侧抽屉内 xterm.js 终端,真实 PTY 分配 |
-| 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏 | 系统设置 → 通用设置中的开关，默认关闭；开启后按设备计算，无投屏、ADB 终端、命令及设备操作满 10 分钟后由后端自动熄屏，后台遥测与屏幕状态轮询不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
+| 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏、不熄屏 | 系统设置 → 通用设置中的时间下拉，默认开启并等待 10 分钟；可选不熄屏、1、5、10、30 分钟。按设备计算，无投屏、ADB 终端、命令及设备操作达到所选时长后由后端自动熄屏，后台遥测与屏幕状态轮询不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
 | 系统设置 | 设置、设置页、系统配置 | 路由 `/settings/general`、`/settings/service`、`/settings/dependencies`（`frontend/src/views/settings/`）；左侧菜单底部设置展开后进入，不再使用弹窗 |
 | 更新设置 | 检查更新开关、自动更新开关 | 设置 → 通用设置 → 更新；`frontend/src/composables/useUpdateSettings.ts` 持久化“检查更新”“自动更新”，关闭检查更新时自动更新同步关闭 |
 | 设置页底部操作 | 恢复所有小窗入口、重启 ADB 入口 | `frontend/src/components/layout/AppSidebar.vue`；恢复所有小窗仅桌面端可用（`restore_all_player_windows`），重启 ADB 调用 `POST /api/adb/restart` |

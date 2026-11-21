@@ -1,4 +1,4 @@
-// Package idlescreen sleeps devices after ten minutes without application work.
+// Package idlescreen sleeps devices after a configured period without application work.
 package idlescreen
 
 import (
@@ -10,8 +10,13 @@ import (
 	"time"
 )
 
-const IdleTimeout = 10 * time.Minute
+const (
+	IdleTimeout           = 10 * time.Minute
+	DefaultTimeoutMinutes = 10
+)
 const configKey = "idle_screen"
+
+var allowedTimeoutMinutes = map[int]bool{1: true, 5: true, 10: true, 30: true}
 
 type Store interface {
 	GetConfig(string) (string, error)
@@ -19,7 +24,8 @@ type Store interface {
 }
 
 type Config struct {
-	Enabled bool `json:"enabled"`
+	Enabled        bool `json:"enabled"`
+	TimeoutMinutes int  `json:"timeout_minutes"`
 }
 
 type deviceState struct {
@@ -57,7 +63,7 @@ type Manager struct {
 // New starts one scheduler and one bounded worker; sleep must honor cancellation.
 func New(store Store, online func() []string, sleep func(context.Context, string) error) *Manager {
 	ctx, cancel := context.WithCancel(context.Background())
-	m := &Manager{store: store, devices: map[string]*deviceState{}, now: time.Now, timeout: IdleTimeout, sleep: sleep, online: online, ctx: ctx, cancel: cancel, jobs: make(chan sleepJob, 32)}
+	m := &Manager{store: store, devices: map[string]*deviceState{}, now: time.Now, timeout: IdleTimeout, config: Config{Enabled: true, TimeoutMinutes: DefaultTimeoutMinutes}, sleep: sleep, online: online, ctx: ctx, cancel: cancel, jobs: make(chan sleepJob, 32)}
 	if store != nil {
 		raw, err := store.GetConfig(configKey)
 		if err != nil {
@@ -66,6 +72,8 @@ func New(store Store, online func() []string, sleep func(context.Context, string
 			if err := json.Unmarshal([]byte(raw), &m.config); err != nil {
 				log.Printf("[IdleScreen] 配置无效: %v", err)
 			}
+			m.config = normalizeConfig(m.config)
+			m.timeout = timeoutFor(m.config)
 		}
 	}
 	m.wg.Add(2)
@@ -79,6 +87,10 @@ func (m *Manager) Config() Config { m.mu.Lock(); defer m.mu.Unlock(); return m.c
 func (m *Manager) Set(c Config) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	c = normalizeConfig(c)
+	if !allowedTimeoutMinutes[c.TimeoutMinutes] {
+		return fmt.Errorf("熄屏时间必须为 1、5、10 或 30 分钟")
+	}
 	if m.store == nil {
 		return fmt.Errorf("数据库不可用，无法保存熄屏设置")
 	}
@@ -90,6 +102,7 @@ func (m *Manager) Set(c Config) error {
 		return nil
 	}
 	m.config = c
+	m.timeout = timeoutFor(c)
 	for _, d := range m.devices {
 		m.invalidate(d)
 		d.last = m.now()
@@ -97,6 +110,17 @@ func (m *Manager) Set(c Config) error {
 	}
 	log.Printf("[IdleScreen] 设置已保存 enabled=%t timeout=%s", c.Enabled, m.timeout)
 	return nil
+}
+
+func normalizeConfig(c Config) Config {
+	if c.TimeoutMinutes == 0 {
+		c.TimeoutMinutes = DefaultTimeoutMinutes
+	}
+	return c
+}
+
+func timeoutFor(c Config) time.Duration {
+	return time.Duration(c.TimeoutMinutes) * time.Minute
 }
 
 func (m *Manager) invalidate(d *deviceState) {

@@ -39,6 +39,15 @@
   - 设备筛选弹窗移除搜索框，添加按钮移入标题栏且只保留图标；两个显示开关同排置底。
   - 底部胶囊移除“更多”；设置新增“关于”，展示版本与 GitHub 地址。
 
+- [x] **S8 设备搜索、投屏控制与反馈**
+  - 修复设备页搜索输入未写入 store 导致列表不过滤的问题；搜索框缩为居中固定宽度。
+  - 任务记录与 API 路由改为静态组件，避免路由 chunk 解析等待；任务列表保留骨架屏。
+  - 详情页顶栏顺序调整为返回、切换任务、主页，其他操作后置。
+  - 全屏详情底部增加返回、切换任务、主页三个虚拟键；原生小窗增加手指球开关同一组虚拟键。
+  - 小窗顶栏默认只显示三个导航键，窗口效果、音量、置顶、设备详情等收入“更多”。
+  - 空闲自动熄屏默认开启，时间改为下拉选择：不熄屏、1、5、10、30 分钟，后端按选择值执行。
+  - 设置新增反馈页，提交后打开预填内容的 GitHub Issue 页面。
+
 ## 验收记录
 
 | 步骤 | 结论 | 证据 |
@@ -51,3 +60,4 @@
 | S6 构建与自测 | 通过 | 前端构建、完整 Go 测试、Rust 测试、版本同步测试；`evidence/local-smoke/`、`evidence/macmini/` |
 | S6 beta 发布 | 通过 | [Release](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.1)；[Actions](https://github.com/liuzhuogood/Farm/actions/runs/44797883718)；[发布验收](evidence/release-beta.md) |
 | S7 | 通过 | 浏览器与原生桌面实测：`evidence/local-smoke/evidence-local-sidebar-collapsed-compact.png`、`evidence-local-home-device-panel.png`、`evidence-local-detail-shell.png`、`evidence-local-settings-about.png` |
+| S8 | 通过 | `pnpm --dir frontend build`、`go test ./...`；搜索、虚拟键、反馈、熄屏时间与路由耗时已在浏览器/原生桌面验证 |

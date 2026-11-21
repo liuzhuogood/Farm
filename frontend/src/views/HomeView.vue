@@ -12,6 +12,7 @@ import HomePhoneView from '@/components/home/HomePhoneView.vue'
 import HomeIosDockBar from '@/components/home/HomeIosDockBar.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import AddDeviceDialog from '@/components/home/AddDeviceDialog.vue'
 import DeviceIdentifierDialog from '@/components/home/DeviceIdentifierDialog.vue'
 import DeviceCompanionDialog from '@/components/home/DeviceCompanionDialog.vue'
@@ -274,23 +275,25 @@ onUnmounted(() => {
       class="relative z-20 shrink-0"
     >
       <template #left>
-        <div class="flex min-w-0 flex-1 items-center gap-2.5">
-          <Search class="h-4 w-4 shrink-0 text-slate-400" />
-          <Input
-            :model-value="store.keyword"
-            placeholder="搜索设备名称、型号或序列号"
-            class="h-8 min-w-0 flex-1 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
-            @update:model-value="store.keyword = String($event)"
-          />
-          <button
-            v-if="store.keyword"
-            type="button"
-            class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-slate-400 hover:bg-black/5 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
-            aria-label="清除搜索"
-            @click="store.keyword = ''"
-          >
-            <X class="h-3.5 w-3.5" />
-          </button>
+        <div data-tauri-drag-region class="flex min-w-0 flex-1 justify-center px-4">
+          <div class="flex w-full max-w-md items-center gap-2.5">
+            <Search class="h-4 w-4 shrink-0 text-slate-400" />
+            <Input
+              :model-value="store.keyword"
+              placeholder="搜索设备名称、型号或序列号"
+              class="h-8 min-w-0 flex-1 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
+              @update:model-value="store.keyword = String($event)"
+            />
+            <button
+              v-if="store.keyword"
+              type="button"
+              class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-slate-400 hover:bg-black/5 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
+              aria-label="清除搜索"
+              @click="store.keyword = ''"
+            >
+              <X class="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </template>
       <template #actions>

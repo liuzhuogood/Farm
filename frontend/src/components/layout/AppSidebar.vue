@@ -10,6 +10,7 @@ import {
   Info,
   ListChecks,
   Loader2,
+  MessageSquare,
   Package,
   RefreshCw,
   RotateCcw,
@@ -42,6 +43,7 @@ const settingsNav = [
   { label: '通用设置', to: '/settings/general', icon: SlidersHorizontal },
   { label: '服务', to: '/settings/service', icon: Server },
   { label: '依赖', to: '/settings/dependencies', icon: Package },
+  { label: '反馈', to: '/settings/feedback', icon: MessageSquare },
   { label: '关于', to: '/settings/about', icon: Info },
 ]
 

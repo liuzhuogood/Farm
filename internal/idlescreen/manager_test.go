@@ -173,5 +173,25 @@ func TestRestartRestoresSettingAndCloseCancels(t *testing.T) {
 	if !m.Config().Enabled {
 		t.Fatal("saved setting was not restored")
 	}
+	if m.Config().TimeoutMinutes != DefaultTimeoutMinutes {
+		t.Fatalf("old config timeout=%d", m.Config().TimeoutMinutes)
+	}
 	m.Close()
+}
+
+func TestDefaultEnabledAndConfigurableTimeout(t *testing.T) {
+	m := New(&memoryStore{}, func() []string { return nil }, func(context.Context, string) error { return nil })
+	defer m.Close()
+	if !m.Config().Enabled || m.Config().TimeoutMinutes != DefaultTimeoutMinutes {
+		t.Fatalf("unexpected default: %+v", m.Config())
+	}
+	if err := m.Set(Config{Enabled: true, TimeoutMinutes: 5}); err != nil {
+		t.Fatal(err)
+	}
+	if m.Config().TimeoutMinutes != 5 || m.timeout != 5*time.Minute {
+		t.Fatalf("timeout not applied: config=%+v timeout=%s", m.Config(), m.timeout)
+	}
+	if err := m.Set(Config{Enabled: true, TimeoutMinutes: 2}); err == nil {
+		t.Fatal("unsupported timeout was accepted")
+	}
 }

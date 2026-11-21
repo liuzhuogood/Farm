@@ -10,7 +10,8 @@ func (m *Manager) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/system/idle-screen", func(w http.ResponseWriter, r *http.Request) { m.writeConfig(w) })
 	mux.HandleFunc("PUT /api/system/idle-screen", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
-			Enabled *bool `json:"enabled"`
+			Enabled        *bool `json:"enabled"`
+			TimeoutMinutes *int  `json:"timeout_minutes"`
 		}
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024))
 		decoder.DisallowUnknownFields()
@@ -22,7 +23,15 @@ func (m *Manager) RegisterRoutes(mux *http.ServeMux) {
 			http.Error(w, "请求必须为单个 JSON 对象", http.StatusBadRequest)
 			return
 		}
-		if err := m.Set(Config{Enabled: *body.Enabled}); err != nil {
+		timeout := m.Config().TimeoutMinutes
+		if body.TimeoutMinutes != nil {
+			timeout = *body.TimeoutMinutes
+		}
+		if !allowedTimeoutMinutes[timeout] {
+			http.Error(w, "熄屏时间必须为 1、5、10 或 30 分钟", http.StatusBadRequest)
+			return
+		}
+		if err := m.Set(Config{Enabled: *body.Enabled, TimeoutMinutes: timeout}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

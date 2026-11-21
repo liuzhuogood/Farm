@@ -5849,13 +5849,20 @@
                   "type": "object",
                   "additionalProperties": false,
                   "required": [
-                    "enabled"
+                    "enabled",
+                    "timeout_minutes"
                   ],
                   "properties": {
                     "enabled": {
                       "type": "boolean",
-                      "default": false,
-                      "description": "开启后，无投屏、ADB 终端、命令及设备操作满 10 分钟自动熄屏。后台遥测和屏幕状态轮询不刷新计时。"
+                      "default": true,
+                      "description": "开启后，无投屏、ADB 终端、命令及设备操作达到设定时长自动熄屏。后台遥测和屏幕状态轮询不刷新计时。"
+                    },
+                    "timeout_minutes": {
+                      "type": "integer",
+                      "enum": [1, 5, 10, 30],
+                      "default": 10,
+                      "description": "空闲熄屏等待时长（分钟）。"
                     }
                   }
                 }
@@ -5875,13 +5882,20 @@
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
-                  "enabled"
+                  "enabled",
+                  "timeout_minutes"
                 ],
                 "properties": {
                   "enabled": {
                     "type": "boolean",
-                    "default": false,
-                    "description": "开启后，无投屏、ADB 终端、命令及设备操作满 10 分钟自动熄屏。后台遥测和屏幕状态轮询不刷新计时。"
+                    "default": true,
+                    "description": "开启后，无投屏、ADB 终端、命令及设备操作达到设定时长自动熄屏。后台遥测和屏幕状态轮询不刷新计时。"
+                  },
+                  "timeout_minutes": {
+                    "type": "integer",
+                    "enum": [1, 5, 10, 30],
+                    "default": 10,
+                    "description": "空闲熄屏等待时长（分钟）。"
                   }
                 }
               }
@@ -5897,13 +5911,20 @@
                   "type": "object",
                   "additionalProperties": false,
                   "required": [
-                    "enabled"
+                    "enabled",
+                    "timeout_minutes"
                   ],
                   "properties": {
                     "enabled": {
                       "type": "boolean",
-                      "default": false,
-                      "description": "开启后，无投屏、ADB 终端、命令及设备操作满 10 分钟自动熄屏。后台遥测和屏幕状态轮询不刷新计时。"
+                      "default": true,
+                      "description": "开启后，无投屏、ADB 终端、命令及设备操作达到设定时长自动熄屏。后台遥测和屏幕状态轮询不刷新计时。"
+                    },
+                    "timeout_minutes": {
+                      "type": "integer",
+                      "enum": [1, 5, 10, 30],
+                      "default": 10,
+                      "description": "空闲熄屏等待时长（分钟）。"
                     }
                   }
                 }
