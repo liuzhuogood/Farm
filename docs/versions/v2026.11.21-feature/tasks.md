@@ -60,4 +60,4 @@
 | S6 构建与自测 | 通过 | 前端构建、完整 Go 测试、Rust 测试、版本同步测试；`evidence/local-smoke/`、`evidence/macmini/` |
 | S6 beta 发布 | 通过 | [Release](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.1)；[Actions](https://github.com/liuzhuogood/Farm/actions/runs/44797883718)；[发布验收](evidence/release-beta.md) |
 | S7 | 通过 | 浏览器与原生桌面实测：`evidence/local-smoke/evidence-local-sidebar-collapsed-compact.png`、`evidence-local-home-device-panel.png`、`evidence-local-detail-shell.png`、`evidence-local-settings-about.png` |
-| S8 | 通过 | `pnpm --dir frontend build`、`go test ./...`；搜索、虚拟键、反馈、熄屏时间与路由耗时已在浏览器/原生桌面验证；[beta.3](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.3) 发布后在 Mac mini 复测 |
+| S8 | 通过 | `pnpm --dir frontend build`、`go test ./...`；搜索、虚拟键、反馈、熄屏时间与路由耗时已在浏览器/原生桌面验证；[beta.3](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.3) 与 [正式版](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21) 发布后均在 Mac mini 复测 |
