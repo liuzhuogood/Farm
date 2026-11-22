@@ -129,18 +129,19 @@ pub fn open_main_device_detail(app: AppHandle, serial: String) -> Result<(), Str
 pub const CLICK_SCRIPT: &str = include_str!("links.js");
 
 #[tauri::command]
-pub fn fit_player_window(window: tauri::WebviewWindow, video_width: f64, video_height: f64) -> Result<(), String> {
+pub fn fit_player_window(window: tauri::WebviewWindow, video_width: f64, video_height: f64, extra_height: Option<f64>) -> Result<(), String> {
     if !window.label().starts_with("player-") { return Err("仅设备小窗支持画面适配".into()); }
     if !video_width.is_finite() || !video_height.is_finite() || video_width < 1.0 || video_height < 1.0 { return Err("视频尺寸无效".into()); }
+    let extra_height = extra_height.unwrap_or(0.0).clamp(0.0, 200.0);
     let scale = window.scale_factor().map_err(|e| e.to_string())?;
     let current = window.inner_size().map_err(|e| e.to_string())?.to_logical::<f64>(scale);
     let ratio = video_width / video_height;
     let mut width = current.width;
     if let Some(monitor) = window.current_monitor().map_err(|e| e.to_string())? {
         let screen = monitor.size().to_logical::<f64>(monitor.scale_factor());
-        width = width.min(screen.width - 40.0).min((screen.height - 100.0) * ratio);
+        width = width.min(screen.width - 40.0).min((screen.height - 100.0 - extra_height) * ratio);
     }
-    let height = (width / ratio).round();
+    let height = (width / ratio).round() + extra_height;
     if (current.width - width).abs() >= 1.0 || (current.height - height).abs() >= 1.0 {
         window.set_size(tauri::LogicalSize::new(width, height)).map_err(|e| e.to_string())?;
         eprintln!("[Desktop] 小窗 {} 适配视频 {}x{} -> {:.0}x{:.0}", window.label(), video_width, video_height, width, height);

@@ -8,7 +8,6 @@ import {
   Ellipsis,
   ExternalLink,
   FolderOpen,
-  Hand,
   Home,
   LayoutTemplate,
   ListChecks,
@@ -108,11 +107,7 @@ const windowEffects = usePlayerWindows(serial)
 const playerSettings = usePlayerSettings()
 const { open: openFloatingPlayer } = useFloatingPlayers()
 const nativePlayerWindow = isTauri() && getCurrentWindow().label.startsWith('player-')
-const virtualNavVisible = ref(!props.embedded)
-
-function toggleVirtualNav() {
-  virtualNavVisible.value = !virtualNavVisible.value
-}
+const virtualNavVisible = playerSettings.virtualNavVisible
 
 async function handleCloseSmallWindow() {
   if (isTauri()) {
@@ -909,30 +904,6 @@ defineExpose({ handleEscape })
             aria-hidden="true"
           />
           <TouchVisualizer ref="touchVisualizerRef" :visible="touchVisible" :width="p.videoSize.value.w" :height="p.videoSize.value.h" />
-          <button
-            v-if="embedded"
-            type="button"
-            data-virtual-nav-toggle
-            class="absolute right-2 top-1/2 z-30 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/45 text-white/80 shadow-lg backdrop-blur-md transition hover:bg-black/65 hover:text-white"
-            :aria-label="virtualNavVisible ? '隐藏虚拟按键' : '显示虚拟按键'"
-            :title="virtualNavVisible ? '隐藏虚拟按键' : '显示虚拟按键'"
-            @click.stop="toggleVirtualNav"
-          >
-            <Hand class="h-4 w-4" />
-          </button>
-          <div v-if="virtualNavVisible" data-virtual-nav class="pointer-events-none absolute inset-x-0 bottom-2 z-30 flex justify-center">
-            <div class="pointer-events-auto flex items-center gap-1 rounded-full border border-white/20 bg-black/55 p-1 shadow-xl backdrop-blur-md">
-              <button type="button" class="grid size-10 place-items-center rounded-full text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="返回" title="返回" @click.stop="p.pressBack()">
-                <ArrowLeft class="h-5 w-5" />
-              </button>
-              <button type="button" class="grid size-10 place-items-center rounded-full text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="切换任务" title="切换任务" @click.stop="p.pressRecents()">
-                <Square class="h-4 w-4" />
-              </button>
-              <button type="button" class="grid size-10 place-items-center rounded-full text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="主页" title="主页" @click.stop="p.pressHome()">
-                <Circle class="h-4 w-4" />
-              </button>
-            </div>
-          </div>
           <CaptureLayer
             v-if="captureOpen" :serial="serial" :get-canvas="() => p.canvasRef.value"
             :actions-target="`#${captureHostId}`"
@@ -958,7 +929,6 @@ defineExpose({ handleEscape })
             </div>
           </div>
         </div>
-
         <!-- 灭屏提示 -->
         <div v-if="p.screenOff.value" class="absolute inset-x-0 top-0 flex justify-center p-3">
           <Badge variant="secondary" class="gap-1.5 px-3 py-1.5">
@@ -970,7 +940,18 @@ defineExpose({ handleEscape })
         <div v-if="replay.replaying.value" class="absolute inset-x-0 top-0 flex justify-center p-3">
           <Badge class="gap-1.5 px-3 py-1.5">正在重放{{ replay.loop.value ? '（循环）' : '' }}</Badge>
         </div>
-      </main></div></template>
+      </main>
+      <div v-if="virtualNavVisible" data-virtual-nav class="flex h-12 w-full shrink-0 items-center justify-around border-t border-white/15 bg-slate-900/85 px-6 shadow-lg backdrop-blur-md">
+        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="返回" title="返回" @click.stop="p.pressBack()">
+          <ArrowLeft class="h-5 w-5" />
+        </button>
+        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="切换任务" title="切换任务" @click.stop="p.pressRecents()">
+          <Square class="h-4 w-4" />
+        </button>
+        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="主页" title="主页" @click.stop="p.pressHome()">
+          <Circle class="h-4 w-4" />
+        </button>
+      </div></div></template>
       <template #side>
       <div v-if="captureOpen" :id="captureHostId" class="h-full overflow-auto bg-card" />
       <div v-show="!captureOpen" class="flex h-full min-h-0 flex-col">
@@ -1002,11 +983,13 @@ defineExpose({ handleEscape })
         v-else-if="settingsOpen"
         :touch-visible="touchVisible" :boxes-visible="tm.showBoxes.value"
         :auto-unlock-on-wake="p.autoUnlockOnWake.value"
+        :virtual-nav-visible="playerSettings.virtualNavVisible.value"
         :clipboard-sync="p.clipboardSync.value"
         :window-busy="windowEffects.busy.value"
         @update:touch-visible="setTouchVisible"
         @update:boxes-visible="tm.setShow"
         @update:auto-unlock-on-wake="p.autoUnlockOnWake.value = $event"
+        @update:virtual-nav-visible="playerSettings.virtualNavVisible.value = $event"
         @update:clipboard-sync="p.clipboardSync.value = $event"
         @close="settingsOpen = false"
       />

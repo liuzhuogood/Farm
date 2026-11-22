@@ -6,8 +6,10 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import DevicePlayer from '@/components/player/DevicePlayer.vue'
 import FloatingPlayer from '@/components/player/FloatingPlayer.vue'
 import { useFloatingPlayers } from '@/composables/useFloatingPlayers'
+import { usePlayerSettings } from '@/composables/usePlayerSettings'
 
 const { floatingSerials, close: closeFloatingWindow } = useFloatingPlayers()
+const playerSettings = usePlayerSettings()
 
 const route = useRoute()
 const serial = computed(() => typeof route.query.serial === 'string' ? route.query.serial : '')
@@ -29,7 +31,13 @@ function queueFit() {
 async function fitNative() {
   if (disposed || fitting || !layout || !embedded.value || !isTauri() || !getCurrentWindow().label.startsWith('player-')) return
   fitting = true
-  try { await invoke('fit_player_window', { videoWidth: layout.width, videoHeight: layout.height }) }
+  try {
+    await invoke('fit_player_window', {
+      videoWidth: layout.width,
+      videoHeight: layout.height,
+      extraHeight: playerSettings.virtualNavVisible.value ? 56 : 0,
+    })
+  }
   catch (cause) { console.warn('[Desktop] 适配视频小窗失败', cause) }
   finally { fitting = false }
 }
@@ -39,6 +47,7 @@ function handleLayout(next: {width: number, height: number}) {
   queueFit()
 }
 onMounted(() => window.addEventListener('resize', queueFit))
+watch(() => playerSettings.virtualNavVisible.value, queueFit)
 onUnmounted(() => { disposed = true; clearTimeout(fitTimer); window.removeEventListener('resize', queueFit) })
 async function handleClose() {
   if (isTauri()) {

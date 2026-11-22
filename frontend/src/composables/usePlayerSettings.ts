@@ -74,6 +74,7 @@ export const usePlayerSettings = createSharedComposable(() => {
   const clipboardSync = useStorage<boolean>('clipboard-sync', true)
   const touchVisible = useStorage<boolean>('show-touch-overlay', true)
   const boxesVisible = useStorage<boolean>('show-template-boxes', true)
+  const virtualNavVisible = useStorage<boolean>('show-virtual-nav', false)
 
   return {
     openMode,
@@ -90,5 +91,6 @@ export const usePlayerSettings = createSharedComposable(() => {
     clipboardSync,
     touchVisible,
     boxesVisible,
+    virtualNavVisible,
   }
 })

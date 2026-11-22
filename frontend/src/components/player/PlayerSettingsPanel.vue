@@ -7,6 +7,7 @@ defineProps<{
   touchVisible: boolean
   boxesVisible: boolean
   autoUnlockOnWake: boolean
+  virtualNavVisible: boolean
   clipboardSync: boolean
   windowBusy?: boolean
 }>()
@@ -14,6 +15,7 @@ const emit = defineEmits<{
   'update:touchVisible': [value: boolean]
   'update:boxesVisible': [value: boolean]
   'update:autoUnlockOnWake': [value: boolean]
+  'update:virtualNavVisible': [value: boolean]
   'update:clipboardSync': [value: boolean]
   close: []
 }>()
@@ -45,6 +47,10 @@ const emit = defineEmits<{
       <div class="flex items-center justify-between gap-4">
         <div><p class="text-sm font-medium">唤醒后尝试解锁</p><p class="text-xs text-muted-foreground">有密码时仍需手动验证</p></div>
         <Switch :model-value="autoUnlockOnWake" aria-label="唤醒后尝试解锁" @update:model-value="emit('update:autoUnlockOnWake', !!$event)" />
+      </div>
+      <div class="flex items-center justify-between gap-4">
+        <div><p class="text-sm font-medium">显示虚拟导航键</p><p class="text-xs text-muted-foreground">在投屏画面下方显示返回、切换任务和主页</p></div>
+        <Switch :model-value="virtualNavVisible" aria-label="显示虚拟导航键" @update:model-value="emit('update:virtualNavVisible', !!$event)" />
       </div>
     </div>
   </aside>

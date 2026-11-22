@@ -113,6 +113,13 @@ const s = usePlayerSettings()
         </div>
         <Switch :model-value="s.autoUnlockOnWake.value" aria-label="唤醒后尝试解锁开关" @update:model-value="v => s.autoUnlockOnWake.value = !!v" />
       </div>
+      <div class="flex items-center justify-between gap-4 border-t pt-3">
+        <div>
+          <p class="text-sm font-medium">显示虚拟导航键</p>
+          <p class="text-xs text-muted-foreground">在投屏画面下方显示返回、切换任务和主页</p>
+        </div>
+        <Switch :model-value="s.virtualNavVisible.value" aria-label="显示虚拟导航键开关" @update:model-value="v => s.virtualNavVisible.value = !!v" />
+      </div>
     </div>
   </div>
 </template>
