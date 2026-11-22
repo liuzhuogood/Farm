@@ -849,11 +849,11 @@ defineExpose({ handleEscape })
     </Dialog>
     <!-- 舞台 + 侧栏 -->
     <SplitLayout :class="{ 'capture-layout': captureOpen, 'task-layout': tasksVisible }" :open="sidePanel !== null">
-      <template #main><div class="flex h-full min-h-0 flex-col overflow-hidden p-0" :class="embedded ? 'bg-black' : 'bg-transparent gap-3 overflow-auto'">
+      <template #main><div class="flex h-full min-h-0 flex-col overflow-hidden p-0" :class="[embedded ? 'bg-black' : 'bg-transparent overflow-auto', !embedded && !virtualNavVisible ? 'gap-3' : '']">
       <main
         data-player-viewport
-        class="relative flex min-w-0 flex-1 items-center justify-center p-3 sm:p-5"
-        :class="embedded ? 'min-h-0 bg-black !p-0' : 'min-h-0 !py-8 sm:!py-10'"
+        class="relative flex min-w-0 flex-1 items-center p-3 sm:p-5"
+        :class="embedded ? 'min-h-0 justify-center bg-black !p-0' : virtualNavVisible ? 'min-h-0 justify-end pt-8 pb-0 sm:pt-10 sm:pb-0' : 'min-h-0 justify-center py-8 sm:py-10'"
         @dragenter="drop.onDragEnter"
         @dragover="drop.onDragOver"
         @dragleave="drop.onDragLeave"
