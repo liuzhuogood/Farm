@@ -12,3 +12,4 @@
 - `pnpm --dir frontend build`
 - `cargo test --locked --manifest-path desktop/Cargo.toml`
 - 浏览器实测画面底部与虚拟键顶部不重叠；主窗口虚拟键宽度等于投屏区域宽度，内嵌小窗宽度等于窗口宽度。
+- [v2026.11.21-beta.4](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.21-beta.4) 已发布，14 个资产齐全；Mac mini 下载发布版后 `/tasks`、`/player`、`/settings/feedback` 均返回 200。
