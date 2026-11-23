@@ -13,6 +13,8 @@ const playerSettings = usePlayerSettings()
 
 const route = useRoute()
 const serial = computed(() => typeof route.query.serial === 'string' ? route.query.serial : '')
+// 虚拟导航键按设备单独开关。
+const virtualNavVisible = playerSettings.isVirtualNavVisible(serial)
 const embedded = computed(() => route.query.embedded === '1' || route.query.embedded === 'true')
 
 watch(embedded, value => {
@@ -35,7 +37,7 @@ async function fitNative() {
     await invoke('fit_player_window', {
       videoWidth: layout.width,
       videoHeight: layout.height,
-      extraHeight: playerSettings.virtualNavVisible.value ? 56 : 0,
+      extraHeight: virtualNavVisible.value ? 56 : 0,
     })
   }
   catch (cause) { console.warn('[Desktop] 适配视频小窗失败', cause) }
@@ -47,7 +49,7 @@ function handleLayout(next: {width: number, height: number}) {
   queueFit()
 }
 onMounted(() => window.addEventListener('resize', queueFit))
-watch(() => playerSettings.virtualNavVisible.value, queueFit)
+watch(virtualNavVisible, queueFit)
 onUnmounted(() => { disposed = true; clearTimeout(fitTimer); window.removeEventListener('resize', queueFit) })
 async function handleClose() {
   if (isTauri()) {

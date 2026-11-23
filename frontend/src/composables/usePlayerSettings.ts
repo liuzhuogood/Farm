@@ -1,3 +1,5 @@
+import { computed } from 'vue'
+import type { Ref } from 'vue'
 import { createSharedComposable, useStorage } from '@vueuse/core'
 
 export type OpenMode = 'floating' | 'page'
@@ -19,6 +21,13 @@ export const HOME_QUALITY_DEFAULT = 90
 export const HOME_BITRATE_MIN = 2
 export const HOME_BITRATE_MAX = 16
 export const HOME_BITRATE_DEFAULT = 8
+
+function normalizeVirtualNavs(raw: unknown): Record<string, boolean> {
+  if (!raw || typeof raw !== 'object') return {}
+  const entries = Object.entries(raw as Record<string, unknown>)
+    .filter(([serial, value]) => Boolean(serial) && value === true)
+  return Object.fromEntries(entries) as Record<string, boolean>
+}
 
 export function normalizeHomeViewMode(raw: unknown): HomeViewMode {
   return raw === 'phone' ? 'phone' : 'deck'
@@ -74,7 +83,33 @@ export const usePlayerSettings = createSharedComposable(() => {
   const clipboardSync = useStorage<boolean>('clipboard-sync', true)
   const touchVisible = useStorage<boolean>('show-touch-overlay', true)
   const boxesVisible = useStorage<boolean>('show-template-boxes', true)
-  const virtualNavVisible = useStorage<boolean>('show-virtual-nav', false)
+  // 虚拟导航键按设备保存：有的设备需要，有的不需要，不同设备互不影响。
+  const virtualNavs = useStorage<Record<string, boolean>>(
+    'farm.player.virtual-nav',
+    {},
+    undefined,
+    {
+      serializer: {
+        read: raw => normalizeVirtualNavs(JSON.parse(raw || '{}')),
+        write: value => JSON.stringify(value),
+      },
+    },
+  )
+
+  function isVirtualNavVisible(serial: Ref<string>) {
+    return computed(() => {
+      const key = serial.value
+      return key ? virtualNavs.value[key] === true : false
+    })
+  }
+
+  function setVirtualNavVisible(serial: string, value: boolean) {
+    if (!serial) return
+    const next = { ...virtualNavs.value }
+    if (value) next[serial] = true
+    else delete next[serial]
+    virtualNavs.value = next
+  }
 
   return {
     openMode,
@@ -91,6 +126,7 @@ export const usePlayerSettings = createSharedComposable(() => {
     clipboardSync,
     touchVisible,
     boxesVisible,
-    virtualNavVisible,
+    isVirtualNavVisible,
+    setVirtualNavVisible,
   }
 })

@@ -105,7 +105,7 @@ const windowEffects = usePlayerWindows(serial)
 const playerSettings = usePlayerSettings()
 const { open: openFloatingPlayer } = useFloatingPlayers()
 const nativePlayerWindow = isTauri() && getCurrentWindow().label.startsWith('player-')
-const virtualNavVisible = playerSettings.virtualNavVisible
+const virtualNavVisible = playerSettings.isVirtualNavVisible(serial)
 
 async function handleCloseSmallWindow() {
   if (isTauri()) {
@@ -1000,13 +1000,13 @@ defineExpose({ handleEscape })
         v-else-if="settingsOpen"
         :touch-visible="touchVisible" :boxes-visible="tm.showBoxes.value"
         :auto-unlock-on-wake="p.autoUnlockOnWake.value"
-        :virtual-nav-visible="playerSettings.virtualNavVisible.value"
+        :virtual-nav-visible="virtualNavVisible"
         :clipboard-sync="p.clipboardSync.value"
         :window-busy="windowEffects.busy.value"
         @update:touch-visible="setTouchVisible"
         @update:boxes-visible="tm.setShow"
         @update:auto-unlock-on-wake="p.autoUnlockOnWake.value = $event"
-        @update:virtual-nav-visible="playerSettings.virtualNavVisible.value = $event"
+        @update:virtual-nav-visible="playerSettings.setVirtualNavVisible(serial, $event)"
         @update:clipboard-sync="p.clipboardSync.value = $event"
         @close="settingsOpen = false"
       />

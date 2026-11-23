@@ -53,7 +53,7 @@
 | 检查模式 | 拾取模式、检查开关 | 检查器顶栏的显式开关,仅开启后拦截画面输入;打开面板默认可操控设备,完成取色、元素选择或 OCR 框选后自动退出 |
 | ADB 终端 | Web Shell、交互式终端 | 右侧抽屉内 xterm.js 终端,真实 PTY 分配 |
 | 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏、不熄屏 | 系统设置 → 通用设置中的时间下拉，默认开启并等待 10 分钟；可选不熄屏、1、5、10、30 分钟。按设备计算，无投屏、ADB 终端、命令及设备操作达到所选时长后由后端自动熄屏，后台遥测与屏幕状态轮询不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
-| 虚拟导航键 | 三大金刚键、底部虚拟键 | `frontend/src/components/player/VirtualNavBar.vue`；投屏画面下方的切换任务、主页、返回三键与“更多”入口，作为画面同列紧贴画面下沿，宽度跟随投屏画面而非页面空白区域；小窗与设备详情页共用该组件，按住空白处可拖动无边框小窗；由手机详情页“设置”面板中的“显示虚拟导航键”开关控制 |
+| 虚拟导航键 | 三大金刚键、底部虚拟键 | `frontend/src/components/player/VirtualNavBar.vue`；投屏画面下方的切换任务、主页、返回三键与“更多”入口，作为画面同列紧贴画面下沿，宽度跟随投屏画面而非页面空白区域；小窗与设备详情页共用该组件，按住空白处可拖动无边框小窗；由手机详情页“设置”面板中的“显示虚拟导航键”开关按设备单独控制（`farm.player.virtual-nav` 记录 serial→开关，不同设备互不影响，默认关闭） |
 | 系统设置 | 设置、设置页、系统配置 | 路由 `/settings/general`、`/settings/service`、`/settings/dependencies`（`frontend/src/views/settings/`）；左侧菜单底部设置展开后进入，不再使用弹窗 |
 | 更新设置 | 检查更新开关、自动更新开关 | 设置 → 通用设置 → 更新；`frontend/src/composables/useUpdateSettings.ts` 持久化“检查更新”“自动更新”，关闭检查更新时自动更新同步关闭 |
 | 设置页底部操作 | 恢复所有小窗入口、重启 ADB 入口 | `frontend/src/components/layout/AppSidebar.vue`；恢复所有小窗仅桌面端可用（`restore_all_player_windows`），重启 ADB 调用 `POST /api/adb/restart` |
