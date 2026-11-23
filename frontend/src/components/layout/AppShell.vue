@@ -46,12 +46,12 @@ function handleDragDoubleClick(event: MouseEvent) {
       <div
         v-if="showDragRegion"
         data-tauri-drag-region
-        class="absolute inset-x-0 top-0 z-20 h-7 select-none"
+        class="absolute inset-x-0 top-0 z-20 h-11 select-none"
         aria-hidden="true"
         @mousedown="handleDragMouseDown"
         @dblclick="handleDragDoubleClick"
       />
-      <div class="h-full overflow-hidden" :class="showDragRegion ? 'pt-7' : ''">
+      <div class="h-full overflow-hidden" :class="showDragRegion ? 'pt-11' : ''">
         <slot />
       </div>
     </div>

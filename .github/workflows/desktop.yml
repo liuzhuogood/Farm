@@ -36,6 +36,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: '1.90.0'
+          components: clippy
       - name: Install Linux desktop libraries
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -53,7 +54,23 @@ jobs:
       - name: Test release version synchronization
         run: node --test scripts/sync-version.test.mjs
       - name: Build desktop and installers
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:DESKTOP_BUNDLES = 'nsis'
+          node scripts/build-desktop.mjs
+      - name: Build desktop and installers
+        if: runner.os != 'Windows'
         run: node scripts/build-desktop.mjs
+      - name: Verify standalone Windows GUI service
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $standalone = Join-Path $env:RUNNER_TEMP 'farm-standalone'
+          New-Item -ItemType Directory -Force $standalone | Out-Null
+          Copy-Item desktop/target/release/farm-gui.exe (Join-Path $standalone 'farm-windows-gui-amd64.exe')
+          node scripts/verification/standalone-gui.mjs (Join-Path $standalone 'farm-windows-gui-amd64.exe')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify desktop service lifecycle
         run: node scripts/verification/desktop-service.mjs
       - name: Verify release manifest contracts

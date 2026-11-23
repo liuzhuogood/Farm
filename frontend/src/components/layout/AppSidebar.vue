@@ -116,7 +116,7 @@ async function restartAdb() {
   >
     <div
       data-tauri-drag-region
-      class="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200/60 dark:border-white/10"
+      class="flex h-11 shrink-0 items-center gap-2"
       :class="collapsed ? 'justify-center px-2' : isMacDesktop ? 'pl-[84px] pr-2' : 'px-3'"
     >
       <RouterLink v-if="!collapsed" to="/" class="flex min-w-0 items-center gap-2">

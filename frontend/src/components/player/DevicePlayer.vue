@@ -26,6 +26,7 @@ import {
   TriangleAlert,
   Terminal,
   Undo2,
+  Volume2,
   X,
   ChevronDown,
   Pin,
@@ -182,6 +183,14 @@ const isNativeToolbarHovered = ref(false)
 const isWindowEffectsActive = ref(false)
 const isMoreMenuOpen = ref(false)
 const isAudioOpen = ref(false)
+const moreTriggerRef = ref<HTMLElement | null>(null)
+
+// 小窗底部虚拟键的「更多」复用工具栏同一份菜单，避免两处菜单内容分叉。
+function openMoreMenu() {
+  const trigger = moreTriggerRef.value
+  if (!trigger) return
+  trigger.click()
+}
 let nativeToolbarTimer: ReturnType<typeof setTimeout> | undefined
 
 const isNativeToolbarActive = computed(() => isNativeToolbarHovered.value || isWindowEffectsActive.value || isMoreMenuOpen.value || isAudioOpen.value)
@@ -575,23 +584,29 @@ defineExpose({ handleEscape })
       <template #actions>
         <!-- 小窗默认仅保留三大导航键，其余操作收入更多。 -->
         <div v-if="embedded" class="flex shrink-0 items-center gap-0.5">
-          <Button variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
-            <Undo2 class="h-4 w-4" />
-          </Button>
           <Button variant="ghost" size="icon" title="切换任务" aria-label="切换任务" @click="p.pressRecents()">
             <GalleryHorizontal class="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" title="主页" aria-label="主页" @click="p.pressHome()">
             <Circle class="h-4 w-4" />
           </Button>
+          <Button variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
+            <Undo2 class="h-4 w-4" />
+          </Button>
         <DropdownMenu :modal="false" v-model:open="isMoreMenuOpen">
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon" title="更多" aria-label="更多">
+            <Button
+              :ref="(element: any) => { moreTriggerRef = (element?.$el ?? element) as HTMLElement | null }"
+              variant="ghost"
+              size="icon"
+              title="更多"
+              aria-label="更多"
+            >
               <Ellipsis class="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="z-[9999]">
-            <div v-if="nativePlayerWindow" class="flex items-center justify-between gap-3 px-2 py-1.5 text-sm">
+            <DropdownMenuItem v-if="nativePlayerWindow" class="justify-between" @select.stop.prevent>
               <span class="flex items-center gap-2"><Scaling class="h-4 w-4" />窗口效果</span>
               <WindowEffectsControl
                 :opacity="windowEffects.player.value?.opacity ?? 100"
@@ -603,16 +618,16 @@ defineExpose({ handleEscape })
                 @restore="windowEffects.restore"
                 @active-change="isWindowEffectsActive = $event"
               />
-            </div>
-            <div class="flex items-center justify-between gap-3 px-2 py-1.5 text-sm">
-              <span>音量</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem class="justify-between" @select.stop.prevent>
+              <span class="flex items-center gap-2"><Volume2 class="h-4 w-4" />音量</span>
               <AudioControl
                 :ready="p.audioReady.value" :muted="p.audioMuted.value"
                 :volume="p.audioVolume.value" :title="p.audioTitle.value"
                 @toggle="p.toggleAudio()" @volume="p.setAudioVolume($event)"
                 @update:open="isAudioOpen = $event"
               />
-            </div>
+            </DropdownMenuItem>
             <DropdownMenuItem v-if="isGui" @select="toggleAlwaysOnTop()">
               <PinOff v-if="isAlwaysOnTop" class="h-4 w-4" />
               <Pin v-else class="h-4 w-4" />
@@ -642,14 +657,14 @@ defineExpose({ handleEscape })
 
       <!-- 完整页面模式工具栏 -->
       <div v-else class="flex shrink-0 items-center gap-1">
-        <Button variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
-          <Undo2 class="h-5 w-5" />
-        </Button>
         <Button variant="ghost" size="icon" title="切换任务" aria-label="切换任务" @click="p.pressRecents()">
           <GalleryHorizontal class="h-5 w-5" />
         </Button>
         <Button variant="ghost" size="icon" title="主页" aria-label="主页" @click="p.pressHome()">
           <Circle class="h-5 w-5" />
+        </Button>
+        <Button variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
+          <Undo2 class="h-5 w-5" />
         </Button>
         <span class="mx-0.5 h-5 w-px shrink-0 bg-slate-300/80 dark:bg-white/15" aria-hidden="true" />
         <Button variant="ghost" size="icon" title="打开小窗" aria-label="打开小窗" @click="openSmallWindow()">
@@ -942,14 +957,17 @@ defineExpose({ handleEscape })
         </div>
       </main>
       <div v-if="virtualNavVisible" data-virtual-nav class="flex h-12 w-full shrink-0 items-center justify-around border-t border-white/15 bg-slate-900/85 px-6 shadow-lg backdrop-blur-md">
-        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="返回" title="返回" @click.stop="p.pressBack()">
-          <ArrowLeft class="h-5 w-5" />
-        </button>
         <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="切换任务" title="切换任务" @click.stop="p.pressRecents()">
           <Square class="h-4 w-4" />
         </button>
         <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="主页" title="主页" @click.stop="p.pressHome()">
           <Circle class="h-4 w-4" />
+        </button>
+        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="返回" title="返回" @click.stop="p.pressBack()">
+          <ArrowLeft class="h-5 w-5" />
+        </button>
+        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="更多" title="更多" @click.stop="openMoreMenu()">
+          <Ellipsis class="h-5 w-5" />
         </button>
       </div></div></template>
       <template #side>

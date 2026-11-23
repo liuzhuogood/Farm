@@ -144,7 +144,7 @@ function handleHeaderMouseDown(e: MouseEvent) {
           ? 'h-11 px-2.5 cursor-move'
           : isMacDesktop
             ? (props.windowInset ? 'h-11 pl-[82px] pr-4' : 'h-11 px-4')
-            : 'h-14 px-4',
+            : 'h-11 px-4',
       ]"
       @dblclick="handleHeaderDblClick"
       @mousedown="handleHeaderMouseDown"
