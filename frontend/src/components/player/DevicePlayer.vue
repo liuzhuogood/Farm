@@ -6,7 +6,6 @@ import {
   Circle,
   Crop,
   Ellipsis,
-  ExternalLink,
   FolderOpen,
   Home,
   LayoutTemplate,
@@ -26,11 +25,8 @@ import {
   TriangleAlert,
   Terminal,
   Undo2,
-  Volume2,
   X,
   ChevronDown,
-  Pin,
-  PinOff,
 } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, useId, watch } from 'vue'
 import { invoke, isTauri } from '@tauri-apps/api/core'
@@ -81,8 +77,8 @@ import SplitLayout from '@/components/layout/SplitLayout.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import FilesView from '@/views/FilesView.vue'
 import PlayerSettingsPanel from '@/components/player/PlayerSettingsPanel.vue'
+import PlayerMoreMenu from '@/components/player/PlayerMoreMenu.vue'
 import DeviceTasksPanel from '@/components/player/DeviceTasksPanel.vue'
-import WindowEffectsControl from '@/components/player/WindowEffectsControl.vue'
 import AudioControl from '@/components/player/AudioControl.vue'
 import { usePlayerWindows } from '@/composables/usePlayerWindows'
 import { usePlayerSettings } from '@/composables/usePlayerSettings'
@@ -183,14 +179,6 @@ const isNativeToolbarHovered = ref(false)
 const isWindowEffectsActive = ref(false)
 const isMoreMenuOpen = ref(false)
 const isAudioOpen = ref(false)
-const moreTriggerRef = ref<HTMLElement | null>(null)
-
-// 小窗底部虚拟键的「更多」复用工具栏同一份菜单，避免两处菜单内容分叉。
-function openMoreMenu() {
-  const trigger = moreTriggerRef.value
-  if (!trigger) return
-  trigger.click()
-}
 let nativeToolbarTimer: ReturnType<typeof setTimeout> | undefined
 
 const isNativeToolbarActive = computed(() => isNativeToolbarHovered.value || isWindowEffectsActive.value || isMoreMenuOpen.value || isAudioOpen.value)
@@ -593,66 +581,40 @@ defineExpose({ handleEscape })
           <Button variant="ghost" size="icon" title="返回" aria-label="返回" @click="p.pressBack()">
             <Undo2 class="h-4 w-4" />
           </Button>
-        <DropdownMenu :modal="false" v-model:open="isMoreMenuOpen">
-          <DropdownMenuTrigger as-child>
-            <Button
-              :ref="(element: any) => { moreTriggerRef = (element?.$el ?? element) as HTMLElement | null }"
-              variant="ghost"
-              size="icon"
-              title="更多"
-              aria-label="更多"
-            >
-              <Ellipsis class="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="z-[9999]">
-            <DropdownMenuItem v-if="nativePlayerWindow" class="justify-between" @select.stop.prevent>
-              <span class="flex items-center gap-2"><Scaling class="h-4 w-4" />窗口效果</span>
-              <WindowEffectsControl
-                :opacity="windowEffects.player.value?.opacity ?? 100"
-                :click-through="windowEffects.player.value?.clickThrough ?? false"
-                :shortcut="windowEffects.shortcut.value"
-                :busy="windowEffects.busy.value"
-                @opacity="windowEffects.setOpacity"
-                @click-through="windowEffects.setClickThrough"
-                @restore="windowEffects.restore"
-                @active-change="isWindowEffectsActive = $event"
-              />
-            </DropdownMenuItem>
-            <DropdownMenuItem class="justify-between" @select.stop.prevent>
-              <span class="flex items-center gap-2"><Volume2 class="h-4 w-4" />音量</span>
-              <AudioControl
-                :ready="p.audioReady.value" :muted="p.audioMuted.value"
-                :volume="p.audioVolume.value" :title="p.audioTitle.value"
-                @toggle="p.toggleAudio()" @volume="p.setAudioVolume($event)"
-                @update:open="isAudioOpen = $event"
-              />
-            </DropdownMenuItem>
-            <DropdownMenuItem v-if="isGui" @select="toggleAlwaysOnTop()">
-              <PinOff v-if="isAlwaysOnTop" class="h-4 w-4" />
-              <Pin v-else class="h-4 w-4" />
-              {{ isAlwaysOnTop ? '取消置顶' : '保持窗口置顶' }}
-            </DropdownMenuItem>
-            <DropdownMenuItem @select="openDeviceDetail()"><ExternalLink class="h-4 w-4" />设备详情</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem :disabled="p.powerBusy.value" @select="p.pressPower()">
-              <Power class="h-4 w-4" />电源键
-            </DropdownMenuItem>
-            <DropdownMenuItem @select="p.rotate()">
-              <RotateCw class="h-4 w-4" />横竖屏
-            </DropdownMenuItem>
-            <DropdownMenuItem @select="p.toggleFullscreen()">
-              <Minimize v-if="p.fullscreen.value" class="h-4 w-4" />
-              <Maximize v-else class="h-4 w-4" />{{ p.fullscreen.value ? '退出全屏' : '全屏' }}
-            </DropdownMenuItem>
-            <DropdownMenuItem v-if="showPip" :disabled="!p.pipSupported.value" @select="p.togglePip()">
-              <PictureInPicture2 class="h-4 w-4" />{{ p.pipActive.value ? '退出画中画' : '画中画' }}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem @select="toggleTasks()"><ListChecks class="h-4 w-4" />任务情况</DropdownMenuItem>
-            <DropdownMenuItem @select="openSettings()"><Settings class="h-4 w-4" />设置</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <PlayerMoreMenu
+          :native-player-window="nativePlayerWindow"
+          :is-gui="isGui"
+          :is-always-on-top="isAlwaysOnTop"
+          :show-pip="showPip"
+          :pip-supported="p.pipSupported.value"
+          :pip-active="p.pipActive.value"
+          :power-busy="p.powerBusy.value"
+          :fullscreen="p.fullscreen.value"
+          :audio-ready="p.audioReady.value"
+          :audio-muted="p.audioMuted.value"
+          :audio-volume="p.audioVolume.value"
+          :audio-title="p.audioTitle.value"
+          :opacity="windowEffects.player.value?.opacity ?? 100"
+          :click-through="windowEffects.player.value?.clickThrough ?? false"
+          :shortcut="windowEffects.shortcut.value"
+          :window-busy="windowEffects.busy.value"
+          @update:open="isMoreMenuOpen = $event"
+          @update:always-on-top="toggleAlwaysOnTop()"
+          @update:pip="p.togglePip()"
+          @update:audio-open="isAudioOpen = $event"
+          @toggle-audio="p.toggleAudio()"
+          @set-audio-volume="p.setAudioVolume($event)"
+          @set-opacity="windowEffects.setOpacity"
+          @set-click-through="windowEffects.setClickThrough"
+          @restore="windowEffects.restore"
+          @window-effects-active="isWindowEffectsActive = $event"
+          @press-power="p.pressPower()"
+          @rotate="p.rotate()"
+          @toggle-fullscreen="p.toggleFullscreen()"
+          @open-device-detail="openDeviceDetail()"
+          @toggle-tasks="toggleTasks()"
+          @open-settings="openSettings()"
+        />
       </div>
 
       <!-- 完整页面模式工具栏 -->
@@ -966,9 +928,41 @@ defineExpose({ handleEscape })
         <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="返回" title="返回" @click.stop="p.pressBack()">
           <ArrowLeft class="h-5 w-5" />
         </button>
-        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="更多" title="更多" @click.stop="openMoreMenu()">
-          <Ellipsis class="h-5 w-5" />
-        </button>
+        <PlayerMoreMenu
+          class="[&_button]:text-white/85 [&_button:hover]:bg-white/15 [&_button:hover]:text-white"
+          :native-player-window="nativePlayerWindow"
+          :is-gui="isGui"
+          :is-always-on-top="isAlwaysOnTop"
+          :show-pip="showPip"
+          :pip-supported="p.pipSupported.value"
+          :pip-active="p.pipActive.value"
+          :power-busy="p.powerBusy.value"
+          :fullscreen="p.fullscreen.value"
+          :audio-ready="p.audioReady.value"
+          :audio-muted="p.audioMuted.value"
+          :audio-volume="p.audioVolume.value"
+          :audio-title="p.audioTitle.value"
+          :opacity="windowEffects.player.value?.opacity ?? 100"
+          :click-through="windowEffects.player.value?.clickThrough ?? false"
+          :shortcut="windowEffects.shortcut.value"
+          :window-busy="windowEffects.busy.value"
+          @update:open="isMoreMenuOpen = $event"
+          @update:always-on-top="toggleAlwaysOnTop()"
+          @update:pip="p.togglePip()"
+          @update:audio-open="isAudioOpen = $event"
+          @toggle-audio="p.toggleAudio()"
+          @set-audio-volume="p.setAudioVolume($event)"
+          @set-opacity="windowEffects.setOpacity"
+          @set-click-through="windowEffects.setClickThrough"
+          @restore="windowEffects.restore"
+          @window-effects-active="isWindowEffectsActive = $event"
+          @press-power="p.pressPower()"
+          @rotate="p.rotate()"
+          @toggle-fullscreen="p.toggleFullscreen()"
+          @open-device-detail="openDeviceDetail()"
+          @toggle-tasks="toggleTasks()"
+          @open-settings="openSettings()"
+        />
       </div></div></template>
       <template #side>
       <div v-if="captureOpen" :id="captureHostId" class="h-full overflow-auto bg-card" />

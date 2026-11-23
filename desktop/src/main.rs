@@ -181,6 +181,8 @@ fn main() {
             let navigation_app=app.handle().clone();
  let popup_app=app.handle().clone();
             let popup_origin = url.clone();
+            // macOS 需要追加标题栏样式，其余平台直接构造，避免多余的 mut。
+            #[cfg_attr(not(target_os = "macos"), allow(unused_mut))]
             let mut builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(local_origin))
                 .title("Farm").inner_size(1280.0, 820.0)
                 .transparent(true);
