@@ -435,18 +435,19 @@ function openSettings() {
 async function openDeviceDetail() {
   if (nativePlayerWindow) {
     try {
+      // 设备详情统一在主窗口打开，独立小窗随关闭，不再把详情塞进小窗。
       await invoke('open_main_device_detail', { serial: props.serial })
-      toast.success('已在 GUI 主程序中打开设备详情，请前往主窗口操作', {
-        description: '当前独立小窗已保留作为实时参考',
-      })
+      await invoke('close_window')
+      return
     }
     catch (e) {
       console.warn('[Desktop] 唤起主窗口详情失败，在当前窗口打开', e)
-      router.push({ name: 'player', query: { serial: props.serial } })
     }
-    return
   }
   router.push({ name: 'player', query: { serial: props.serial } })
+  // Web 内嵌浮窗与主页面共用同一实例，进入详情后关闭浮窗。
+  if (props.embedded)
+    emit('close')
 }
 
 const scaleModel = computed({
