@@ -31,7 +31,7 @@ pub fn log(message: impl AsRef<str>) {
         }
     }
     if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(path) {
-        let _ = write!(file, "{} {text}\n", timestamp());
+        let _ = writeln!(file, "{} {text}", timestamp());
     }
 }
 
