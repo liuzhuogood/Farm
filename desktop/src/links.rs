@@ -16,15 +16,21 @@ pub fn open_browser_link(app: AppHandle, url: String) -> Result<(), String> {
     })
 }
 
+// 同步命令会在主线程执行，而创建窗口又要回到主线程，Windows 上会死锁成黑窗口；
+// 一律放到阻塞线程池里创建。
 #[tauri::command]
-pub fn open_device_window(
+pub async fn open_device_window(
     app: AppHandle,
     serial: String,
     title: Option<String>,
     width: Option<f64>,
     height: Option<f64>,
 ) -> Result<(), String> {
-    open_device_window_internal(&app, serial, title, width, height)
+    tauri::async_runtime::spawn_blocking(move || {
+        open_device_window_internal(&app, serial, title, width, height)
+    })
+    .await
+    .map_err(|error| error.to_string())?
 }
 
 pub(crate) fn open_device_window_internal(
@@ -101,15 +107,25 @@ pub(crate) fn open_device_window_internal(
     #[cfg(target_os = "macos")]
     let builder = builder.transparent(true);
     #[cfg(not(target_os = "macos"))]
-    let builder = builder
-        .transparent(false)
-        .background_color(tauri::window::Color(0, 0, 0, 255));
+    let builder = builder.transparent(false);
 
     // Track before loading so the first frontend snapshot already has this window.
     if let Err(error) = crate::player_windows::track(app, &label, &serial, borderless) {
         crate::diag::log(format!("[Desktop] 登记设备小窗失败: label={label}: {error}"));
         return Err(error);
     }
+    let created = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let watchdog_created = created.clone();
+    let watchdog_label = label.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_secs(20));
+        if !watchdog_created.load(std::sync::atomic::Ordering::Relaxed) {
+            crate::diag::log(format!(
+                "[Desktop] 创建设备小窗超过 20 秒未返回: label={watchdog_label}（疑似在等主线程创建窗口）"
+            ));
+        }
+    });
+    crate::diag::log(format!("[Desktop] 开始创建设备小窗窗口: label={label}"));
     let window = match builder.build() {
         Ok(window) => window,
         Err(error) => {
@@ -120,6 +136,7 @@ pub(crate) fn open_device_window_internal(
             return Err(error.to_string());
         }
     };
+    created.store(true, std::sync::atomic::Ordering::Relaxed);
     // 从 IPC 回调创建的窗口在 Windows 上可能停在主窗口之后，显式显示并聚焦。
     if let Err(error) = window.show().and_then(|_| window.set_focus()) {
         crate::diag::log(format!("[Desktop] 显示设备小窗失败: label={label}: {error}"));
@@ -188,7 +205,13 @@ pub fn fit_player_window(window: tauri::WebviewWindow, video_width: f64, video_h
 /// One approval window for the entire application. Existing windows are not
 /// focused again by polling; only a new request restores a dismissed window.
 #[tauri::command]
-pub fn open_approval_window(app: AppHandle, approval_id: String) -> Result<(), String> {
+pub async fn open_approval_window(app: AppHandle, approval_id: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || open_approval_window_internal(&app, approval_id))
+        .await
+        .map_err(|error| error.to_string())?
+}
+
+fn open_approval_window_internal(app: &AppHandle, approval_id: String) -> Result<(), String> {
     if !approval_id.starts_with("ap_") || !approval_id[3..].chars().all(|c| c.is_ascii_hexdigit()) || approval_id.len() > 64 || approval_id.len() < 4 {
         return Err("审核请求 ID 无效".into());
     }
@@ -210,7 +233,7 @@ pub fn open_approval_window(app: AppHandle, approval_id: String) -> Result<(), S
             None => String::new(),
         }
     };
-    let window = tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::External(dest))
+    let window = tauri::WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::External(dest))
         .title("安全审核")
         .inner_size(420.0, 200.0)
         .min_inner_size(340.0, 200.0)

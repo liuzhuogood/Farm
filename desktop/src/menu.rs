@@ -1,11 +1,11 @@
 use crate::State;
 use tauri::{
-    menu::{Menu, MenuBuilder},
+    menu::MenuBuilder,
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     App, AppHandle, Emitter, Manager,
 };
 #[cfg(target_os = "macos")]
-use tauri::menu::{PredefinedMenuItem, SubmenuBuilder};
+use tauri::menu::{Menu, PredefinedMenuItem, SubmenuBuilder};
 use tauri_plugin_opener::OpenerExt;
 
 pub fn show(app: &AppHandle) {
@@ -173,7 +173,6 @@ fn install_app_menu(app: &mut App) -> tauri::Result<()> {
         .build()?;
     let menu = Menu::with_items(app, &[&application, &edit, &view, &window_menu])?;
     app.set_menu(menu)?;
-    app.on_menu_event(|app, event| action(app, event.id.as_ref()));
     crate::menu_devices::start(app.handle(), view).map_err(|error| {
         eprintln!("[Desktop] 启动在线设备菜单刷新失败: {error}");
         tauri::Error::Anyhow(error.into())
@@ -190,6 +189,8 @@ fn install_app_menu(_app: &mut App) -> tauri::Result<()> {
 
 pub fn install(app: &mut App) -> tauri::Result<bool> {
     install_app_menu(app)?;
+    // 菜单事件与托盘共用同一套动作，Windows/Linux 没有应用菜单但托盘菜单仍要生效。
+    app.on_menu_event(|app, event| action(app, event.id.as_ref()));
     let tray_menu = MenuBuilder::new(app)
         .text("check-update", "检查更新…")
         .separator()

@@ -1,4 +1,8 @@
 //! Online device selection for the native View menu.
+//!
+//! 设备子菜单只在 macOS 的应用菜单里存在；Windows/Linux 仍需要本模块的
+//! 轮询客户端与停止逻辑，因此对未使用的菜单构建函数仅关闭 dead_code 告警。
+#![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 use crate::State;
 use serde::Deserialize;
 use std::{
