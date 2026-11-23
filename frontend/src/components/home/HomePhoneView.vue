@@ -23,7 +23,6 @@ import {
   Tv,
 } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, ref, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
 import Sortable from 'sortablejs'
 import DeviceContextMenu from './DeviceContextMenu.vue'
 import DashTile from '@/components/dashboard/DashTile.vue'
@@ -66,7 +65,6 @@ const emit = defineEmits<{
 }>()
 
 const deviceStore = useDeviceStore()
-const router = useRouter()
 const { homePhoneScale } = usePlayerSettings()
 const cardWidth = computed(() => Math.round(HOME_PHONE_BASE_WIDTH * homePhoneScale.value / 100))
 const cardHeight = computed(() => Math.round(cardWidth.value * 1.88))
@@ -260,7 +258,8 @@ function handleCardClick(serial: string) {
   if (sorting.value || isDraggingMarquee.value || hasDraggedDistance) {
     return
   }
-  router.push({ name: 'player', query: { serial } })
+  // 设备列表点击默认打开投屏小窗，设备详情仍可从卡片右键或小窗菜单进入。
+  emit('openFloating', serial)
 }
 
 // 判定设备是否黑屏休眠或处于锁屏状态

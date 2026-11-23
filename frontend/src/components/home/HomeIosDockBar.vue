@@ -422,8 +422,11 @@ function handleDeviceClick(serial: string) {
             </div>
           </div>
 
-          <div class="flex items-center justify-between border-t pt-3">
-            <label for="group-control-mode" class="text-sm">群控</label>
+          <div class="flex items-center justify-between gap-3 border-t pt-3">
+            <div class="min-w-0">
+              <label for="group-control-mode" class="text-sm">群控</label>
+              <p class="mt-0.5 text-xs text-muted-foreground">打开小窗进行操作，对所有选中设备进行同步操作。</p>
+            </div>
             <Switch id="group-control-mode" :model-value="isSyncActive" :disabled="selectedSerials.length === 0 || batchRunning" @update:model-value="emit('toggleSync')" />
           </div>
 
