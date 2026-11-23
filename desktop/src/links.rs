@@ -37,13 +37,17 @@ pub(crate) fn open_device_window_internal(
     let state = app.state::<State>();
     let safe_serial = serial.replace(|c: char| !c.is_alphanumeric(), "_");
     let label = format!("player-{}", safe_serial);
+    crate::diag::log(format!(
+        "[Desktop] 请求打开设备小窗: serial={serial} label={label} size={:?}x{:?}",
+        width, height
+    ));
 
     if let Some(existing) = app.get_webview_window(&label) {
         crate::player_windows::restore(app, &label)?;
         let _ = existing.show();
         let _ = existing.unminimize();
         let _ = existing.set_focus();
-        eprintln!("[Desktop] 已恢复设备小窗: serial={serial} label={label}");
+        crate::diag::log(format!("[Desktop] 已恢复设备小窗: serial={serial} label={label}"));
         return Ok(());
     }
 
@@ -69,29 +73,61 @@ pub(crate) fn open_device_window_internal(
         String::new()
     };
 
-    let builder = tauri::WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::External(dest))
+    let builder = tauri::WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::External(dest.clone()))
         .title(win_title)
         .inner_size(w, h)
-        .transparent(true)
         .decorations(!borderless)
         .on_page_load(|window, payload| {
+            let event = match payload.event() {
+                tauri::webview::PageLoadEvent::Started => "开始加载",
+                tauri::webview::PageLoadEvent::Finished => "加载完成",
+            };
+            crate::diag::log(format!(
+                "[Desktop] 设备小窗页面{event}: label={} url={}",
+                window.label(),
+                payload.url()
+            ));
             if matches!(payload.event(), tauri::webview::PageLoadEvent::Started) {
                 if let Err(error) = crate::player_windows::restore_after_navigation(window.app_handle(), window.label()) {
-                    eprintln!("[Desktop] 页面加载后恢复小窗失败: {error}");
+                    crate::diag::log(format!("[Desktop] 页面加载后恢复小窗失败: {error}"));
                 }
             }
         })
         .initialization_script(&token_script)
         .initialization_script(CLICK_SCRIPT);
 
+    // 透明无边框窗口只在 macOS 上保留；Windows 的透明窗口依赖 DWM 模糊区域，
+    // 部分环境下 WebView 内容不绘制，表现为“点了打开小窗但什么也看不到”。
+    #[cfg(target_os = "macos")]
+    let builder = builder.transparent(true);
+    #[cfg(not(target_os = "macos"))]
+    let builder = builder
+        .transparent(false)
+        .background_color(tauri::window::Color(0, 0, 0, 255));
+
     // Track before loading so the first frontend snapshot already has this window.
-    crate::player_windows::track(app, &label, &serial, borderless)?;
-    if let Err(error) = builder.build() {
-        crate::player_windows::forget(app, &label);
-        eprintln!("[Desktop] 创建设备小窗失败: serial={serial}: {error}");
-        return Err(error.to_string());
+    if let Err(error) = crate::player_windows::track(app, &label, &serial, borderless) {
+        crate::diag::log(format!("[Desktop] 登记设备小窗失败: label={label}: {error}"));
+        return Err(error);
     }
-    eprintln!("[Desktop] 已创建设备小窗: serial={serial} label={label}");
+    let window = match builder.build() {
+        Ok(window) => window,
+        Err(error) => {
+            crate::player_windows::forget(app, &label);
+            crate::diag::log(format!(
+                "[Desktop] 创建设备小窗失败: serial={serial} label={label}: {error}"
+            ));
+            return Err(error.to_string());
+        }
+    };
+    // 从 IPC 回调创建的窗口在 Windows 上可能停在主窗口之后，显式显示并聚焦。
+    if let Err(error) = window.show().and_then(|_| window.set_focus()) {
+        crate::diag::log(format!("[Desktop] 显示设备小窗失败: label={label}: {error}"));
+    }
+    crate::diag::log(format!(
+        "[Desktop] 已创建设备小窗: serial={serial} label={label} url={dest} visible={}",
+        window.is_visible().unwrap_or(false)
+    ));
     Ok(())
 }
 

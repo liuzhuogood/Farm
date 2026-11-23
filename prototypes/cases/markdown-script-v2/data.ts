@@ -17,9 +17,9 @@ export interface DemoTask {
 }
 
 export const devices: Device[] = [
-  { serial: 'demo-pixel-01', alias: 'Pixel 8', state: 'device' },
-  { serial: 'demo-redmi-02', alias: 'Redmi K70', state: 'device' },
-  { serial: 'demo-galaxy-03', alias: 'Galaxy S24', state: 'offline' },
+  { serial: 'demo-pixel-01', identifier: 'Pixel 8', alias: 'Pixel 8', state: 'device' },
+  { serial: 'demo-redmi-02', identifier: 'Redmi K70', alias: 'Redmi K70', state: 'device' },
+  { serial: 'demo-galaxy-03', identifier: 'Galaxy S24', alias: 'Galaxy S24', state: 'offline' },
 ]
 
 export const templates: TemplateItem[] = [

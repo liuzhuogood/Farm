@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  Plus,
   Search,
   Smartphone,
   X,
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import AddDeviceDialog from '@/components/home/AddDeviceDialog.vue'
 import DeviceIdentifierDialog from '@/components/home/DeviceIdentifierDialog.vue'
 import DeviceCompanionDialog from '@/components/home/DeviceCompanionDialog.vue'
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import { useDeviceStore } from '@/stores/devices'
 import { useHomePhoneView } from '@/composables/useHomePhoneView'
 import { useDeviceSelection } from '@/composables/useDeviceSelection'
@@ -45,10 +47,6 @@ function setViewMode(mode: ViewMode) {
   viewMode.value = mode
   localStorage.setItem(VIEW_MODE_KEY, mode)
 }
-
-const onlineCount = computed(() => {
-  return store.devices.filter(d => d.state === 'device').length
-})
 
 const SHOW_OFFLINE_KEY = 'farm.show_offline_devices'
 const showOffline = ref(localStorage.getItem(SHOW_OFFLINE_KEY) === '1')
@@ -253,7 +251,34 @@ const companionSerial = ref<string | null>(null)
 const isAddDialogOpen = ref(false)
 function openAddDialog() { isAddDialogOpen.value = true }
 
-onMounted(() => store.startPolling())
+const ONBOARDING_KEY = ['farm', 'onboarding', 'completed', 'v1'].join('.')
+const onboardingOpen = ref(false)
+const onboardingAddPending = ref(false)
+
+function completeOnboarding() {
+  try { localStorage.setItem(ONBOARDING_KEY, '1') }
+  catch (cause) { console.warn('[onboarding] Save completion failed', cause) }
+  onboardingOpen.value = false
+}
+
+function handleOnboardingAdd() {
+  onboardingAddPending.value = true
+  onboardingOpen.value = false
+  openAddDialog()
+}
+
+watch(isAddDialogOpen, (open) => {
+  if (open || !onboardingAddPending.value) return
+  onboardingAddPending.value = false
+  if (store.devices.length > 0) completeOnboarding()
+  else onboardingOpen.value = true
+})
+
+onMounted(() => {
+  store.startPolling()
+  const preview = import.meta.env.DEV && new URLSearchParams(location.search).has('onboarding')
+  if ((isTauri() || preview) && localStorage.getItem(ONBOARDING_KEY) !== '1') onboardingOpen.value = true
+})
 onUnmounted(() => {
   store.stopPolling()
   destroyBatch()
@@ -297,9 +322,14 @@ onUnmounted(() => {
         </div>
       </template>
       <template #actions>
-        <span class="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500 dark:bg-white/10 dark:text-slate-300">
-          {{ onlineCount }} 在线
-        </span>
+        <Button
+          size="sm"
+          class="h-7 shrink-0 rounded-full bg-blue-600 px-3 text-[11px] font-medium text-white shadow-sm hover:bg-blue-700"
+          @click="openAddDialog"
+        >
+          <Plus class="h-3.5 w-3.5" />
+          添加设备
+        </Button>
       </template>
     </AppHeader>
 
@@ -432,13 +462,20 @@ onUnmounted(() => {
       @trigger-action="handleBatchAction"
       @toggle-sync="handleToggleSync"
       @cancel-batch="cancelBatch"
-      @open-add="openAddDialog"
       @update:only-selected="onlySelected = $event"
       @update:show-offline="setShowOffline"
       @restore-hidden="restoreHiddenDevices"
       @device-action="handleDeviceAction"
+      @select-group="handleUpdateSelectedSerials"
     />
 
+    <OnboardingWizard
+      :open="onboardingOpen"
+      :device-count="store.devices.length"
+      @update:open="onboardingOpen = $event"
+      @add-device="handleOnboardingAdd"
+      @completed="completeOnboarding"
+    />
     <AddDeviceDialog v-model:open="isAddDialogOpen" />
     <DeviceIdentifierDialog :serial="identifierSerial" @close="identifierSerial = null" />
     <DeviceCompanionDialog :serial="companionSerial" @close="companionSerial = null" />

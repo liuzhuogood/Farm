@@ -18,7 +18,7 @@ node scripts/build-desktop.mjs
 
 ### 本机开发快捷启动（macOS Apple Silicon）
 
-在项目根目录运行 `./scripts/start-desktop.sh`，或点击项目快捷操作「启动桌面开发版」。脚本使用当前工作区源码构建开发用 `.app` 并打开原生窗口，校验配套服务就绪后退出，桌面应用保持运行。日志位于 `~/Library/Application Support/com.farm.desktop/desktop.log`。
+在项目根目录运行 `./scripts/start-desktop.sh`，或点击项目快捷操作「启动开发板 gui」。脚本使用当前工作区源码构建开发用 `.app` 并打开原生窗口，校验配套服务就绪后退出，桌面应用保持运行。停止时运行 `./scripts/stop-desktop.sh`，或点击项目快捷操作「停止开发板 gui」。日志位于 `~/Library/Application Support/com.farm.desktop/desktop.log`。
 
 重复启动会复用健康实例并恢复主窗口。源码变更后，脚本核验并停止自身启动的旧开发实例，重新构建并显示当前版本。桌面数据沿用系统应用数据目录；网页开发服务仍由 `scripts/services.sh` 管理。
 
@@ -40,6 +40,8 @@ Linux 自动检测 Wayland/X11 socket，包括 SSH X11 转发；环境变量存�
 菜单包含设备列表、大屏监控、任务运行、依赖管理和浏览器打开。可用托盘下关闭窗口仅隐藏，托盘菜单恢复窗口或退出；没有托盘时关闭窗口退出。退出只停止当前 App 拥有的服务，外部任务由其执行工具管理。
 
 桌面服务默认监听 127.0.0.1:1989（可在系统配置中修改，或通过 FARM_DESKTOP_PORT / PORT 环境变量指定），数据位于系统应用数据目录 com.farm.desktop 下，日志为 desktop.log；就绪文件包含私有控制令牌，不要对外分享，同时生成公开端点文件 desktop-endpoint.json 供外部调用读取。服务端模式的数据目录与工作方式保留。
+
+桌面外壳（原生窗口、小窗创建、菜单）自身的关键流程写入同目录 `desktop-gui.log`：Windows 的 GUI 子系统没有控制台，排障看这个文件，小窗打不开时它会记录请求、创建结果、页面加载开始/完成与失败原因。
 
 ## 窗口置顶、透明度与鼠标穿透
 

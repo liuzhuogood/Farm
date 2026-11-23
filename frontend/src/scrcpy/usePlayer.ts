@@ -969,7 +969,9 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
     const viewport = canvas.closest<HTMLElement>('[data-player-viewport]') ?? layoutMain ?? stage
     const style = getComputedStyle(viewport)
     const availW = viewport.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
-    const availH = viewport.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+    // 虚拟导航键与画面同宽地排在同一列，适配时需先扣除它的高度，避免画面溢出。
+    const navHeight = viewport.querySelector<HTMLElement>('[data-virtual-nav]')?.getBoundingClientRect().height ?? 0
+    const availH = viewport.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - navHeight
     if (availW <= 0 || availH <= 0)
       return
     const cw = canvas.width

@@ -9,7 +9,7 @@ import {
   LayoutGrid,
   Maximize2,
   Minimize2,
-  Plus,
+  RefreshCw,
   SlidersHorizontal,
   Smartphone,
   Sparkles,
@@ -19,7 +19,10 @@ import DeviceContextMenu from './DeviceContextMenu.vue'
 import { GLASS_CARD_SURFACE } from '@/lib/surfaces'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
+import { useDeviceGroups } from '@/composables/useDeviceGroups'
+import type { DeviceGroup } from '@/composables/useDeviceGroups'
 import type { Device } from '@/api/devices'
 import type { HomeViewMode } from '@/composables/usePlayerSettings'
 import {
@@ -65,11 +68,11 @@ const emit = defineEmits<{
   (e: 'triggerAction', action: 'back' | 'home' | 'app_switch' | 'lock' | 'unlock'): void
   (e: 'toggleSync'): void
   (e: 'cancelBatch'): void
-  (e: 'openAdd'): void
   (e: 'update:onlySelected', val: boolean): void
   (e: 'update:showOffline', val: boolean): void
   (e: 'restoreHidden'): void
   (e: 'deviceAction', action: string, serial: string): void
+  (e: 'selectGroup', serials: string[]): void
 }>()
 
 const settings = usePlayerSettings()
@@ -93,6 +96,40 @@ const devicesExpanded = ref(false)
 let cleanupMarquee: (() => void) | undefined
 let marqueeResetTimer: ReturnType<typeof setTimeout> | undefined
 onUnmounted(() => { cleanupMarquee?.(); clearTimeout(marqueeResetTimer) })
+
+// 设备分组：从当前选择建立分组，点分组成批选中成员，可更新或删除。
+const { groups, createGroup, removeGroup, updateGroupSerials } = useDeviceGroups()
+const newGroupName = ref('')
+const activeGroupId = ref<string | null>(null)
+const canCreateGroup = computed(() => newGroupName.value.trim().length > 0 && props.selectedSerials.length > 0)
+const activeGroup = computed(() => groups.value.find(group => group.id === activeGroupId.value) ?? null)
+
+function groupMemberCount(group: DeviceGroup) {
+  const selectable = new Set(props.devices.map(device => device.serial))
+  return group.serials.filter(serial => selectable.has(serial)).length
+}
+
+function selectGroupSerials(group: DeviceGroup) {
+  activeGroupId.value = group.id
+  emit('selectGroup', group.serials)
+}
+
+function createGroupFromSelection() {
+  const group = createGroup(newGroupName.value, props.selectedSerials)
+  if (!group) return
+  newGroupName.value = ''
+  activeGroupId.value = group.id
+}
+
+function applySelectionToActiveGroup() {
+  if (!activeGroup.value || props.selectedSerials.length === 0) return
+  updateGroupSerials(activeGroup.value.id, props.selectedSerials)
+}
+
+function deleteGroup(group: DeviceGroup) {
+  if (activeGroupId.value === group.id) activeGroupId.value = null
+  removeGroup(group.id)
+}
 
 function toggleTab(tab: TabKey) {
   if (activeTab.value === tab) {
@@ -275,17 +312,6 @@ function handleDeviceClick(serial: string) {
             </h3>
           </div>
           <div class="flex items-center gap-1">
-            <Button
-              v-if="activeTab === 'devices'"
-              variant="ghost"
-              size="icon"
-              class="h-6 w-6 text-blue-600 hover:bg-blue-500/10 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-500/15 dark:hover:text-blue-300"
-              aria-label="添加设备"
-              title="添加设备"
-              @click="emit('openAdd')"
-            >
-              <Plus class="h-3.5 w-3.5" />
-            </Button>
             <Button v-if="activeTab === 'devices'" variant="ghost" size="icon" class="h-6 w-6" :aria-label="devicesExpanded ? '收起设备区域' : '展开设备区域'" :title="devicesExpanded ? '收起设备区域' : '展开设备区域'" @click="devicesExpanded = !devicesExpanded">
               <Minimize2 v-if="devicesExpanded" class="h-3.5 w-3.5" /><Maximize2 v-else class="h-3.5 w-3.5" />
             </Button>
@@ -399,6 +425,26 @@ function handleDeviceClick(serial: string) {
           <div class="flex items-center justify-between border-t pt-3">
             <label for="group-control-mode" class="text-sm">群控</label>
             <Switch id="group-control-mode" :model-value="isSyncActive" :disabled="selectedSerials.length === 0 || batchRunning" @update:model-value="emit('toggleSync')" />
+          </div>
+
+          <!-- 设备分组：点分组直接选中该组成员。 -->
+          <div v-if="groups.length" class="space-y-2 border-t pt-3">
+            <span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">分组</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button
+                v-for="group in groups"
+                :key="group.id"
+                type="button"
+                class="flex h-7 items-center gap-1.5 rounded-xl border px-2 text-xs transition-colors cursor-pointer"
+                :class="activeGroupId === group.id
+                  ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/40 dark:text-blue-200'
+                  : 'border-slate-200/80 bg-white text-slate-700 hover:border-blue-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200'"
+                :disabled="batchRunning"
+                @click="selectGroupSerials(group)"
+              >
+                {{ group.name }}<span class="font-mono text-[10px] opacity-60">{{ groupMemberCount(group) }}</span>
+              </button>
+            </div>
           </div>
 
         </div>
@@ -559,6 +605,60 @@ function handleDeviceClick(serial: string) {
             <div class="flex items-center gap-1">
               <Button variant="outline" size="sm" class="h-7 rounded-xl text-xs" @click="emit('selectAll')">{{ isAllSelected ? '取消全选' : '全选' }}</Button>
               <Button v-if="hiddenSerials.length" variant="ghost" size="sm" class="h-7 rounded-xl text-xs" @click="emit('restoreHidden')">显示隐藏设备</Button>
+            </div>
+          </div>
+
+          <!-- 设备分组：选中设备后可建组，点分组选中成员，可更新或删除。 -->
+          <div class="space-y-2 border-t border-slate-200/60 pt-2 dark:border-white/10">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">分组</span>
+              <Input
+                v-model="newGroupName"
+                placeholder="分组名称"
+                class="h-7 w-32 shrink-0 rounded-xl text-xs"
+                :disabled="selectedSerials.length === 0"
+                @keydown.enter.prevent="createGroupFromSelection"
+              />
+              <Button variant="outline" size="sm" class="h-7 rounded-xl text-xs" :disabled="!canCreateGroup" @click="createGroupFromSelection">新建</Button>
+              <Button
+                v-if="activeGroup"
+                variant="ghost"
+                size="sm"
+                class="h-7 rounded-xl text-xs"
+                :disabled="selectedSerials.length === 0"
+                :title="`用当前选择更新分组 ${activeGroup.name}`"
+                @click="applySelectionToActiveGroup"
+              >
+                <RefreshCw class="h-3.5 w-3.5" />更新「{{ activeGroup.name }}」
+              </Button>
+            </div>
+            <div v-if="groups.length" class="flex flex-wrap gap-1.5">
+              <div
+                v-for="group in groups"
+                :key="group.id"
+                class="flex items-center overflow-hidden rounded-xl border text-xs"
+                :class="activeGroupId === group.id
+                  ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/40 dark:text-blue-200'
+                  : 'border-slate-200/80 bg-white text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200'"
+              >
+                <button
+                  type="button"
+                  class="flex h-7 items-center gap-1.5 px-2 cursor-pointer hover:opacity-80"
+                  :title="`选中分组 ${group.name}`"
+                  @click="selectGroupSerials(group)"
+                >
+                  {{ group.name }}<span class="font-mono text-[10px] opacity-60">{{ groupMemberCount(group) }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="grid h-7 w-6 place-items-center text-slate-400 cursor-pointer hover:text-red-600"
+                  :aria-label="`删除分组 ${group.name}`"
+                  :title="`删除分组 ${group.name}`"
+                  @click="deleteGroup(group)"
+                >
+                  <X class="h-3 w-3" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

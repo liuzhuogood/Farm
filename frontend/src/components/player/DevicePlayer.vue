@@ -78,6 +78,7 @@ import AppHeader from '@/components/layout/AppHeader.vue'
 import FilesView from '@/views/FilesView.vue'
 import PlayerSettingsPanel from '@/components/player/PlayerSettingsPanel.vue'
 import PlayerMoreMenu from '@/components/player/PlayerMoreMenu.vue'
+import VirtualNavBar from '@/components/player/VirtualNavBar.vue'
 import DeviceTasksPanel from '@/components/player/DeviceTasksPanel.vue'
 import AudioControl from '@/components/player/AudioControl.vue'
 import { usePlayerWindows } from '@/composables/usePlayerWindows'
@@ -826,11 +827,11 @@ defineExpose({ handleEscape })
     </Dialog>
     <!-- 舞台 + 侧栏 -->
     <SplitLayout :class="{ 'capture-layout': captureOpen, 'task-layout': tasksVisible }" :open="sidePanel !== null">
-      <template #main><div class="flex h-full min-h-0 flex-col overflow-hidden p-0" :class="[embedded ? 'bg-black' : 'bg-transparent overflow-auto', !embedded && !virtualNavVisible ? 'gap-3' : '']">
+      <template #main><div class="flex h-full min-h-0 flex-col overflow-hidden p-0" :class="embedded ? 'bg-black' : 'bg-transparent overflow-auto'">
       <main
         data-player-viewport
         class="relative flex min-w-0 flex-1 items-center p-3 sm:p-5"
-        :class="embedded ? 'min-h-0 justify-center bg-black !p-0' : virtualNavVisible ? 'min-h-0 justify-end pt-8 pb-0 sm:pt-10 sm:pb-0' : 'min-h-0 justify-center py-8 sm:py-10'"
+        :class="embedded ? 'min-h-0 justify-center bg-black !p-0' : 'min-h-0 justify-center py-8 sm:py-10'"
         @dragenter="drop.onDragEnter"
         @dragover="drop.onDragOver"
         @dragleave="drop.onDragLeave"
@@ -856,55 +857,103 @@ defineExpose({ handleEscape })
           />
         </div>
 
-        <div class="relative z-10 transition-transform">
-          <canvas
-            :ref="p.canvasRef"
-            tabindex="0"
-            class="block touch-none bg-black select-none transition-shadow"
-            :class="[
-              embedded
-                ? ''
-                : 'rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] ring-1 ring-slate-300/60 dark:ring-white/10 overflow-hidden',
-              inspectorVisible && inspectionMode ? 'cursor-crosshair' : '',
-            ]"
-            aria-label="设备投屏画面"
-            @pointerdown="p.canvasRef.value?.focus({ preventScroll: true })"
-          />
-          <canvas
-            :ref="ins.overlayRef"
-            class="pointer-events-none absolute inset-0 h-full w-full"
-            aria-hidden="true"
-          />
-          <canvas
-            :ref="tm.overlayRef"
-            class="pointer-events-none absolute inset-0 h-full w-full"
-            aria-hidden="true"
-          />
-          <TouchVisualizer ref="touchVisualizerRef" :visible="touchVisible" :width="p.videoSize.value.w" :height="p.videoSize.value.h" />
-          <CaptureLayer
-            v-if="captureOpen" :serial="serial" :get-canvas="() => p.canvasRef.value"
-            :actions-target="`#${captureHostId}`"
-            @close="captureOpen = false"
-          />
+        <div class="relative z-10 flex flex-col transition-transform">
+          <div class="relative">
+            <canvas
+              :ref="p.canvasRef"
+              tabindex="0"
+              class="block touch-none bg-black select-none transition-shadow"
+              :class="[
+                embedded
+                  ? ''
+                  : 'rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] ring-1 ring-slate-300/60 dark:ring-white/10 overflow-hidden',
+                inspectorVisible && inspectionMode ? 'cursor-crosshair' : '',
+              ]"
+              aria-label="设备投屏画面"
+              @pointerdown="p.canvasRef.value?.focus({ preventScroll: true })"
+            />
+            <canvas
+              :ref="ins.overlayRef"
+              class="pointer-events-none absolute inset-0 h-full w-full"
+              aria-hidden="true"
+            />
+            <canvas
+              :ref="tm.overlayRef"
+              class="pointer-events-none absolute inset-0 h-full w-full"
+              aria-hidden="true"
+            />
+            <TouchVisualizer ref="touchVisualizerRef" :visible="touchVisible" :width="p.videoSize.value.w" :height="p.videoSize.value.h" />
+            <CaptureLayer
+              v-if="captureOpen" :serial="serial" :get-canvas="() => p.canvasRef.value"
+              :actions-target="`#${captureHostId}`"
+              @close="captureOpen = false"
+            />
 
-          <!-- 投屏拖拽文件高亮浮层 -->
-          <DeviceFileDropOverlay :visible="drop.isDragging.value" :drag-kind="drop.dragKind.value" />
+            <!-- 投屏拖拽文件高亮浮层 -->
+            <DeviceFileDropOverlay :visible="drop.isDragging.value" :drag-kind="drop.dragKind.value" />
 
-          <!-- 加载中 -->
-          <div v-if="p.loading.value" class="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-sm bg-black/60">
-            <Loader2 class="h-8 w-8 animate-spin text-white" />
-            <p class="text-sm text-white/80">{{ p.statusText.value }}</p>
-          </div>
+            <!-- 加载中 -->
+            <div v-if="p.loading.value" class="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-sm bg-black/60">
+              <Loader2 class="h-8 w-8 animate-spin text-white" />
+              <p class="text-sm text-white/80">{{ p.statusText.value }}</p>
+            </div>
 
-          <!-- 连接失败 -->
-          <div v-if="p.errorMsg.value" class="absolute inset-0 flex items-center justify-center rounded-sm bg-black/70 p-4">
-            <div class="flex max-w-sm flex-col items-center gap-2 rounded-xl bg-card p-6 text-center">
-              <TriangleAlert class="h-8 w-8 text-destructive" />
-              <p class="text-base font-semibold">连接失败</p>
-              <p class="text-sm text-muted-foreground">{{ p.errorMsg.value }}</p>
-              <Button class="mt-2" @click="p.retry()">重新连接</Button>
+            <!-- 连接失败 -->
+            <div v-if="p.errorMsg.value" class="absolute inset-0 flex items-center justify-center rounded-sm bg-black/70 p-4">
+              <div class="flex max-w-sm flex-col items-center gap-2 rounded-xl bg-card p-6 text-center">
+                <TriangleAlert class="h-8 w-8 text-destructive" />
+                <p class="text-base font-semibold">连接失败</p>
+                <p class="text-sm text-muted-foreground">{{ p.errorMsg.value }}</p>
+                <Button class="mt-2" @click="p.retry()">重新连接</Button>
+              </div>
             </div>
           </div>
+          <!-- 虚拟导航键与投屏画面同宽，跟随画面下方；按住空白处可拖动无边框小窗。 -->
+          <VirtualNavBar
+            v-if="virtualNavVisible"
+            class="[&_button]:text-white/85 [&_button:hover]:bg-white/15 [&_button:hover]:text-white"
+            @back="p.pressBack()"
+            @home="p.pressHome()"
+            @recents="p.pressRecents()"
+            @drag="dragBorderlessWindow"
+          >
+            <template #more>
+              <PlayerMoreMenu
+                :native-player-window="nativePlayerWindow"
+                :is-gui="isGui"
+                :is-always-on-top="isAlwaysOnTop"
+                :show-pip="showPip"
+                :pip-supported="p.pipSupported.value"
+                :pip-active="p.pipActive.value"
+                :power-busy="p.powerBusy.value"
+                :fullscreen="p.fullscreen.value"
+                :audio-ready="p.audioReady.value"
+                :audio-muted="p.audioMuted.value"
+                :audio-volume="p.audioVolume.value"
+                :audio-title="p.audioTitle.value"
+                :opacity="windowEffects.player.value?.opacity ?? 100"
+                :click-through="windowEffects.player.value?.clickThrough ?? false"
+                :shortcut="windowEffects.shortcut.value"
+                :window-busy="windowEffects.busy.value"
+                @update:open="isMoreMenuOpen = $event"
+                @update:always-on-top="toggleAlwaysOnTop()"
+                @update:pip="p.togglePip()"
+                @update:audio-open="isAudioOpen = $event"
+                @toggle-audio="p.toggleAudio()"
+                @set-audio-volume="p.setAudioVolume($event)"
+                @set-opacity="windowEffects.setOpacity"
+                @set-click-through="windowEffects.setClickThrough"
+                @restore="windowEffects.restore"
+                @window-effects-active="isWindowEffectsActive = $event"
+                @press-power="p.pressPower()"
+                @rotate="p.rotate()"
+                @toggle-fullscreen="p.toggleFullscreen()"
+                @open-device-detail="openDeviceDetail()"
+                @toggle-tasks="toggleTasks()"
+                @open-settings="openSettings()"
+              />
+            </template>
+          </VirtualNavBar>
         </div>
         <!-- 灭屏提示 -->
         <div v-if="p.screenOff.value" class="absolute inset-x-0 top-0 flex justify-center p-3">
@@ -918,52 +967,7 @@ defineExpose({ handleEscape })
           <Badge class="gap-1.5 px-3 py-1.5">正在重放{{ replay.loop.value ? '（循环）' : '' }}</Badge>
         </div>
       </main>
-      <div v-if="virtualNavVisible" data-virtual-nav class="flex h-12 w-full shrink-0 items-center justify-around border-t border-white/15 bg-slate-900/85 px-6 shadow-lg backdrop-blur-md">
-        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="切换任务" title="切换任务" @click.stop="p.pressRecents()">
-          <Square class="h-4 w-4" />
-        </button>
-        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="主页" title="主页" @click.stop="p.pressHome()">
-          <Circle class="h-4 w-4" />
-        </button>
-        <button type="button" class="grid size-10 place-items-center rounded-lg text-white/85 transition hover:bg-white/15 hover:text-white" aria-label="返回" title="返回" @click.stop="p.pressBack()">
-          <ArrowLeft class="h-5 w-5" />
-        </button>
-        <PlayerMoreMenu
-          class="[&_button]:text-white/85 [&_button:hover]:bg-white/15 [&_button:hover]:text-white"
-          :native-player-window="nativePlayerWindow"
-          :is-gui="isGui"
-          :is-always-on-top="isAlwaysOnTop"
-          :show-pip="showPip"
-          :pip-supported="p.pipSupported.value"
-          :pip-active="p.pipActive.value"
-          :power-busy="p.powerBusy.value"
-          :fullscreen="p.fullscreen.value"
-          :audio-ready="p.audioReady.value"
-          :audio-muted="p.audioMuted.value"
-          :audio-volume="p.audioVolume.value"
-          :audio-title="p.audioTitle.value"
-          :opacity="windowEffects.player.value?.opacity ?? 100"
-          :click-through="windowEffects.player.value?.clickThrough ?? false"
-          :shortcut="windowEffects.shortcut.value"
-          :window-busy="windowEffects.busy.value"
-          @update:open="isMoreMenuOpen = $event"
-          @update:always-on-top="toggleAlwaysOnTop()"
-          @update:pip="p.togglePip()"
-          @update:audio-open="isAudioOpen = $event"
-          @toggle-audio="p.toggleAudio()"
-          @set-audio-volume="p.setAudioVolume($event)"
-          @set-opacity="windowEffects.setOpacity"
-          @set-click-through="windowEffects.setClickThrough"
-          @restore="windowEffects.restore"
-          @window-effects-active="isWindowEffectsActive = $event"
-          @press-power="p.pressPower()"
-          @rotate="p.rotate()"
-          @toggle-fullscreen="p.toggleFullscreen()"
-          @open-device-detail="openDeviceDetail()"
-          @toggle-tasks="toggleTasks()"
-          @open-settings="openSettings()"
-        />
-      </div></div></template>
+      </div></template>
       <template #side>
       <div v-if="captureOpen" :id="captureHostId" class="h-full overflow-auto bg-card" />
       <div v-show="!captureOpen" class="flex h-full min-h-0 flex-col">

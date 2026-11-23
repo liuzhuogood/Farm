@@ -37,13 +37,14 @@
 |---|---|---|
 | 设备卡片 | 卡片 | `frontend/src/components/device/DeviceCard.vue` |
 | macOS 托盘图标 | 菜单栏图标、状态栏图标、托盘 | `desktop/src/menu.rs` 的 `main-tray`；macOS 使用独立 `desktop/icons/tray-white.png`，纯白图形、透明背景，无包围外框；保留原有托盘菜单和点击行为 |
+| 桌面原生菜单栏 | 菜单栏、文件编辑菜单、窗口菜单 | `desktop/src/menu.rs` 的 `install_app_menu`；仅 macOS 安装原生主菜单（Farm、编辑、视图、窗口），Windows/Linux 不安装菜单栏，仅保留系统托盘菜单 |
 | 左侧菜单 | 侧边菜单、侧栏、主导航、菜单栏 | `frontend/src/components/layout/AppSidebar.vue`；主导航设备列表 / 任务记录 / AI 集成 / API，底部设置可展开；可收起并持久化宽度状态 |
 | 顶栏 | header、顶部导航 | `frontend/src/components/layout/AppHeader.vue`；仅投屏、文件、大屏等非主菜单页面保留；首页、任务记录、AI 集成、API 与设置页不再显示顶部操作栏 |
 | 小窗顶栏 | 小窗工具条、投屏工具栏、收边条、指示灯 | `frontend/src/components/player/DevicePlayer.vue` 内的工具栏；小窗默认收起，顶部把手（含连接指示灯）仅在指针进入窗口顶部 24px 热区时出现，平时完全隐藏以免遮挡画面，悬停或点击把手时展开工具条，顶部其余区域不唤出；展开后移出工具条延时收起，使用菜单期间保持展开；恢复小窗快捷键或菜单“视图 → 恢复所有小窗”保留 |
-| 小窗窗口设置 | 透明度菜单、鼠标穿透菜单 | `frontend/src/components/player/WindowEffectsControl.vue`;原生小窗的透明度、鼠标穿透与无边框开关 |
-| 主窗口窗口设置 | 主窗口透明度菜单、主窗口效果 | 原生菜单栏“窗口”菜单 · `desktop/src/menu.rs` 与 `desktop/src/main_window.rs`；主窗口置顶、无边框、透明度调节、鼠标穿透与恢复默认；置顶/无边框/穿透收进“窗口效果”二级菜单、透明度收进“透明度”二级菜单，顶栏不再显示这些控件（前端控件组件已移除） |
-| 原生菜单设备列表 | 菜单设备列表、视图设备列表 | 原生菜单栏“视图 → 设备列表”二级菜单；每 5 秒刷新 `GET /api/devices`（3 秒超时），仅列出 `state == "device"` 的在线设备，点击直接打开该设备投屏小窗（`desktop/src/menu_devices.rs`、`desktop/src/links.rs` 的 `open_device_window_internal`） |
-| ADB 服务重启 | 重启 ADB、ADB 重启服务 | 原生菜单栏“视图 → 重启 ADB 服务”与托盘菜单同名项；桌面端调用 `POST /api/adb/restart`，后端 `internal/device` 的 `RestartADB` 依次执行 `adb kill-server`、`adb start-server`（`desktop/src/menu.rs`） |
+| 小窗窗口设置 | 透明度菜单、鼠标穿透菜单、窗口效果 | `frontend/src/components/player/WindowEffectsPanel.vue`；原生小窗的透明度、鼠标穿透与恢复，在“更多”菜单内就地展开，菜单本身即操作层，不再嵌套小图标触发器 |
+| 主窗口窗口设置 | 主窗口透明度菜单、主窗口效果 | macOS 原生菜单栏“窗口”菜单 · `desktop/src/menu.rs` 与 `desktop/src/main_window.rs`；主窗口置顶、无边框、透明度调节、鼠标穿透与恢复默认；置顶/无边框/穿透收进“窗口效果”二级菜单、透明度收进“透明度”二级菜单，顶栏不再显示这些控件（前端控件组件已移除） |
+| 原生菜单设备列表 | 菜单设备列表、视图设备列表 | macOS 原生菜单栏“视图 → 设备列表”二级菜单；每 5 秒刷新 `GET /api/devices`（3 秒超时），仅列出 `state == "device"` 的在线设备，点击直接打开该设备投屏小窗（`desktop/src/menu_devices.rs`、`desktop/src/links.rs` 的 `open_device_window_internal`） |
+| ADB 服务重启 | 重启 ADB、ADB 重启服务 | macOS 原生菜单栏“视图 → 重启 ADB 服务”与全平台托盘菜单同名项；桌面端调用 `POST /api/adb/restart`，后端 `internal/device` 的 `RestartADB` 依次执行 `adb kill-server`、`adb start-server`（`desktop/src/menu.rs`） |
 | 无边框 | 隐藏系统标题栏 | 原生投屏小窗默认无系统边框；窗口、设置与菜单中的切换入口已移除。小窗工具栏为半透明覆盖层，显隐不改变视频尺寸；主窗口保持原有系统标题栏覆盖外观 |
 | 投屏设置 | 播放器设置 | 设置 → 通用设置内 `frontend/src/components/system/PlayerSettingsContent.vue` 保存默认配置;投屏详情页侧栏 `frontend/src/components/player/PlayerSettingsPanel.vue` 调整当前投屏 |
 | 右侧抽屉 | 抽屉、侧栏、侧边栏 | 投屏详情页右侧自适应面板,默认展示设备任务，收纳检查器、文件管理、模板管理、ADB 终端(`frontend/src/components/player/DevicePlayer.vue`) |
@@ -52,6 +53,7 @@
 | 检查模式 | 拾取模式、检查开关 | 检查器顶栏的显式开关,仅开启后拦截画面输入;打开面板默认可操控设备,完成取色、元素选择或 OCR 框选后自动退出 |
 | ADB 终端 | Web Shell、交互式终端 | 右侧抽屉内 xterm.js 终端,真实 PTY 分配 |
 | 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏、不熄屏 | 系统设置 → 通用设置中的时间下拉，默认开启并等待 10 分钟；可选不熄屏、1、5、10、30 分钟。按设备计算，无投屏、ADB 终端、命令及设备操作达到所选时长后由后端自动熄屏，后台遥测与屏幕状态轮询不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
+| 虚拟导航键 | 三大金刚键、底部虚拟键 | `frontend/src/components/player/VirtualNavBar.vue`；投屏画面下方的切换任务、主页、返回三键与“更多”入口，作为画面同列紧贴画面下沿，宽度跟随投屏画面而非页面空白区域；小窗与设备详情页共用该组件，按住空白处可拖动无边框小窗；由手机详情页“设置”面板中的“显示虚拟导航键”开关控制 |
 | 系统设置 | 设置、设置页、系统配置 | 路由 `/settings/general`、`/settings/service`、`/settings/dependencies`（`frontend/src/views/settings/`）；左侧菜单底部设置展开后进入，不再使用弹窗 |
 | 更新设置 | 检查更新开关、自动更新开关 | 设置 → 通用设置 → 更新；`frontend/src/composables/useUpdateSettings.ts` 持久化“检查更新”“自动更新”，关闭检查更新时自动更新同步关闭 |
 | 设置页底部操作 | 恢复所有小窗入口、重启 ADB 入口 | `frontend/src/components/layout/AppSidebar.vue`；恢复所有小窗仅桌面端可用（`restore_all_player_windows`），重启 ADB 调用 `POST /api/adb/restart` |
@@ -64,10 +66,12 @@
 | iOS 悬浮底栏 | 悬浮底栏、底栏、操作栏、Dock栏、浮动药丸栏、控制中心、操作面板、批量操作面板、批量面板、右侧面板 | `frontend/src/components/home/HomeIosDockBar.vue`；首页底部居中悬浮 Liquid Glass 胶囊操作栏，整合操作、视图、设备（支持鼠标原生框选）与更多服务四组 iOS 浮动卡片 Sheet，支持最小化、设备编号区域紧凑展开、滚动框选；无遮罩、点击外部或操作手机保持展开，关闭按钮/胶囊切换/Esc 可收起；群控作为独立模式开关，系统导航指令及锁屏/解锁分段按钮作用于已选在线设备，取代原右侧固定操作侧栏（ActionPanel） |
 | 首页在线设备展示 | 显示离线设备、显示离线、离线过滤 | `frontend/src/views/HomeView.vue` 与 `HomeIosDockBar.vue`；底栏“设备”卡提供“显示离线设备”开关，默认关闭，开启后首页卡片及编号区域显示保留的离线记录；偏好本地持久化，离线设备不能参与设备操作，连接记录与自动重连保留 |
 | 设备编号小方块选择器 | 编号小方块、编号显隐、数字网格、设备矩阵 | `frontend/src/components/home/HomeIosDockBar.vue`（【设备】浮动卡片）；与卡片共用设备 Store 的全量 serial→编号映射（全量映射保留离线编号空位，区域只列在线设备）；拖动重排持久化后重新编号，选择身份仍为 serial；支持点选、拉框、Ctrl/Cmd 增量选择、全选/取消全选；隐藏编号用灰色虚线显示并可右键“显示”恢复 |
-| 设备添加与发现 | 扫码配对、范围扫描、常态扫描 | `frontend/src/components/home/AddDeviceDialog.vue` 与 `internal/device/discovery.go`；二维码按 Android 无线调试机制由电脑生成、手机扫码，弹窗打开预生成真实会话二维码，终止/过期清空；IP 起止各四段输入，真实网卡地址与掩码给出默认范围，最多8个范围/合计1024个地址/8个端口，原单范围API保留，持续扫描可停止、关闭对话框或租约断开后停止；`/api/device-discovery/*` |
+| 设备添加与发现 | 扫码配对、范围扫描、常态扫描 | `frontend/src/components/home/AddDeviceDialog.vue` 与 `internal/device/discovery.go`；入口为首页顶栏搜索框右侧“添加设备”按钮，原底部胶囊设备卡内的加号已移除；二维码按 Android 无线调试机制由电脑生成、手机扫码，弹窗打开预生成真实会话二维码，终止/过期清空；IP 起止各四段输入，真实网卡地址与掩码给出默认范围，最多8个范围/合计1024个地址/8个端口，原单范围API保留，持续扫描可停止、关闭对话框或租约断开后停止；`/api/device-discovery/*` |
+| 首次安装指引 | 初始化指引、安装向导、首次打开 | `frontend/src/components/onboarding/OnboardingWizard.vue`；桌面端首次打开时弹出，按“安装 ADB → 安装 Python → 添加设备”三步初始化，复用 `/api/dependencies/*` 与 `AddDeviceDialog.vue`；完成后写入 localStorage 完成标记，提供“稍后设置”跳过 |
 | 设备可见性 | 只显示已选、显示全部、隐藏、显示隐藏设备 | `useHomePhoneView.ts`；“只显示已选”为开关，实时跟随选择；取消选择隐藏卡片，再点编号同时选中并显示；选择范围不受卡片显隐限制，右键“隐藏/显示”写入本地持久偏好，“显示隐藏设备”恢复持久隐藏；删除仅移除手动设备条目，不删除手机数据，自动发现设备不开放删除 |
 | 设备右键菜单 | 卡片右键、编号右键 | `DeviceContextMenu.vue`；卡片与底栏编号均按 serial 执行隐藏、手动条目删除、打开小窗、进入详情；离线设备不执行投屏，Mock 不派发真机操作 |
-| 投屏音量 | 小窗声音、音量调节 | `frontend/src/components/player/AudioControl.vue` 与 `frontend/src/scrcpy/audio.ts`；调节本地播放增益并保留静音，不改变设备系统音量 |
+| 投屏音量 | 小窗声音、音量调节 | `frontend/src/components/player/AudioPanel.vue`（面板）、`AudioControl.vue`（工具栏弹出入口）与 `frontend/src/scrcpy/audio.ts`；调节本地播放增益并保留静音，不改变设备系统音量；“更多”菜单内的音量项点击后原地展开该面板 |
+| 设备分组 | 分组、分组成员、按分组选中 | `frontend/src/composables/useDeviceGroups.ts` 与 `HomeIosDockBar.vue`；【设备】浮动卡片底部分组区可按当前选择新建分组、更新成员或删除，点分组直接选中其成员；【操作】卡片底部同样列出分组用于批量选择；分组只存 serial，保存在本机 `farm.device-groups`，选中时按当前可选设备过滤 |
 | 技能市场 | 技能列表、APP 自动化技能 | `frontend/src/components/ai-integration/SkillMarket.vue` |
 | 自动化技能文档面板 | 技能契约面板、技能文档卡片 | AI 集成页内 `frontend/src/components/ai-integration/SkillContractPanel.vue`；以 `/fram.skill` 为唯一权威来源，整合展示设备发现、任务生命周期、统一感知、多行文本动作协议与基础技能安装下载 |
 

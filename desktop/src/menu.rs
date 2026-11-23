@@ -1,9 +1,11 @@
 use crate::State;
 use tauri::{
-    menu::{Menu, MenuBuilder, PredefinedMenuItem, SubmenuBuilder},
+    menu::{Menu, MenuBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     App, AppHandle, Emitter, Manager,
 };
+#[cfg(target_os = "macos")]
+use tauri::menu::{PredefinedMenuItem, SubmenuBuilder};
 use tauri_plugin_opener::OpenerExt;
 
 pub fn show(app: &AppHandle) {
@@ -127,7 +129,8 @@ fn restart_adb(app: &AppHandle) {
     });
 }
 
-pub fn install(app: &mut App) -> tauri::Result<bool> {
+#[cfg(target_os = "macos")]
+fn install_app_menu(app: &mut App) -> tauri::Result<()> {
     let application = SubmenuBuilder::with_id(app, "application", "Farm")
         .item(&PredefinedMenuItem::about(app, Some("关于 Farm"), None)?)
         .text("check-update", "检查更新…")
@@ -176,6 +179,17 @@ pub fn install(app: &mut App) -> tauri::Result<bool> {
         tauri::Error::Anyhow(error.into())
     })?;
     eprintln!("[Desktop] 原生菜单已安装，在线设备每 5 秒刷新");
+    Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+fn install_app_menu(_app: &mut App) -> tauri::Result<()> {
+    eprintln!("[Desktop] 当前平台不安装原生菜单栏，仅保留托盘菜单");
+    Ok(())
+}
+
+pub fn install(app: &mut App) -> tauri::Result<bool> {
+    install_app_menu(app)?;
     let tray_menu = MenuBuilder::new(app)
         .text("check-update", "检查更新…")
         .separator()

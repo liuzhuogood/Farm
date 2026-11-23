@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod backend;
+mod diag;
 #[cfg(any(test, all(windows, not(debug_assertions))))]
 mod embedded_service;
 mod links;
@@ -130,6 +131,8 @@ fn main() {
         ])
         .setup(move |app| {
             let data = app.path().app_data_dir()?;
+ diag::init(&data);
+ diag::log(format!("[Desktop] 桌面外壳启动 data={}", data.display()));
  updater::prepare_startup(&data).map_err(std::io::Error::other)?;
             let backend = backend::Backend::start(&data).map_err(std::io::Error::other)?;
             let url = backend.ready.url.clone();
