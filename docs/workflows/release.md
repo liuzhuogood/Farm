@@ -7,7 +7,7 @@
 1. 确认状态：在 main 分支、工作区干净，`VERSION` 等于目标正式号（与本次 beta 的日期段一致）；若 beta 之后还有改动，先重发一个 beta 并重测。
 2. 提交推送：按当前任务精确暂存并提交，再推送 main。
 3. 打正式 tag：与 `VERSION` 完全一致，推送 tag 触发发布流水线。
-4. 跟踪 GitHub Actions：`release.yml`、`macos-dmg.yml` 等发布流程跑到全部成功；beta 跳过的 Docker 与 PyPI 在正式发布里恢复正常，PyPI 只在 SDK 版本有变更时才发。
+4. 跟踪 GitHub Actions 直到成功：`release.yml`、`macos-dmg.yml` 等发布流程必须跑到全部成功，不得在运行中或失败时宣称正式版已发布。任一步失败先查日志；代码缺陷修复后重新走 beta 与测试，runner 偶发可重跑失败作业，但必须等待重跑全部成功。beta 跳过的 Docker 与 PyPI 在正式发布里恢复正常，PyPI 只在 SDK 版本有变更时才发。
 5. 核验 Release 产物：版本号、五平台 CLI、Windows GUI 与安装包、macOS 两种 DMG 与更新包、`desktop-latest.json` 齐全；Release 为正式标记，`releases/latest` 指向新版本；失败则修复重跑，不以命令退出码代替结果核对。
    - Windows 侧必须包含原生 runner 的桌面作业成功结论，具体步骤与验收口径见 [test.md](test.md#windows-原生测试)。
 6. 部署生产：`bash scripts/deploy/deploy-prod.sh` 覆盖 `/opt/farm` 并重启 `farm.service`，健康检查通过。
