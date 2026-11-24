@@ -47,6 +47,18 @@ const (
 	TypeUhidDestroy = 14
 )
 
+// 其余 client -> device 控制消息类型，编号取自 scrcpy 4.0 的 control_msg.h。
+// 15 = open hard keyboard settings、16 = start app，暂未使用。
+//
+// TypeResetVideo 重启设备端采集与编码：设备会立即发送新的 config 包和一个关键帧。
+// 浏览器/WebRTC 观看端丢包或新加入时用它取关键帧（等价于编码器强制 IDR），
+// 代价是视频会有一次很短的停顿，因此发送端需要限流。
+const (
+	TypeOpenHardKeyboardSettings = 15
+	TypeStartApp                 = 16
+	TypeResetVideo               = 17
+)
+
 // GetClipboard 的 copyKey 参数枚举
 const (
 	CopyKeyNone = 0

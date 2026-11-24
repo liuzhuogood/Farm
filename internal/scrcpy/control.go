@@ -88,6 +88,12 @@ func KeyCodeEvent(action uint8, keycode, repeat, metastate uint32) []byte {
 	return b
 }
 
+// ResetVideoEvent 构造重置视频消息 (type=17，共 1 字节)，
+// 设备端会重启采集与编码，随后立即发送新的 config 包和一个关键帧。
+func ResetVideoEvent() []byte {
+	return []byte{TypeResetVideo}
+}
+
 // TextEvent 构造 UTF-8 文本注入消息 (type=1，共 5+len(text) 字节)。
 func TextEvent(text string) []byte {
 	b := make([]byte, 5+len(text))

@@ -22,6 +22,7 @@ import (
 	"farm/internal/dependencies"
 	"farm/internal/desktop"
 	"farm/internal/device"
+	"farm/internal/devicertc"
 	"farm/internal/devicestate"
 	"farm/internal/files"
 	"farm/internal/inputconfig"
@@ -129,6 +130,13 @@ func main() {
 	companionService := companion.New(adbPath, androidcompanion.APK())
 
 	mux := http.NewServeMux()
+	// WebRTC 视频通道：与 WS 投屏并行，WS 仍为默认路径。
+	if deviceRTC, rtcErr := devicertc.NewServer(hub); rtcErr != nil {
+		log.Printf("警告: WebRTC 视频通道初始化失败: %v", rtcErr)
+	} else {
+		deviceRTC.RegisterRoutes(mux)
+		defer deviceRTC.Close()
+	}
 	companionService.RegisterRoutes(mux, func(serial string) bool { _, ok := dm.GetDevice(serial); return ok })
 	discovery := device.NewDiscovery(dm)
 	defer discovery.Close()

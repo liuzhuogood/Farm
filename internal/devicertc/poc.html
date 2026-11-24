@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WebRTC 投屏验证</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0d10; color: #e6e8eb; font: 14px/1.5 -apple-system, "PingFang SC", sans-serif; }
+  header { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #1d2126; flex-wrap: wrap; }
+  input, button { background: #14181d; color: inherit; border: 1px solid #262c33; border-radius: 8px; padding: 6px 10px; font: inherit; }
+  button { cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  #stage { display: flex; justify-content: center; padding: 12px; }
+  video { max-width: 100%; max-height: calc(100vh - 140px); background: #000; border-radius: 10px; }
+  #stats { padding: 0 12px 12px; color: #8b949e; font-variant-numeric: tabular-nums; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<header>
+  <input id="serial" placeholder="设备 serial" style="width: 200px">
+  <button id="connect">连接</button>
+  <button id="disconnect" disabled>断开</button>
+  <span id="state" style="color:#8b949e"></span>
+</header>
+<div id="stage"><video id="video" autoplay muted playsinline></video></div>
+<div id="stats"></div>
+<script type="module">
+const $ = id => document.getElementById(id)
+const params = new URLSearchParams(location.search)
+if (params.get('serial')) $('serial').value = params.get('serial')
+
+let pc = null, sessionId = null, statsTimer = null, last = null
+
+function log(text) { $('state').textContent = text }
+
+async function postJSON(path, body) {
+  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || `${res.status} ${res.statusText}`)
+  return data
+}
+
+function waitIceComplete(peer, timeoutMs = 3000) {
+  if (peer.iceGatheringState === 'complete') return Promise.resolve()
+  return new Promise(resolve => {
+    const done = () => { peer.removeEventListener('icegatheringstatechange', onChange); resolve() }
+    const onChange = () => { if (peer.iceGatheringState === 'complete') done() }
+    peer.addEventListener('icegatheringstatechange', onChange)
+    setTimeout(done, timeoutMs)
+  })
+}
+
+async function connect() {
+  const serial = $('serial').value.trim()
+  if (!serial) return log('请填写设备 serial')
+  $('connect').disabled = true
+  log('请求 offer…')
+  try {
+    const offer = await postJSON('/api/webrtc/offer', { serial })
+    sessionId = offer.id
+    pc = new RTCPeerConnection({ iceServers: [] })
+    pc.ontrack = ({ track, receiver }) => {
+      if (track.kind !== 'video') return
+      // 远程投屏要的是"跟随最新帧"，抖动缓冲越短越好（对齐 Glass/CrossDesk 的做法）。
+      if ('jitterBufferTarget' in receiver) { try { receiver.jitterBufferTarget = 0 } catch {} }
+      $('video').srcObject = new MediaStream([track])
+      track.onunmute = () => log('视频已到达')
+    }
+    pc.oniceconnectionstatechange = () => log('ICE: ' + pc.iceConnectionState)
+    await pc.setRemoteDescription({ type: 'offer', sdp: offer.sdp })
+    const answer = await pc.createAnswer()
+    await pc.setLocalDescription(answer)
+    await waitIceComplete(pc)
+    await postJSON('/api/webrtc/answer', { id: sessionId, sdp: pc.localDescription.sdp })
+    $('disconnect').disabled = false
+    log(`已协商 ${offer.width}x${offer.height} ${offer.codec}`)
+    startStats()
+  } catch (err) {
+    log('失败: ' + err.message)
+    $('connect').disabled = false
+  }
+}
+
+function startStats() {
+  last = null
+  statsTimer = setInterval(async () => {
+    if (!pc) return
+    const stats = await pc.getStats()
+    stats.forEach(r => {
+      if (r.type !== 'inbound-rtp' || r.kind !== 'video') return
+      const prev = last
+      last = r
+      const frames = prev ? r.framesDecoded - prev.framesDecoded : 0
+      const seconds = prev ? (r.timestamp - prev.timestamp) / 1000 : 0
+      const fps = seconds > 0 ? (frames / seconds).toFixed(0) : '-'
+      const jitter = r.jitterBufferDelay && r.jitterBufferEmittedCount
+        ? (r.jitterBufferDelay / r.jitterBufferEmittedCount * 1000).toFixed(0) : '-'
+      const kbps = prev && seconds > 0 ? ((r.bytesReceived - prev.bytesReceived) * 8 / 1000 / seconds).toFixed(0) : '-'
+      $('stats').textContent =
+        `${r.frameWidth}x${r.frameHeight}  ${fps}fps  ${kbps}kbps  抖动缓冲 ${jitter}ms  丢包 ${r.packetsLost ?? 0}`
+    })
+  }, 1000)
+}
+
+async function disconnect() {
+  clearInterval(statsTimer)
+  if (sessionId) await fetch(`/api/webrtc/session?id=${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {})
+  if (pc) pc.close()
+  pc = null; sessionId = null; last = null
+  $('video').srcObject = null
+  $('stats').textContent = ''
+  $('connect').disabled = false
+  $('disconnect').disabled = true
+  log('已断开')
+}
+
+$('connect').onclick = connect
+$('disconnect').onclick = disconnect
+</script>
+</body>
+</html>
