@@ -18,3 +18,6 @@
 ## 发布
 
 - beta.1：https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.24-beta.1
+- beta.2：[v2026.11.24-beta.2](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.24-beta.2)，Actions [45301201638](https://github.com/liuzhuogood/Farm/actions/runs/45301201638) 全部成功。
+- 正式版：[v2026.11.24](https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.24)，Actions [45303377366](https://github.com/liuzhuogood/Farm/actions/runs/45303377366) 全部成功，14 个资产齐全并设为最新版本。
+- 生产部署：`10.0.0.6` `/opt/mywebscrcpy/farm` 已更新到 `v2026.11.24`，`mywebscrcpy.service` 为 `active`，首页、任务记录、API、反馈页均返回 200。
