@@ -16,9 +16,8 @@ import (
 // 这里的适配层只做三件事：暴露带 GOP 追帧的订阅、把帧转成外部可用结构、
 // 把关键帧请求翻译成 scrcpy 的 RESET_VIDEO 控制消息。
 
-// rtcKeyFrameMinInterval 限制 RESET_VIDEO 频率：每次请求都会让设备重启编码，
-// 连续请求会把画面停顿叠加起来，因此观看端丢包请求必须被合并。
-const rtcKeyFrameMinInterval = 900 * time.Millisecond
+// rtcKeyFrameFallback 是已请求关键帧却始终没等到时的重试兜底窗口。
+const rtcKeyFrameFallback = 2 * time.Second
 
 // RTCVideoFrame 是一帧 scrcpy 视频数据，供非 WS 传输通道（WebRTC）消费。
 type RTCVideoFrame struct {
@@ -50,8 +49,8 @@ type RTCSession struct {
 	done     chan struct{}
 	closeOne sync.Once
 
-	mu             sync.Mutex
-	lastKeyRequest time.Time
+	gateMu sync.Mutex
+	gate   *keyFrameGate
 
 	dropped atomic.Uint64
 	closed  atomic.Bool
@@ -78,6 +77,7 @@ func (h *Hub) OpenRTCSession(serial string) (*RTCSession, error) {
 		cancel:  cancel,
 		frames:  make(chan RTCVideoFrame, 192),
 		done:    make(chan struct{}),
+		gate:    newKeyFrameGate(rtcKeyFrameFallback),
 	}
 	go s.convert(src)
 	log.Printf("[rtc] 会话已打开 serial=%s codec=%s %dx%d", serial, meta.Codec, meta.Width, meta.Height)
@@ -94,15 +94,17 @@ func (s *RTCSession) Frames() <-chan RTCVideoFrame { return s.frames }
 func (s *RTCSession) DroppedFrames() uint64 { return s.dropped.Load() }
 
 // RequestKeyFrame 让设备重启视频采集与编码，从而立即产生关键帧。
-// 两次请求间隔小于 rtcKeyFrameMinInterval 时直接跳过，返回 false 表示被合并。
+// 上一次请求的关键帧还没到时直接跳过并返回 false：设备重启编码需要 0.8~1.9 秒，
+// 在那之前再次请求只会把画面反复打断。等不到关键帧时由兜底窗口放行。
 func (s *RTCSession) RequestKeyFrame(ctx context.Context) (bool, error) {
-	s.mu.Lock()
-	if !s.lastKeyRequest.IsZero() && time.Since(s.lastKeyRequest) < rtcKeyFrameMinInterval {
-		s.mu.Unlock()
+	now := time.Now()
+	s.gateMu.Lock()
+	if !s.gate.allow(now) {
+		s.gateMu.Unlock()
 		return false, nil
 	}
-	s.lastKeyRequest = time.Now()
-	s.mu.Unlock()
+	s.gate.markRequested(now)
+	s.gateMu.Unlock()
 
 	if s.closed.Load() {
 		return false, fmt.Errorf("会话已关闭")
@@ -154,6 +156,12 @@ func (s *RTCSession) convert(src <-chan sharedVideoFrame) {
 			frame, ok := decodeSharedFrame(sf)
 			if !ok {
 				continue
+			}
+			// 新的关键帧意味着 reset 生效，可以放行下一次请求；订阅时补发的旧关键帧不算。
+			if !frame.Replayed && scrcpy.FrameKind(frame.Kind) == scrcpy.FrameKey {
+				s.gateMu.Lock()
+				s.gate.onKeyFrame()
+				s.gateMu.Unlock()
 			}
 		deliver:
 			for {

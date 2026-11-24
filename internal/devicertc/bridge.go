@@ -9,9 +9,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/pion/ice/v4"
+	"github.com/pion/logging"
 	"github.com/pion/rtcp"
 	"github.com/pion/rtp"
 	"github.com/pion/rtp/codecs"
@@ -59,12 +63,12 @@ type bridge struct {
 	width      uint32
 	height     uint32
 
-	framesSent uint64
-	framesDrop uint64
+	framesSent atomic.Uint64
+	framesDrop atomic.Uint64
 }
 
 // newBridge 建立会话、取到首帧 config 并生成 offer，返回 bridge 与 SDP。
-func newBridge(id, serial string, api *pion.API, hub *ws.Hub) (*bridge, string, error) {
+func newBridge(id, serial string, hub *ws.Hub) (*bridge, string, error) {
 	session, err := hub.OpenRTCSession(serial)
 	if err != nil {
 		return nil, "", fmt.Errorf("打开设备会话失败: %w", err)
@@ -93,6 +97,12 @@ func newBridge(id, serial string, api *pion.API, hub *ws.Hub) (*bridge, string, 
 		return nil, "", err
 	}
 
+	if len(b.sps) >= 4 {
+		log.Printf("[webrtc] SDP 使用设备 SPS serial=%s profile=%02x%02x%02x sps=%dB pps=%dB", b.serial, b.sps[1], b.sps[2], b.sps[3], len(b.sps), len(b.pps))
+	} else {
+		log.Printf("[webrtc] 未取到 SPS，SDP 使用默认 profile serial=%s", b.serial)
+	}
+
 	b.codec = pion.RTPCodecCapability{
 		MimeType:    pion.MimeTypeH264,
 		ClockRate:   90000,
@@ -101,6 +111,11 @@ func newBridge(id, serial string, api *pion.API, hub *ws.Hub) (*bridge, string, 
 			{Type: "nack"},
 			{Type: "nack", Parameter: "pli"},
 		},
+	}
+	api, err := newAPI(b.codec.SDPFmtpLine)
+	if err != nil {
+		session.Close()
+		return nil, "", err
 	}
 	if b.track, err = pion.NewTrackLocalStaticRTP(b.codec, "video", "farm-"+serial); err != nil {
 		session.Close()
@@ -143,6 +158,31 @@ func newBridge(id, serial string, api *pion.API, hub *ws.Hub) (*bridge, string, 
 		return nil, "", errors.New("本地描述为空")
 	}
 	return b, local.SDP, nil
+}
+
+// newAPI 按本次码流的 fmtp 注册唯一视频编码：SDP 里的 profile-level-id 必须与设备
+// 实际码流一致，否则浏览器会用错误的解码配置（Chrome 软件解码只接受 constrained
+// baseline），表现为连接成功但画面一直不出来。
+// ICE 只用 host 候选并启用 ICE-Lite：媒体端点就是本服务，不需要 STUN/TURN。
+func newAPI(fmtp string) (*pion.API, error) {
+	settingEngine := pion.SettingEngine{}
+	settingEngine.SetLite(true)
+	settingEngine.SetICEMulticastDNSMode(ice.MulticastDNSModeQueryOnly)
+
+	mediaEngine := &pion.MediaEngine{}
+	codec := pion.RTPCodecCapability{
+		MimeType:     pion.MimeTypeH264,
+		ClockRate:    90000,
+		SDPFmtpLine:  fmtp,
+		RTCPFeedback: []pion.RTCPFeedback{{Type: "nack"}, {Type: "nack", Parameter: "pli"}},
+	}
+	if err := mediaEngine.RegisterCodec(pion.RTPCodecParameters{RTPCodecCapability: codec, PayloadType: videoPayloadType}, pion.RTPCodecTypeVideo); err != nil {
+		return nil, fmt.Errorf("注册 H.264 编码失败: %w", err)
+	}
+	loggerFactory := logging.NewDefaultLoggerFactory()
+	loggerFactory.DefaultLogLevel = logging.LogLevelWarn
+	settingEngine.LoggerFactory = loggerFactory
+	return pion.NewAPI(pion.WithMediaEngine(mediaEngine), pion.WithSettingEngine(settingEngine)), nil
 }
 
 // collectStartupFrames 取握手期需要的信息：首帧 config 提供 SPS/PPS，
@@ -212,6 +252,7 @@ func (b *bridge) fmtpLine() string {
 
 // setAnswer 应用浏览器回答并启动推流。
 func (b *bridge) setAnswer(sdp string) error {
+	log.Printf("[webrtc] 协商完成 serial=%s 视频编码=%s", b.serial, answerVideoSummary(sdp))
 	if err := b.pc.SetRemoteDescription(pion.SessionDescription{Type: pion.SDPTypeAnswer, SDP: sdp}); err != nil {
 		return fmt.Errorf("应用 answer 失败: %w", err)
 	}
@@ -261,12 +302,17 @@ func (b *bridge) writeFrame(frame ws.RTCVideoFrame) error {
 	b.mu.Lock()
 	if !b.started {
 		if scrcpy.FrameKind(frame.Kind) != scrcpy.FrameKey {
+			first := b.framesDrop.Load() == 0
+			b.framesDrop.Add(1)
 			b.mu.Unlock()
-			b.framesDrop++
+			if first {
+				log.Printf("[webrtc] 等待首个关键帧，暂丢弃 delta serial=%s id=%s", b.serial, b.id)
+			}
 			return nil
 		}
 		b.started = true
 		b.pendingKey = false
+		log.Printf("[webrtc] 开始推流 serial=%s id=%s 首帧 pts=%dus", b.serial, b.id, frame.PTS)
 	}
 	payload := frame.Payload
 	// 关键帧前补 SPS/PPS：设备只在 config 包和编码会话开头给出参数集，
@@ -282,7 +328,7 @@ func (b *bridge) writeFrame(frame ws.RTCVideoFrame) error {
 		ts = b.lastTS + timestampStep
 	}
 	b.lastTS = ts
-	b.framesSent++
+	b.framesSent.Add(1)
 	b.mu.Unlock()
 
 	payloads := b.payl.Payload(videoMTU, payload)
@@ -365,8 +411,25 @@ func (b *bridge) close() {
 			_ = b.pc.Close()
 		}
 		b.session.Close()
-		log.Printf("[webrtc] 桥接结束 serial=%s id=%s 发送=%d 丢弃=%d", b.serial, b.id, b.framesSent, b.framesDrop)
+		log.Printf("[webrtc] 桥接结束 serial=%s id=%s 发送=%d 丢弃=%d", b.serial, b.id, b.framesSent.Load(), b.framesDrop.Load())
 	})
+}
+
+// answerVideoSummary 提取回答里视频 m 行与 H.264 rtpmap，便于确认协商结果。
+func answerVideoSummary(sdp string) string {
+	var parts []string
+	for _, line := range strings.Split(sdp, "\r\n") {
+		switch {
+		case strings.HasPrefix(line, "m=video"):
+			parts = append(parts, line)
+		case strings.HasPrefix(line, "a=rtpmap:") && strings.Contains(line, "H264"):
+			parts = append(parts, line)
+		}
+	}
+	if len(parts) == 0 {
+		return "无视频编码"
+	}
+	return strings.Join(parts, " ")
 }
 
 // appendStartCode 以 Annex-B 起始码追加一个 NAL。

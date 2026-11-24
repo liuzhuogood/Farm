@@ -10,9 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pion/ice/v4"
-	pion "github.com/pion/webrtc/v4"
-
 	"farm/internal/ws"
 )
 
@@ -26,7 +23,6 @@ const sessionIdleTimeout = 60 * time.Second
 // WS 仍是默认路径，WebRTC 只作为额外通道，供需要 UDP 低延迟的观看端使用。
 type Server struct {
 	hub *ws.Hub
-	api *pion.API
 
 	mu        sync.Mutex
 	bridges   map[string]*trackedBridge
@@ -44,24 +40,8 @@ type trackedBridge struct {
 // NewServer 创建 WebRTC 视频通道服务。
 // ICE 只使用 host 候选：媒体端点就是本服务本身，不需要 STUN/TURN，也不需要打洞。
 func NewServer(hub *ws.Hub) (*Server, error) {
-	settingEngine := pion.SettingEngine{}
-	settingEngine.SetLite(true)
-	settingEngine.SetICEMulticastDNSMode(ice.MulticastDNSModeDisabled)
-
-	mediaEngine := &pion.MediaEngine{}
-	codec := pion.RTPCodecCapability{
-		MimeType:     pion.MimeTypeH264,
-		ClockRate:    90000,
-		SDPFmtpLine:  "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f",
-		RTCPFeedback: []pion.RTCPFeedback{{Type: "nack"}, {Type: "nack", Parameter: "pli"}},
-	}
-	if err := mediaEngine.RegisterCodec(pion.RTPCodecParameters{RTPCodecCapability: codec, PayloadType: videoPayloadType}, pion.RTPCodecTypeVideo); err != nil {
-		return nil, fmt.Errorf("注册 H.264 编码失败: %w", err)
-	}
-
 	server := &Server{
 		hub:       hub,
-		api:       pion.NewAPI(pion.WithMediaEngine(mediaEngine), pion.WithSettingEngine(settingEngine)),
 		bridges:   make(map[string]*trackedBridge),
 		pocEnable: os.Getenv("FARM_WEBRTC_POC") != "",
 	}
@@ -100,7 +80,7 @@ func (s *Server) handleOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := fmt.Sprintf("%s-%d", req.Serial, time.Now().UnixNano())
-	b, sdp, err := newBridge(id, req.Serial, s.api, s.hub)
+	b, sdp, err := newBridge(id, req.Serial, s.hub)
 	if err != nil {
 		log.Printf("[webrtc] 建立桥接失败 serial=%s err=%v", req.Serial, err)
 		w.Header().Set("Content-Type", "application/json")

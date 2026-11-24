@@ -62,8 +62,9 @@ async function connect() {
     pc = new RTCPeerConnection({ iceServers: [] })
     pc.ontrack = ({ track, receiver }) => {
       if (track.kind !== 'video') return
-      // 远程投屏要的是"跟随最新帧"，抖动缓冲越短越好（对齐 Glass/CrossDesk 的做法）。
-      if ('jitterBufferTarget' in receiver) { try { receiver.jitterBufferTarget = 0 } catch {} }
+      // 远程投屏要的是"跟随最新帧"，抖动缓冲越短越好（CrossDesk 用 20ms）。
+      // 0 会被浏览器当成"未设置"退回默认自适应缓冲，实测会累积到 300ms 以上。
+      if ('jitterBufferTarget' in receiver) { try { receiver.jitterBufferTarget = 20 } catch {} }
       $('video').srcObject = new MediaStream([track])
       track.onunmute = () => log('视频已到达')
     }
