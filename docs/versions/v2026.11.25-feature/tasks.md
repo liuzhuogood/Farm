@@ -16,6 +16,8 @@
 
 ## beta 验收
 
-- [ ] beta 版本号与 Release 链接：
-- [ ] beta 服务实例地址：
-- [ ] 按 [test.md](../../workflows/test.md) 完成测试工作流。
+- [ ] beta 版本号与 Release 链接：`v2026.11.25-beta.1` · https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.25-beta.1
+  - Actions [45357895974](https://github.com/liuzhuogood/Farm/actions/runs/45357895974) 全部作业成功（docker 按 beta 跳过）。
+  - 14 个资产齐全，预发布（`prerelease: true`），`releases/latest` 仍指向 `v2026.11.24`。
+- [ ] beta 服务实例地址：**未提供**。`scripts/deploy/deploy-beta.sh`、`docs/environments/beta.md` 与 8081 实例均不存在（v2026.11.20 的 S4 未落地），10.0.0.6 上只有 8080 的 `mywebscrcpy.service`。
+- [ ] 按 [test.md](../../workflows/test.md) 完成测试工作流：beta 包相关项（通道隔离、通道切换、应用内更新、8081 实例链路）因缺少 beta 实例阻塞；Windows 原生构建已在 Actions 中通过。
