@@ -37,7 +37,7 @@ func RenderAutomationHTML(pageTemplate, specJSON []byte) ([]byte, error) {
 		title = "Farm AI 自动化接口"
 	}
 	md.WriteString("# " + title + "\n\n")
-	md.WriteString("用于读取 Android 页面并操作设备。使用顺序：选择设备 → 开始任务 → 观察与多次操作 → 核对结果 → 结束任务。操作和观察使用简短文本；最后帧返回图片，产物目录返回 HTML。\n本页示例仅演示格式：serial、坐标和文字须换成当前设备观察到的实际值。\n\n")
+	md.WriteString("用于读取 Android 页面并操作设备。使用顺序：选择设备 → 确认亮屏与解锁 → 开始任务 → 观察与多次操作 → 核对结果 → 结束任务。操作和观察使用简短文本；最后帧返回图片，产物目录返回 HTML。\n本页示例仅演示格式：serial、坐标和文字须换成当前设备观察到的实际值。\n设备在线不代表亮屏或已解锁：先按“锁定与解锁”尝试唤醒和解锁；遇到密码、图案、人脸等验证必须由用户在设备上完成。\n\n")
 	sections := []struct{ path, method, body string }{
 		{"/api/automation/devices", "get", `## 1. 选择设备
 
@@ -87,6 +87,11 @@ ocr "WLAN" @160,420
 
 @X,Y 是当前屏幕像素坐标，可直接交给 tap 或 swipe。
 ref 优先读取已启用的 Farm Companion，失败时回退 uiautomator dump；仅 ocr 跳过控件树。树采集或解析失败会明确报错；默认 ref,ocr 在 OCR 不可用时保留树文字并记录原因，formats=ocr 时识别失败明确报错。
+
+首行元数据不含亮屏和锁屏状态，观察前先查询：
+GET /api/screen-state?serial=10.0.0.30:5555&lock=1
+返回 screenOn（是否亮屏）、screenLocked（是否锁屏）与可选 error；字段为 null 或带 error 表示无法确认，不能当作已解锁。
+screenOn=false 或 screenLocked=true 时仍可能返回熄屏前的旧页面文字，不能据此判断业务状态；先按“锁定与解锁”唤醒并解锁，再重新观察。
 `},
 		{"/api/automation/act", "post", `## 3. 执行操作
 
@@ -152,6 +157,20 @@ record 的第一个参数是录制秒数（1..30），录制无音频 MP4，完�
 
 全部命令通过格式校验后才开始执行。操作失败、check 未命中或 wait 超时会停止后续步骤，返回失败行与已完成数量；不要盲目重试整串。
 执行完成仍须重新观察页面，确认实际结果。
+
+### 锁定与解锁
+
+先查状态：GET /api/screen-state?serial=10.0.0.30:5555&lock=1；screenOn=false 先唤醒，再尝试解锁。
+
+唤醒：      adb shell input keyevent KEYCODE_WAKEUP
+尝试解锁：  adb shell wm dismiss-keyguard
+锁屏：      adb shell input keyevent KEYCODE_SLEEP
+
+dismiss-keyguard 只能解除无密码的滑动锁屏，命令完成不代表已解锁；必须再次查询确认 screenLocked=false 才算解锁成功。
+screenLocked 仍为 true、为 null 或查询报错时，说明需要密码、图案、人脸等验证：立即停止自动化，请用户在设备上手动解锁，不要猜测或反复尝试。
+解锁后立即 observe 确认已离开锁屏界面；仍停留在锁屏或密码输入页面时同样交给用户处理。
+KEYCODE_SLEEP 会直接熄屏，只在任务结束、录屏结束等确需锁屏时使用，用完记录以便下次唤醒。
+keyevent 行的按键名不含 wakeup 和 sleep，唤醒与锁屏只能通过 adb 行发送。
 
 ### 单步示例：点击刚刚观察到的控件
 

@@ -229,6 +229,12 @@ func TestAutomationAPIDocsPage(t *testing.T) {
 		"record 5 task-output",
 		"GET /api/automation/artifacts?serial=",
 		"GET /api/automation/artifacts/download?serial=",
+		"### 锁定与解锁",
+		"GET /api/screen-state?serial=",
+		"screenLocked",
+		"adb shell input keyevent KEYCODE_WAKEUP",
+		"adb shell wm dismiss-keyguard",
+		"adb shell input keyevent KEYCODE_SLEEP",
 	} {
 		if !strings.Contains(rendered, want) {
 			t.Errorf("server-rendered automation docs are missing %q", want)
