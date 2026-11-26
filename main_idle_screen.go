@@ -31,10 +31,19 @@ func configureIdleScreen(database *db.DB, dm *device.Manager, adbPath string) *i
 	})
 }
 
+// 命令被 ctx 超时杀掉时只会得到 "signal: killed"，单独标注成超时，
+// 避免把慢速网络 ADB 误读成 adb 故障。
+func idleCommandError(ctx context.Context, stage string, err error, out []byte) error {
+	if ctx.Err() != nil {
+		return fmt.Errorf("%s超时: %w", stage, ctx.Err())
+	}
+	return fmt.Errorf("%s: %w: %s", stage, err, strings.TrimSpace(string(out)))
+}
+
 func sleepIdleDevice(ctx context.Context, adbPath, serial string) error {
 	ctx = dependencies.BackgroundADB(ctx)
 	if out, err := dependencies.CommandContext(ctx, adbPath, "-s", serial, "shell", "input", "keyevent", "223").CombinedOutput(); err != nil {
-		return fmt.Errorf("发送熄屏命令: %w: %s", err, strings.TrimSpace(string(out)))
+		return idleCommandError(ctx, "发送熄屏命令", err, out)
 	}
 	// Power state changes asynchronously; confirm the result instead of trusting exit 0.
 	ticker := time.NewTicker(150 * time.Millisecond)
@@ -42,7 +51,7 @@ func sleepIdleDevice(ctx context.Context, adbPath, serial string) error {
 	for {
 		out, err := dependencies.CommandContext(ctx, adbPath, "-s", serial, "shell", "dumpsys", "power").Output()
 		if err != nil {
-			return fmt.Errorf("检查熄屏状态: %w", err)
+			return idleCommandError(ctx, "检查熄屏状态", err, out)
 		}
 		for _, line := range strings.Split(string(out), "\n") {
 			line = strings.TrimSpace(line)
@@ -58,10 +67,18 @@ func sleepIdleDevice(ctx context.Context, adbPath, serial string) error {
 	}
 }
 
+// Passive routes only read browser-side state or relay overlay data; they never
+// touch the device, so they must not reset the idle sleep countdown.
+var passiveDeviceRoutes = map[string]bool{
+	"/api/screen-state":   true,
+	"/api/vision/frame":   true,
+	"/api/vision/results": true,
+}
+
 // Holds a device lease for the whole request, including websocket and multi-step work.
 func deviceActivityMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/api/screen-state" || r.URL.Path == "/api/vision/frame" {
+		if passiveDeviceRoutes[r.URL.Path] {
 			next.ServeHTTP(w, r)
 			return
 		}

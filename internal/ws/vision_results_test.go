@@ -1,10 +1,39 @@
 package ws
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"farm/internal/vision"
+	"github.com/gorilla/websocket"
 )
+
+// 浏览器关闭投屏页后 handler 必须返回：否则订阅与设备活动租约（空闲熄屏计时）会一直泄漏。
+func TestServeVisionResultsReturnsOnClientClose(t *testing.T) {
+	h := NewHub("adb", "server.jar")
+	returned := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeVisionResults(w, r)
+		close(returned)
+	}))
+	defer server.Close()
+
+	c, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL, "http")+"/api/vision/results?serial=phone", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 不发送任何消息，直接断开；服务端必须能感知，而不是只在有下发消息时才发现。
+	_ = c.Close()
+
+	select {
+	case <-returned:
+	case <-time.After(3 * time.Second):
+		t.Fatal("客户端断开后 ServeVisionResults 未返回")
+	}
+}
 
 func TestResultSubscriberReceivesCurrentSessionState(t *testing.T) {
 	h := NewHub("adb", "server.jar")

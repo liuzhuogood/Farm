@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -22,6 +23,7 @@ func TestDeviceActivityRequestCoverage(t *testing.T) {
 		{"/api/devices/phone/latest-frame", "phone"},
 		{"/api/screen-state?serial=phone", ""},
 		{"/api/vision/frame?serial=phone", ""},
+		{"/api/vision/results?serial=phone", ""},
 		{"/api/devices", ""},
 	} {
 		t.Run(tc.url, func(t *testing.T) {
@@ -39,6 +41,20 @@ func TestDeviceActivityRequestCoverage(t *testing.T) {
 				t.Fatal("request lease leaked")
 			}
 		})
+	}
+}
+
+// 超时被杀的命令原样返回 "signal: killed"，必须标注成超时以便区分 adb 故障。
+func TestIdleCommandErrorMarksTimeout(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	<-ctx.Done()
+	err := idleCommandError(ctx, "发送熄屏命令", errors.New("signal: killed"), nil)
+	if err == nil || !strings.Contains(err.Error(), "发送熄屏命令超时") {
+		t.Fatalf("超时未被标注: %v", err)
+	}
+	if plain := idleCommandError(context.Background(), "发送熄屏命令", errors.New("device offline"), []byte("error: offline\n")); plain == nil || !strings.Contains(plain.Error(), "device offline") || !strings.Contains(plain.Error(), "error: offline") {
+		t.Fatalf("普通失败信息丢失: %v", plain)
 	}
 }
 

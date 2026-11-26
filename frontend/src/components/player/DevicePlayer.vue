@@ -26,6 +26,7 @@ import {
   Terminal,
   Undo2,
   X,
+  Activity,
   ChevronDown,
 } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, useId, watch } from 'vue'
@@ -78,10 +79,12 @@ import AppHeader from '@/components/layout/AppHeader.vue'
 import FilesView from '@/views/FilesView.vue'
 import PlayerSettingsPanel from '@/components/player/PlayerSettingsPanel.vue'
 import PlayerMoreMenu from '@/components/player/PlayerMoreMenu.vue'
+import ConnectionInfoPanel from '@/components/player/ConnectionInfoPanel.vue'
 import VirtualNavBar from '@/components/player/VirtualNavBar.vue'
 import DeviceTasksPanel from '@/components/player/DeviceTasksPanel.vue'
 import AudioControl from '@/components/player/AudioControl.vue'
 import { usePlayerWindows } from '@/composables/usePlayerWindows'
+import { connectionModeLabel } from '@/scrcpy/connection'
 import { usePlayerSettings } from '@/composables/usePlayerSettings'
 import { useFloatingPlayers } from '@/composables/useFloatingPlayers'
 import TemplatePanel from '@/template/TemplatePanel.vue'
@@ -165,6 +168,7 @@ const filesOpen = ref(false)
 const settingsOpen = ref(false)
 const taskPanelOpen = ref(!props.embedded)
 const sizeOpen = ref(false)
+const connectionExpanded = ref(false)
 const mobileTool = ref<'recording' | 'screenshots' | null>(null)
 const touchVisible = ref(localStorage.getItem('show-touch-overlay') !== 'false')
 const touchVisualizerRef = ref<InstanceType<typeof TouchVisualizer> | null>(null)
@@ -568,6 +572,15 @@ defineExpose({ handleEscape })
           >
             {{ p.fps.value }} fps
           </Badge>
+          <Badge
+            v-if="!embedded && p.live.value"
+            class="toolbar-secondary rounded-lg text-[10px] border border-slate-200/80 bg-white/60 dark:border-white/10 dark:bg-white/5"
+            :class="p.connection.value.mode === 'forward' ? 'text-slate-600 dark:text-slate-300' : 'text-emerald-700 dark:text-emerald-300'"
+            variant="outline"
+            :title="`媒体传输：${p.connection.value.mode === 'forward' ? '经服务端 TCP 转发' : p.connection.value.mode === 'relay' ? '经 TURN 中继' : '服务端 UDP 直连'}`"
+          >
+            {{ connectionModeLabel[p.connection.value.mode] }}
+          </Badge>
         </div>
       </template>
 
@@ -598,6 +611,8 @@ defineExpose({ handleEscape })
           :audio-title="p.audioTitle.value"
           :opacity="windowEffects.player.value?.opacity ?? 100"
           :click-through="windowEffects.player.value?.clickThrough ?? false"
+          :connection="p.connection.value"
+          :live="p.live.value"
           :shortcut="windowEffects.shortcut.value"
           :window-busy="windowEffects.busy.value"
           @update:open="isMoreMenuOpen = $event"
@@ -734,14 +749,17 @@ defineExpose({ handleEscape })
         <Button class="toolbar-optional" variant="ghost" size="icon" title="设置" aria-label="设置" :class="{ 'bg-accent': settingsOpen }" @click="openSettings()">
           <Settings class="h-5 w-5" />
         </Button>
-        <DropdownMenu>
+        <DropdownMenu :modal="false" @update:open="(v: boolean) => { if (!v) connectionExpanded = false }">
           <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="icon" title="更多" aria-label="更多">
               <Ellipsis class="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel v-if="compactToolbar && p.showFps.value" class="font-mono text-xs text-muted-foreground">{{ p.fps.value }} fps</DropdownMenuLabel>
+            <DropdownMenuLabel v-if="compactToolbar && (p.live.value || p.showFps.value)" class="flex items-center justify-between font-mono text-xs text-muted-foreground">
+              <span>{{ p.fps.value }} fps</span>
+              <span v-if="p.live.value">{{ connectionModeLabel[p.connection.value.mode] }}</span>
+            </DropdownMenuLabel>
             <DropdownMenuItem v-if="compactToolbar" @select="p.pressBack()"><Undo2 class="h-4 w-4" />返回</DropdownMenuItem>
             <DropdownMenuItem v-if="compactToolbar" @select="p.pressRecents()"><GalleryHorizontal class="h-4 w-4" />切换任务</DropdownMenuItem>
             <DropdownMenuItem v-if="compactToolbar" @select="p.pressHome()"><Home class="h-4 w-4" />主页</DropdownMenuItem>
@@ -767,6 +785,13 @@ defineExpose({ handleEscape })
             <DropdownMenuItem @select="sizeOpen = true">
               <Scaling class="h-4 w-4" />显示尺寸
             </DropdownMenuItem>
+            <DropdownMenuItem class="justify-between" @select.prevent="connectionExpanded = !connectionExpanded">
+              <span class="flex items-center gap-2"><Activity class="h-4 w-4" />连接信息</span>
+              <ChevronDown class="h-4 w-4 shrink-0 text-muted-foreground transition-transform" :class="{ 'rotate-180': connectionExpanded }" />
+            </DropdownMenuItem>
+            <div v-if="connectionExpanded" class="px-2 pb-2" @pointerdown.stop @click.stop>
+              <ConnectionInfoPanel :info="p.connection.value" :live="p.live.value" />
+            </div>
             <DropdownMenuItem @select="openSettings()"><Settings class="h-4 w-4" />设置</DropdownMenuItem>
             <DropdownMenuSeparator />
             <AlertDialog>
@@ -934,6 +959,8 @@ defineExpose({ handleEscape })
                 :audio-title="p.audioTitle.value"
                 :opacity="windowEffects.player.value?.opacity ?? 100"
                 :click-through="windowEffects.player.value?.clickThrough ?? false"
+                :connection="p.connection.value"
+                :live="p.live.value"
                 :shortcut="windowEffects.shortcut.value"
                 :window-busy="windowEffects.busy.value"
                 @update:open="isMoreMenuOpen = $event"
@@ -959,7 +986,7 @@ defineExpose({ handleEscape })
         <!-- 灭屏提示 -->
         <div v-if="p.screenOff.value" class="absolute inset-x-0 top-0 flex justify-center p-3">
           <Badge variant="secondary" class="gap-1.5 px-3 py-1.5">
-            <MonitorOff class="h-4 w-4" />设备屏幕已熄灭（投屏继续，点击电源键可点亮）
+            <MonitorOff class="h-4 w-4" />设备屏幕已熄灭（双击画面可点亮）
           </Badge>
         </div>
 

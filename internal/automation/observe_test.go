@@ -286,5 +286,25 @@ func TestObserveHTTPHandler(t *testing.T) {
 		if !strings.Contains(rec.Header().Get("Content-Type"), "text/xml") {
 			t.Errorf("expected text/xml Content-Type, got %s", rec.Header().Get("Content-Type"))
 		}
+		if rec.Body.String() != xmlContent {
+			t.Errorf("expected raw XML body, got %s", rec.Body.String())
+		}
+	}
+
+	// 5. GET xml 格式也返回原始 XML
+	{
+		req := httptest.NewRequest("GET", "/api/automation/observe?serial=dev-http-test&formats=xml", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("GET xml expected 200, got %d: %s", rec.Code, rec.Body.String())
+		}
+		if !strings.Contains(rec.Header().Get("Content-Type"), "text/xml") {
+			t.Errorf("expected text/xml Content-Type, got %s", rec.Header().Get("Content-Type"))
+		}
+		if rec.Body.String() != xmlContent {
+			t.Errorf("expected raw XML body, got %s", rec.Body.String())
+		}
 	}
 }

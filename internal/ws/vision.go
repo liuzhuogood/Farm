@@ -282,8 +282,21 @@ func (h *Hub) ServeVisionResults(w http.ResponseWriter, r *http.Request) {
 	// 复用同一通道转发触摸可视化事件；两类消息用 type 字段区分。
 	touchCh, unsubscribeTouch := h.subscribeTouch(serial, sessionID)
 	defer unsubscribeTouch()
+	// 该通道只下行。仍必须读取以感知浏览器断开，否则关闭投屏页后 handler
+	// 不返回，订阅与设备活动租约（空闲熄屏计时）会一直占着。
+	readDone := make(chan struct{})
+	go func() {
+		defer close(readDone)
+		for {
+			if _, _, err := c.ReadMessage(); err != nil {
+				return
+			}
+		}
+	}()
 	for {
 		select {
+		case <-readDone:
+			return
 		case msg, ok := <-ch:
 			if !ok {
 				return

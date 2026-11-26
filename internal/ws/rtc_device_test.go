@@ -34,7 +34,7 @@ func TestRTCRequestKeyFrame(t *testing.T) {
 
 	h := NewHub(adbPath, jarPath)
 	// 用独立的端口段，避免与正在运行的 Farm 后端抢同一台设备的 adb forward。
-	h.nextPort = 39183
+	h.SetTunnelPortBase(39183)
 	defer h.Close()
 
 	session, err := h.OpenRTCSession(serial)

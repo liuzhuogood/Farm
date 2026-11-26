@@ -117,6 +117,27 @@ function waitForNextCheck(signal: AbortSignal): Promise<void> {
   })
 }
 
+/**
+ * 熄屏时双击画面：只发 KEYCODE_WAKEUP，绝不用电源键切换，避免屏幕状态滞后时把
+ * 亮着的屏幕关掉。屏幕本来就是点亮状态时不做任何操作，返回 false。
+ */
+export async function wakeScreenIfOff(serial: string, signal: AbortSignal): Promise<boolean> {
+  ensureActive(signal)
+  if (await screenIsOn(serial, signal)) {
+    ensureActive(signal)
+    return false
+  }
+  console.info('[wake-unlock] Waking device by double tap', { serial })
+  await adbCommand(serial, ['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP'], signal)
+  for (let attempt = 0; attempt < 12; attempt++) {
+    if (await screenIsOn(serial, signal))
+      return true
+    if (attempt < 11)
+      await waitForNextCheck(signal)
+  }
+  throw new Error('屏幕尚未点亮，请检查设备连接')
+}
+
 /** 保留电源键原有切换行为，仅在已确认熄屏时使用 ADB 唤醒并尝试解锁。 */
 export async function pressPowerWithUnlock(
   serial: string,

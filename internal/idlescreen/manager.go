@@ -13,6 +13,9 @@ import (
 const (
 	IdleTimeout           = 10 * time.Minute
 	DefaultTimeoutMinutes = 10
+	// 单次熄屏预算。网络 ADB（Wi-Fi）下 keyevent 与 dumpsys 单条命令经常要
+	// 数秒，预算过小会被取消成 "signal: killed"，设备始终不熄屏。
+	sleepBudget = 30 * time.Second
 )
 const configKey = "idle_screen"
 
@@ -227,10 +230,15 @@ func (m *Manager) execute(job sleepJob) {
 	m.mu.Lock()
 	d := m.devices[job.serial]
 	if m.ctx.Err() != nil || !m.config.Enabled || d == nil || d != job.device || !d.online || d.refs > 0 || d.sleeping || d.generation != job.generation || m.now().Sub(d.last) < m.timeout {
+		// 排队后条件失效（设备又被访问、或刚释放租约导致计时重置）时必须清掉
+		// 排队标记；否则该设备一直停在 queued 状态，之后的扫描再也不会排熄屏。
+		if d != nil && d == job.device && d.generation == job.generation {
+			d.queued = false
+		}
 		m.mu.Unlock()
 		return
 	}
-	ctx, cancel := context.WithTimeout(m.ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(m.ctx, sleepBudget)
 	d.cancel = cancel
 	m.mu.Unlock()
 	err := m.sleep(ctx, job.serial)

@@ -35,6 +35,8 @@ func TestRTCPacketFlow(t *testing.T) {
 	}
 
 	hub := ws.NewHub(adbPath, jarPath)
+	// 避开正在运行的服务实例：两边抢同一台设备的 adb forward 会互相弄断投屏会话。
+	hub.SetTunnelPortBase(39183)
 	defer hub.Close()
 
 	b, offer, err := newBridge("test-"+serial, serial, hub)

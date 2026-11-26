@@ -203,6 +203,9 @@ func TestAutomationAPIDocsPage(t *testing.T) {
 	for _, want := range []string{
 		"# Farm AI 自动化接口",
 		"GET /api/automation/observe?serial=",
+		"formats=xml",
+		"原始 XML",
+		"formats=xml 时不适用",
 		"GET /api/automation/logs?format=text",
 		"POST /api/automation/act?serial=",
 		"POST /api/automation/tasks?serial=",

@@ -52,7 +52,7 @@
 | 播放器检查器 | 检查器、取色器、放大镜 | 右侧抽屉内:取色坐标、像素放大镜、XML 树、XPath 与元素定位联动 |
 | 检查模式 | 拾取模式、检查开关 | 检查器顶栏的显式开关,仅开启后拦截画面输入;打开面板默认可操控设备,完成取色、元素选择或 OCR 框选后自动退出 |
 | ADB 终端 | Web Shell、交互式终端 | 右侧抽屉内 xterm.js 终端,真实 PTY 分配 |
-| 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏、不熄屏 | 系统设置 → 通用设置中的时间下拉，默认开启并等待 10 分钟；可选不熄屏、1、5、10、30 分钟。按设备计算，无投屏、ADB 终端、命令及设备操作达到所选时长后由后端自动熄屏，后台遥测与屏幕状态轮询不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
+| 空闲自动熄屏 | 熄屏设置、空闲熄屏、自动熄屏、不熄屏 | 系统设置 → 通用设置中的时间下拉，默认开启并等待 10 分钟；可选不熄屏、1、5、10、30 分钟。按设备计算，无投屏、ADB 终端、命令及设备操作达到所选时长后由后端自动熄屏，后台遥测、屏幕状态轮询、画面帧上传与视觉结果覆盖层不刷新空闲计时；`internal/idlescreen`，`GET/PUT /api/system/idle-screen` |
 | 虚拟导航键 | 三大金刚键、底部虚拟键 | `frontend/src/components/player/VirtualNavBar.vue`；投屏画面下方的切换任务、主页、返回三键与“更多”入口，作为画面同列紧贴画面下沿，宽度跟随投屏画面而非页面空白区域；小窗与设备详情页共用该组件，按住空白处可拖动无边框小窗；由手机详情页“设置”面板中的“显示虚拟导航键”开关按设备单独控制（`farm.player.virtual-nav` 记录 serial→开关，不同设备互不影响，默认关闭） |
 | 系统设置 | 设置、设置页、系统配置 | 路由 `/settings/general`、`/settings/service`、`/settings/dependencies`（`frontend/src/views/settings/`）；左侧菜单底部设置展开后进入，不再使用弹窗 |
 | 更新设置 | 检查更新开关、自动更新开关 | 设置 → 通用设置 → 更新；`frontend/src/composables/useUpdateSettings.ts` 持久化“检查更新”“自动更新”，关闭检查更新时自动更新同步关闭 |
@@ -70,6 +70,7 @@
 | 首次安装指引 | 初始化指引、安装向导、首次打开 | `frontend/src/components/onboarding/OnboardingWizard.vue`；桌面端首次打开时弹出，按“安装 ADB → 安装 Python → 添加设备”三步初始化，复用 `/api/dependencies/*` 与 `AddDeviceDialog.vue`；完成后写入 localStorage 完成标记，提供“稍后设置”跳过 |
 | 设备可见性 | 只显示已选、显示全部、隐藏、显示隐藏设备 | `useHomePhoneView.ts`；“只显示已选”为开关，实时跟随选择；取消选择隐藏卡片，再点编号同时选中并显示；选择范围不受卡片显隐限制，右键“隐藏/显示”写入本地持久偏好，“显示隐藏设备”恢复持久隐藏；删除仅移除手动设备条目，不删除手机数据，自动发现设备不开放删除 |
 | 设备右键菜单 | 卡片右键、编号右键 | `DeviceContextMenu.vue`；卡片与底栏编号均按 serial 执行隐藏、手动条目删除、打开小窗、进入详情；离线设备不执行投屏，Mock 不派发真机操作 |
+| 投屏连接方式 | 直连、中继、转发、P2P 还是转发、连接信息 | `frontend/src/scrcpy/connection.ts` 定三态：`forward`=WS 经服务端 TCP 转发、`direct`=WebRTC UDP 直连服务端、`relay`=经 TURN 中继；详情页工具栏常显两字徽标（`DevicePlayer.vue`），小窗与紧凑工具栏在“更多 → 连接信息”内就地展开（`PlayerMoreMenu.vue` + `ConnectionInfoPanel.vue`）。媒体端点始终是 Farm 服务，设备侧无 WebRTC 栈，因此不存在浏览器↔设备的真 P2P |
 | 投屏音量 | 小窗声音、音量调节 | `frontend/src/components/player/AudioPanel.vue`（面板）、`AudioControl.vue`（工具栏弹出入口）与 `frontend/src/scrcpy/audio.ts`；调节本地播放增益并保留静音，不改变设备系统音量；“更多”菜单内的音量项点击后原地展开该面板 |
 | 设备分组 | 分组、分组成员、按分组选中 | `frontend/src/composables/useDeviceGroups.ts` 与 `HomeIosDockBar.vue`；【设备】浮动卡片底部分组区可按当前选择新建分组、更新成员或删除，点分组直接选中其成员；【操作】卡片底部同样列出分组用于批量选择；分组只存 serial，保存在本机 `farm.device-groups`，选中时按当前可选设备过滤 |
 | 技能市场 | 技能列表、APP 自动化技能 | `frontend/src/components/ai-integration/SkillMarket.vue` |
@@ -95,6 +96,7 @@
 | 通用操作技能 | 通用技能、my-scrcpy-common | `skills/my-scrcpy-common`；共享规则、Wiki 与通用操作脚本（观察、刷视频、返回、启动/重启应用、解锁屏幕） |
 | 动作执行 | 拟人化注入、input 执行 | 两种模式:SDK 拟人化注入(贝塞尔曲线/落点微抖动)与 ADB Shell input 系统级穿透 |
 | 投屏右键返回 | 右键返回、右键返回键 | `frontend/src/scrcpy/usePlayer.ts`；投屏画面右键点击发送一次完整返回键按下/抬起，复用工具条返回操作与群控同步；检查模式开启时由检查器接管，不向设备派发返回 |
+| 投屏双击唤醒 | 双击点亮、双击唤醒、熄屏双击 | `frontend/src/scrcpy/usePlayer.ts` 与 `frontend/src/scrcpy/screenPower.ts`；设备已熄屏时在投屏画面双击（或双触）发送一次 `KEYCODE_WAKEUP` 点亮屏幕，不用电源键切换以免状态滞后时误熄屏；「唤醒后自动解锁」开关打开时随后注销锁屏；亮屏时双击仍是普通两次点击，熄屏提示徽标同步显示“双击画面可点亮” |
 | 最新帧图片流接口 | 最新帧、最后帧、最新截图、投屏截图流 | 接口 `GET/POST /api/v1/vision/latest-frame?serial=...`、`GET/POST /api/devices/{serial}/latest-frame` 与 `GET/POST /api/device-state/{serial}/screenshot`；优先从服务端视频流提取最新解码帧并返回图片流，供所有视觉相关接口统一消费 |
 | 设备截图保存 | screenshot、截图指令 | `POST /api/automation/act` 的 `screenshot 相对目录`；复用最后帧接口同一取帧来源及现有回退，保留原 JPEG/PNG 字节，按实际格式保存 `.jpg`/`.png`，不额外转 PNG，上限 20 MiB；产物保留在设备 `/sdcard/Farm/automation` 下。最后帧可能滞后，不能保证对应刚完成的操作，截图前先通过 observe/wait 确认业务状态 |
 | 像素点取色接口 | 获取像素点、像素颜色接口、坐标取色 | 接口 `GET/POST /api/v1/vision/pixel`；支持归一化坐标(0~1)与绝对像素坐标，基于最新帧画面快速提取像素并返回详细颜色信息(RGB/RGBA/HEX) |

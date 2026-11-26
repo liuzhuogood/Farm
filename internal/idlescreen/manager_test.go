@@ -195,3 +195,40 @@ func TestDefaultEnabledAndConfigurableTimeout(t *testing.T) {
 		t.Fatal("unsupported timeout was accepted")
 	}
 }
+
+// 任务排队后条件失效（租约仍未释放）时必须清掉排队标记，否则该设备会一直
+// 停在 queued 状态，之后的扫描再也不会为它安排熄屏。
+func TestSkippedJobClearsQueuedFlag(t *testing.T) {
+	m, now, _, slept := fixture()
+	m.config.Enabled = true
+	release := m.Begin("a")
+	m.scan()
+	*now = now.Add(2 * IdleTimeout)
+	m.mu.Lock()
+	d := m.devices["a"]
+	d.queued = true
+	job := sleepJob{serial: "a", generation: d.generation, device: d}
+	m.mu.Unlock()
+
+	m.execute(job)
+	m.mu.Lock()
+	queued := m.devices["a"].queued
+	m.mu.Unlock()
+	if queued {
+		t.Fatal("skipped job left device queued forever")
+	}
+
+	release()
+	*now = now.Add(IdleTimeout + time.Second)
+	m.scan()
+	drain(m)
+	found := false
+	for _, serial := range *slept {
+		if serial == "a" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("released device did not sleep after skipped job: %v", *slept)
+	}
+}

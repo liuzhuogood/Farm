@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import {
+  Activity,
   ChevronDown,
   Ellipsis,
   ExternalLink,
@@ -25,7 +26,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import AudioPanel from '@/components/player/AudioPanel.vue'
+import ConnectionInfoPanel from '@/components/player/ConnectionInfoPanel.vue'
 import WindowEffectsPanel from '@/components/player/WindowEffectsPanel.vue'
+import type { ConnectionInfo } from '@/scrcpy/connection'
 
 defineProps<{
   nativePlayerWindow: boolean
@@ -44,6 +47,8 @@ defineProps<{
   clickThrough: boolean
   shortcut: string | null
   windowBusy: boolean
+  connection: ConnectionInfo
+  live: boolean
 }>()
 
 const emit = defineEmits<{
@@ -69,6 +74,7 @@ const menuOpen = ref(false)
 const effectsExpanded = ref(false)
 const effectsDialogOpen = ref(false)
 const audioExpanded = ref(false)
+const connectionExpanded = ref(false)
 
 // 展开的音量/窗口效果面板要在菜单关闭后复位，避免下次打开残留。
 watch(menuOpen, open => {
@@ -76,6 +82,7 @@ watch(menuOpen, open => {
   if (open) return
   effectsExpanded.value = false
   audioExpanded.value = false
+  connectionExpanded.value = false
 })
 watch([effectsExpanded, effectsDialogOpen], ([expanded, dialog]) => emit('windowEffectsActive', expanded || dialog))
 watch(audioExpanded, value => emit('update:audioOpen', value))
@@ -86,6 +93,10 @@ function toggleEffects() {
 
 function toggleAudio() {
   audioExpanded.value = !audioExpanded.value
+}
+
+function toggleConnection() {
+  connectionExpanded.value = !connectionExpanded.value
 }
 
 // 鼠标穿透确认框是独立的模态层，期间不能让更多菜单被外部按下关闭。
@@ -144,6 +155,13 @@ function handleClickThrough(enabled: boolean) {
           @toggle="emit('toggleAudio')"
           @volume="emit('setAudioVolume', $event)"
         />
+      </div>
+      <DropdownMenuItem class="justify-between" @select.prevent="toggleConnection">
+        <span class="flex items-center gap-2"><Activity class="h-4 w-4" />连接信息</span>
+        <ChevronDown class="h-4 w-4 shrink-0 text-muted-foreground transition-transform" :class="{ 'rotate-180': connectionExpanded }" />
+      </DropdownMenuItem>
+      <div v-if="connectionExpanded" class="px-2 pb-2" @pointerdown.stop @click.stop>
+        <ConnectionInfoPanel :info="connection" :live="live" />
       </div>
       <DropdownMenuItem v-if="isGui" @select="emit('update:alwaysOnTop')">
         <PinOff v-if="isAlwaysOnTop" class="h-4 w-4" />

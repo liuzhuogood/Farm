@@ -10,33 +10,36 @@ An optional desktop client adds independent mirroring windows with **always-on-t
 
 **Device List**
 
-![Device List](screenshots/device-list-20261106.jpg)
-
-**Desktop Client: Always-on-top, Opacity & Click-through (macOS close-ups)**
-
-| Main window effects | Mirroring window settings (pinned) |
-| --- | --- |
-| ![Main window opacity and mouse click-through](screenshots/desktop-window-effects.jpg) | ![Pinned mirroring window with opacity and click-through controls](screenshots/desktop-player-effects.jpg) |
+![Device List](screenshots/device-list-20261124.jpg)
 
 **Screen Mirroring & Control**
 
-![Screen Mirroring](screenshots/player-20261106.jpg)
+![Screen Mirroring](screenshots/player-20261124.jpg)
 
 **Player Inspector**
 
-![Player Inspector](screenshots/ui-inspector-20261106.jpg)
+![Player Inspector](screenshots/ui-inspector-20261124.jpg)
 
-**Multi-device Monitoring (detail)**
+**Home Phone View (multi-device monitoring)**
 
-![Multi-device Monitoring detail](screenshots/dashboard-20261106.jpg)
+![Home Phone View](screenshots/phone-view-20261124.jpg)
 
 **File Manager**
 
-![File Manager](screenshots/file-manager-20261106.jpg)
+![File Manager](screenshots/file-manager-20261124.jpg)
+
+**Pi Agent Driving Farm (recorded on a Mac mini)**
+
+[![Pi Agent connects to Farm and opens Calculator](screenshots/pi-agent-demo.gif)](screenshots/pi-agent-demo.mp4)
+
+Pi Agent uses the `farm-device-base` skill to connect to Farm, create an automation task, open Calculator, and verify the foreground app. Click the preview to open the full MP4.
 
 ## Features
 
 - Browser-based, no dedicated client app required
+- Collapsible sidebar for Devices, Task History, AI Integrations, API, and Settings
+- Card and phone views on the home page; phone view provides live multi-device monitoring with group control and batch actions
+- Device search across name, model, and serial, with add-device, offline-device, and selected-only filters
 - Optional desktop client with independent mirroring windows; both the main window and mirroring windows support always-on-top, 0–100% opacity, mouse click-through, and recovery shortcuts/menu actions
 - WebCodecs hardware decoding for low latency
 - H.264 / H.265 / AV1 codec support
@@ -45,10 +48,15 @@ An optional desktop client adds independent mirroring windows with **always-on-t
 - Touch support (mobile browsers)
 - One-click screen rotation
 - Fullscreen mode (iOS pseudo-fullscreen supported)
+- Per-device virtual navigation bar with task switch, home, back, and more actions
+- Task History aggregates automation tasks and MCP records across all devices
+- AI Integrations provides Codex, Claude Code, and WorkBuddy guides plus a searchable skill marketplace
+- API page with endpoint references, OpenAPI entry, and examples
+- Settings routes for General, Service, Dependencies, Feedback, and About; dependency changes save automatically
+- Feedback pre-fills a GitHub Issue with the app version and runtime details
 - Controlled MP4 recording with an automatic stop time, early stop, and download
 - Screen-off detection
 - Auto-reconnect
-- Multi-device monitoring with small, medium and large device sizes
 - File management: browse, search and filter, upload, download, move, rename, bulk delete and undo
 - Single binary with embedded scrcpy-server and web assets
 
@@ -93,7 +101,7 @@ bash scripts/build.sh
 
 Open `http://localhost:8080` in your browser, click a device to start mirroring.
 
-The Vue frontend is served at `/`, with player, dashboard and file pages at `/player`, `/dashboard` and `/files`.
+The Vue frontend is served at `/`, with player and file pages at `/player` and `/files`; multi-device monitoring is available by switching the home page to Phone View.
 For frontend development, run `pnpm --dir frontend dev` after installing dependencies with
 `pnpm --dir frontend install --frozen-lockfile`. Open `http://localhost:5173/` with the Go backend running on port 8080.
 The build script compiles the frontend into `web/dist/` before embedding it in the Go binary. Node.js is not required at runtime.
@@ -106,9 +114,9 @@ Download desktop packages from [GitHub Releases](https://github.com/liuzhuogood/
 
 | Feature | Main window | Independent mirroring window |
 | --- | --- | --- |
-| Always-on-top | Pin button in the header, or the native Window menu | Pin button in the window toolbar |
-| Opacity | Main window effects (主窗口效果) in the header | Window settings (窗口设置) in the toolbar |
-| Mouse click-through | Enable and confirm in Main window effects | Enable and confirm in Window settings |
+| Always-on-top | Native menu: Window → Window effects → Main window always on top | Mirroring toolbar: More → Keep window on top |
+| Opacity | Native menu: Window → Opacity | Mirroring toolbar: More → Window effects |
+| Mouse click-through | Native menu: Window → Window effects → Main window click-through | Mirroring toolbar: More → Window effects → Mouse click-through |
 
 Opacity ranges from 0% (invisible) to 100% (opaque). Mouse click-through sends clicks to the application underneath the window. Combine these controls with always-on-top to view a device screen as a desktop overlay. Each window can be configured independently. Hover over the small bar at the top of a mirroring window to reveal its toolbar.
 
@@ -239,7 +247,7 @@ server {
 | Right click | Back button |
 | Scroll wheel | Scroll page |
 | Keyboard | Text input |
-| Toolbar | Home, Back, Recents, Power, Rotate, Fullscreen |
+| Toolbar | Task switch, Home, Back, Power, Rotate, Fullscreen, Inspector, Settings, and More |
 
 ## Project Structure
 

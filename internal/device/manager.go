@@ -1,6 +1,7 @@
 package device
 
 import (
+	"bytes"
 	"context"
 	"farm/internal/dependencies"
 	"fmt"
@@ -82,7 +83,27 @@ type Manager struct {
 	cancelIdentity  context.CancelFunc
 	identityProbes  sync.WaitGroup
 	probesRunning   int // guarded by mu
+
+	// 自动恢复状态：网络设备重连计数、日志节流与 ADB 服务重启冷却。
+	reconnectMu     sync.Mutex
+	reconnectFails  map[string]int
+	reconnecting    map[string]bool
+	lastLogAt       map[string]time.Time
+	restartInFlight bool
+	lastRestartAt   time.Time
+	devicesFails    int
 }
+
+const (
+	// 连续失败达到该次数后先断开旧传输，再重新 connect。
+	reconnectDisconnectAfter = 1
+	// 无任何在线设备且重连连续失败达到该次数时，自动重启 ADB 服务。
+	reconnectRestartAfter = 3
+	// adb devices 连续失败达到该次数（约 10 秒）后重启 ADB 服务。
+	devicesRestartAfter   = 5
+	restartADBMinInterval = 2 * time.Minute
+	reconnectLogInterval  = 30 * time.Second
+)
 
 // NewManager 创建设备管理器。
 func NewManager(adbPath string, database *db.DB) *Manager {
@@ -98,6 +119,9 @@ func NewManager(adbPath string, database *db.DB) *Manager {
 		identityAliases: make(map[string]string),
 		identityCtx:     identityCtx,
 		cancelIdentity:  cancelIdentity,
+		reconnectFails:  make(map[string]int),
+		reconnecting:    make(map[string]bool),
+		lastLogAt:       make(map[string]time.Time),
 	}
 }
 
@@ -165,8 +189,16 @@ func (m *Manager) refreshWithReconnect(reconnectedSerial string) {
 	m.mu.RUnlock()
 	adbDevs, err := m.ListDevices()
 	if err != nil {
-		adbDevs = nil
+		// 读不到列表时保留上一份设备快照，避免把在线设备误标为离线；
+		// 连续失败（服务卡死/无法连接守护进程）则在冷却窗口内自动重启。
+		n := m.recordDevicesFailure()
+		m.logThrottled("adb-devices", "[Device] adb devices 失败（连续 %d 次）: %v", n, err)
+		if n >= devicesRestartAfter {
+			m.escalateRestartADB("adb devices 连续失败: " + err.Error())
+		}
+		return
 	}
+	m.clearDevicesFailure()
 
 	adbMap := make(map[string]Device)
 	for _, d := range adbDevs {
@@ -338,21 +370,191 @@ func (m *Manager) attachTelemetry(d *Device) {
 	}
 }
 
-// reconnectOfflineManualDevices 扫描开启了 auto_reconnect 且离线的手动设备，执行 adb connect
+// reconnectOfflineManualDevices 扫描开启了 auto_reconnect 且不在线的网络设备，
+// 按连续失败次数升级恢复手段：重连 → 断开旧传输后重连 → 兜底重启 ADB 服务。
 func (m *Manager) reconnectOfflineManualDevices() {
 	if m.db == nil {
 		return
 	}
 	manuals, err := m.db.ListManualDevices()
 	if err != nil {
+		m.logThrottled("manual-list", "[Device] 读取手动设备失败: %v", err)
 		return
 	}
 
-	for _, rec := range manuals {
-		if rec.AutoReconnect == 1 && rec.State == "offline" {
-			go m.Connect(rec.Serial)
+	m.mu.RLock()
+	states := make(map[string]string, len(m.devices))
+	online := 0
+	for _, d := range m.devices {
+		states[d.Serial] = d.State
+		if d.State == "device" {
+			online++
 		}
 	}
+	m.mu.RUnlock()
+
+	var broken []string
+	for _, rec := range manuals {
+		if rec.AutoReconnect != 1 {
+			continue
+		}
+		state, known := states[rec.Serial]
+		if !known {
+			state = rec.State
+		}
+		if state == "device" {
+			m.clearReconnectFailure(rec.Serial)
+			continue
+		}
+		// 只有网络设备能通过 disconnect/connect 重建传输；USB 通道交给 adb 自身。
+		if strings.Contains(rec.Serial, ":") {
+			broken = append(broken, rec.Serial)
+		}
+	}
+
+	maxFailures := 0
+	for _, serial := range broken {
+		if n := m.reconnectFailureCount(serial); n > maxFailures {
+			maxFailures = n
+		}
+		if m.beginReconnect(serial) {
+			go func(serial string) {
+				defer m.endReconnect(serial)
+				m.reconnectNetworkDevice(serial)
+			}(serial)
+		}
+	}
+
+	// 全部设备都不可用时才自动重启 ADB，避免打断仍在线的投屏会话。
+	if len(broken) > 0 && online == 0 && maxFailures >= reconnectRestartAfter {
+		m.escalateRestartADB(fmt.Sprintf("全部设备离线且重连连续失败 %d 次（%s）", maxFailures, strings.Join(broken, ",")))
+	}
+}
+
+func (m *Manager) reconnectNetworkDevice(serial string) {
+	// 传输已僵死时 adb connect 只回 "already connected"，不会重建连接；
+	// 第二次尝试起先移除旧条目。
+	if m.reconnectFailureCount(serial) >= reconnectDisconnectAfter {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		out, err := dependencies.CommandContext(ctx, m.adbPath, "disconnect", serial).CombinedOutput()
+		cancel()
+		if err != nil {
+			// 传输已经不存在时 adb 返回 no such device，属于预期结果，不算故障。
+			if msg := strings.TrimSpace(string(out)); !strings.Contains(msg, "no such device") {
+				m.logThrottled("disconnect:"+serial, "[Device] adb disconnect 失败 serial=%s: %v: %s", serial, err, msg)
+			}
+		}
+	}
+
+	// Connect 内部已记录失败原因；这里只根据刷新后的真实状态判断是否恢复。
+	_ = m.Connect(serial)
+	if m.deviceState(serial) == "device" {
+		m.clearReconnectFailure(serial)
+		return
+	}
+	failures := m.recordReconnectFailure(serial)
+	m.logThrottled("reconnect:"+serial, "[Device] 自动重连未恢复 serial=%s 连续失败=%d", serial, failures)
+}
+
+func (m *Manager) deviceState(serial string) string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for i := range m.devices {
+		if m.devices[i].Serial == serial {
+			return m.devices[i].State
+		}
+	}
+	return ""
+}
+
+func (m *Manager) recordDevicesFailure() int {
+	m.reconnectMu.Lock()
+	defer m.reconnectMu.Unlock()
+	m.devicesFails++
+	return m.devicesFails
+}
+
+func (m *Manager) clearDevicesFailure() {
+	m.reconnectMu.Lock()
+	m.devicesFails = 0
+	m.reconnectMu.Unlock()
+}
+
+func (m *Manager) reconnectFailureCount(serial string) int {
+	m.reconnectMu.Lock()
+	defer m.reconnectMu.Unlock()
+	return m.reconnectFails[serial]
+}
+
+func (m *Manager) recordReconnectFailure(serial string) int {
+	m.reconnectMu.Lock()
+	defer m.reconnectMu.Unlock()
+	m.reconnectFails[serial]++
+	return m.reconnectFails[serial]
+}
+
+func (m *Manager) clearReconnectFailure(serial string) {
+	m.reconnectMu.Lock()
+	delete(m.reconnectFails, serial)
+	m.reconnectMu.Unlock()
+}
+
+func (m *Manager) beginReconnect(serial string) bool {
+	m.reconnectMu.Lock()
+	defer m.reconnectMu.Unlock()
+	if m.reconnecting[serial] {
+		return false
+	}
+	m.reconnecting[serial] = true
+	return true
+}
+
+func (m *Manager) endReconnect(serial string) {
+	m.reconnectMu.Lock()
+	delete(m.reconnecting, serial)
+	m.reconnectMu.Unlock()
+}
+
+// escalateRestartADB 在冷却窗口内只执行一次重启，避免故障时反复打断 ADB 服务。
+func (m *Manager) escalateRestartADB(reason string) {
+	now := time.Now()
+	m.reconnectMu.Lock()
+	if m.restartInFlight || now.Sub(m.lastRestartAt) < restartADBMinInterval {
+		m.reconnectMu.Unlock()
+		return
+	}
+	m.restartInFlight = true
+	m.lastRestartAt = now
+	m.reconnectMu.Unlock()
+
+	go func() {
+		defer func() {
+			m.reconnectMu.Lock()
+			m.restartInFlight = false
+			m.reconnectMu.Unlock()
+		}()
+		log.Printf("[Device] 自动重启 ADB 服务: %s", reason)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		if err := m.RestartADB(ctx); err != nil {
+			log.Printf("[Device] 自动重启 ADB 服务失败: %v", err)
+			return
+		}
+		m.refresh()
+	}()
+}
+
+// logThrottled 按 key 限制同一故障的日志频率，避免故障期间刷屏。
+func (m *Manager) logThrottled(key, format string, args ...interface{}) {
+	now := time.Now()
+	m.reconnectMu.Lock()
+	if last, ok := m.lastLogAt[key]; ok && now.Sub(last) < reconnectLogInterval {
+		m.reconnectMu.Unlock()
+		return
+	}
+	m.lastLogAt[key] = now
+	m.reconnectMu.Unlock()
+	log.Printf(format, args...)
 }
 
 // Connect 调用 adb connect <serial>
@@ -363,10 +565,11 @@ func (m *Manager) Connect(serial string) error {
 	cmd := dependencies.CommandContext(ctx, m.adbPath, "connect", serial)
 	cmd.Dir = os.TempDir()
 	out, err := cmd.CombinedOutput()
-	output := string(out)
+	output := strings.TrimSpace(string(out))
 
 	if err != nil {
-		return fmt.Errorf("adb connect 错误: %s (%w)", strings.TrimSpace(output), err)
+		m.logThrottled("connect:"+serial, "[Device] adb connect 失败 serial=%s: %v: %s", serial, err, output)
+		return fmt.Errorf("adb connect 错误: %s (%w)", output, err)
 	}
 
 	// 触发一次即刻刷新（包含 failed to authenticate 变为 unauthorized 的情况）
@@ -375,7 +578,12 @@ func (m *Manager) Connect(serial string) error {
 	// adb connect 成功通常输出: connected to ... 或 already connected to ...
 	// 未授权时输出: failed to authenticate to ...（此时已建立连接并处于 unauthorized 状态）
 	if (strings.Contains(output, "failed") && !strings.Contains(output, "failed to authenticate")) || strings.Contains(output, "cannot connect") {
-		return fmt.Errorf("adb connect 失败: %s", strings.TrimSpace(output))
+		m.logThrottled("connect:"+serial, "[Device] adb connect 未成功 serial=%s: %s", serial, output)
+		return fmt.Errorf("adb connect 失败: %s", output)
+	}
+	// 传输僵死时也会回 already connected；记录一次便于区分“已连上”和“连不上”。
+	if strings.Contains(output, "already connected") {
+		m.logThrottled("connect:"+serial, "[Device] adb connect 返回已连接 serial=%s", serial)
 	}
 
 	return nil
@@ -497,9 +705,13 @@ func (m *Manager) UpdateAlias(serial, alias string) error {
 func (m *Manager) ListDevices() ([]Device, error) {
 	cmd := dependencies.Command(m.adbPath, "devices", "-l")
 	cmd.Dir = os.TempDir()
+	// 服务懒启动时 adb 会把 daemon 提示写到 stderr；成功路径也要带上它，
+	// 但设备列表只取 stdout，避免把 "* daemon started successfully" 解析成设备。
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
 	out, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("adb devices: %w", err)
+		return nil, fmt.Errorf("adb devices: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 	return parseDevices(string(out)), nil
 }
@@ -510,7 +722,7 @@ func parseDevices(s string) []Device {
 	lines := strings.Split(s, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "List of devices") {
+		if line == "" || strings.HasPrefix(line, "List of devices") || strings.HasPrefix(line, "*") {
 			continue
 		}
 		fields := strings.Fields(line)

@@ -41,6 +41,9 @@ TASK_ID=$(echo $TASK_JSON | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
 # 3. 观察当前屏幕
 curl -s 'http://127.0.0.1:1989/api/automation/observe?serial=10.0.0.30:5555&format=text'
 
+# 需要原始控件树时（非默认）：
+curl -s 'http://127.0.0.1:1989/api/automation/observe?serial=10.0.0.30:5555&formats=xml'
+
 # 4. 执行操作批次
 curl -s --data-binary @- "http://127.0.0.1:1989/api/automation/act?serial=10.0.0.30:5555&title=检查设置&task_id=\${TASK_ID}" << 'EOF'
 tap @540,960
@@ -205,7 +208,7 @@ onUnmounted(() => {
               GET /api/automation/observe?serial=...&format=text
             </code>
             <p class="text-[11px] text-muted-foreground leading-relaxed">
-              返回屏幕像素尺寸、应用名、带像素坐标 @X,Y 的控件与 OCR 文字。
+              默认返回屏幕像素尺寸、应用名、带像素坐标 @X,Y 的控件与 OCR 文字；需要原始控件树时显式使用 formats=xml。
             </p>
           </div>
 
@@ -330,6 +333,9 @@ TASK_ID=$(echo $TASK_JSON | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
 
 # 3. 观察当前屏幕
 curl -s 'http://127.0.0.1:1989/api/automation/observe?serial=10.0.0.30:5555&format=text'
+
+# 需要原始控件树时（非默认）：
+curl -s 'http://127.0.0.1:1989/api/automation/observe?serial=10.0.0.30:5555&formats=xml'
 
 # 4. 执行操作批次 (多行纯文本输入)
 curl -s --data-binary @- "http://127.0.0.1:1989/api/automation/act?serial=10.0.0.30:5555&title=检查设置&task_id=${TASK_ID}" << 'EOF'

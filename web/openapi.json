@@ -39,7 +39,7 @@
           "现代化自动化核心 (Modern Automation)"
         ],
         "summary": "统一感知接口 (Observe)",
-        "description": "以紧凑感知协议返回当前屏幕状态。融合 Accessibility 节点与 OCR 视觉文字，并支持增量 Diff 对比输出。 ref优先使用用户已启用的Farm Companion，无可用快通道则回退uiautomator dump；不会自动安装或启用。",
+        "description": "以紧凑感知协议返回当前屏幕状态。默认 formats=[ref,ocr]，融合 Accessibility 节点与 OCR 视觉文字，并支持增量 Diff 对比输出。XML 非默认，仅在 formats=[xml] 单独指定时返回当前树提供者的原始 XML 快照（text/xml），此时不执行 OCR/ref 渲染，diff 不适用。ref 优先使用用户已启用的 Farm Companion，无可用快通道则回退 uiautomator dump；不会自动安装或启用。",
         "requestBody": {
           "required": true,
           "content": {
@@ -68,7 +68,7 @@
                       "ref",
                       "ocr"
                     ],
-                    "description": "ref 优先通过已启用的Farm Companion直接读取无障碍树，失败时回退uiautomator dump；仅 ocr 跳过树读取；仅 xml 返回当前树提供者的原始快照。默认 ref+ocr 保持。检查器 /api/ui/xml 始终使用uiautomator dump。"
+                    "description": "ref 优先通过已启用的 Farm Companion 直接读取无障碍树，失败时回退 uiautomator dump；仅 ocr 跳过树读取；仅 xml 返回当前树提供者的原始快照（text/xml），XML 非默认且需单独指定。默认 ref+ocr 保持。检查器 /api/ui/xml 始终使用 uiautomator dump。"
                   },
                   "diff": {
                     "type": "boolean",
@@ -114,7 +114,7 @@
           "现代化自动化核心 (Modern Automation)"
         ],
         "summary": "统一感知接口（GET）",
-        "description": "读取当前屏幕紧凑感知文本。formats逗号分隔，默认ref,ocr；ref优先使用已启用Companion并保留dump回退，仅ocr跳过树读取。",
+        "description": "读取当前屏幕紧凑感知文本。formats 逗号分隔，默认 ref,ocr；XML 非默认，仅在 formats=xml 单独指定时返回原始 XML 快照（text/xml），此时 diff 不适用。ref 优先使用已启用 Companion 并保留 dump 回退，仅 ocr 跳过树读取。",
         "parameters": [
           {
             "name": "serial",
@@ -133,7 +133,7 @@
               "type": "string",
               "default": "ref,ocr"
             },
-            "description": "逗号分隔的输出格式：ref、ocr 或 xml"
+            "description": "逗号分隔的输出格式：ref、ocr 或 xml。默认 ref,ocr；xml 非默认，需单独指定 formats=xml，返回 text/xml 的原始 XML，忽略 diff。"
           },
           {
             "name": "diff",

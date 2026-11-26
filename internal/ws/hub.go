@@ -232,6 +232,17 @@ func (h *Hub) allocPort() int {
 	return p
 }
 
+// SetTunnelPortBase 设置本地转发端口的起始值。测试进程需要避开正在运行的服务实例，
+// 否则两边会抢同一台设备的 adb forward，把对方的投屏会话弄断。
+func (h *Hub) SetTunnelPortBase(port int) {
+	if port <= 0 {
+		return
+	}
+	h.portMu.Lock()
+	defer h.portMu.Unlock()
+	h.nextPort = port
+}
+
 type session struct {
 	server *scrcpy.Server
 	conn   *scrcpy.Connection

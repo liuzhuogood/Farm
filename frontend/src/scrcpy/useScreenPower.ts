@@ -1,7 +1,7 @@
 import { onUnmounted, ref, watch } from 'vue'
 import { useStorage } from '@vueuse/core'
 import { toast } from 'vue-sonner'
-import { createWakeUnlockTrigger, pressPowerWithUnlock, requestScreenUnlock, wakeAndUnlockOnOpen } from './screenPower'
+import { createWakeUnlockTrigger, pressPowerWithUnlock, requestScreenUnlock, wakeAndUnlockOnOpen, wakeScreenIfOff } from './screenPower'
 
 export function useScreenPower(serial: string, callbacks: {
   sendPowerKey: () => void
@@ -65,6 +65,19 @@ export function useScreenPower(serial: string, callbacks: {
     })
   }
 
+  /** 熄屏双击唤醒：只点亮屏幕，不解锁；自动解锁开关打开时再按开关注销锁屏。 */
+  function wakeScreen(): Promise<void> {
+    return runAction(async signal => {
+      if (!await wakeScreenIfOff(serial, signal)) {
+        // 状态滞后：屏幕其实已经亮着，刷新一下让界面退出熄屏提示。
+        await callbacks.checkScreenState()
+        return
+      }
+      await trigger.observe(true, autoUnlockOnWake.value)
+      callbacks.onWake()
+    })
+  }
+
   watch(autoUnlockOnWake, enabled => {
     trigger.reset()
     if (enabled)
@@ -78,5 +91,5 @@ export function useScreenPower(serial: string, callbacks: {
     activeController?.abort()
   })
 
-  return { autoUnlockOnWake, powerBusy, pressPower, observeScreenState, prepareOnOpen }
+  return { autoUnlockOnWake, powerBusy, pressPower, wakeScreen, observeScreenState, prepareOnOpen }
 }

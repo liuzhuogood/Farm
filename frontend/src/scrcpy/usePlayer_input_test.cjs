@@ -13,7 +13,7 @@ function target() {
   };
 }
 async function fixture(mode = 'sdk') {
-  const mounted = [], unmounted = [], frames = new Map(), timers = new Map(), sockets = [], broadcasts = [], logs = [], operations = [];
+  const mounted = [], unmounted = [], frames = new Map(), timers = new Map(), sockets = [], broadcasts = [], logs = [], operations = [], wakes = [];
   let next = 0, channel, inspecting = false;
   const window = Object.assign(target(), {
     setTimeout(cb) { const id = ++next; timers.set(id, cb); return id; }, clearTimeout(id) { timers.delete(id); },
@@ -55,9 +55,10 @@ async function fixture(mode = 'sdk') {
       if (name === './decoder') return { ScrcpyDecoder: class { configure() {} close() {} } };
       if (name === './audio') return { DeviceAudio: class { close() {} } };
       if (name === './pip') return { PictureInPicture: class { close() { return Promise.resolve(); } } };
+      if (name === './doubleTap') return load('doubleTap');
       if (name === './useClipboardSync') return { useClipboardSync: () => ({}) };
       if (name === './useFrameUploader') return { useFrameUploader: () => ({ start() {}, stop() {} }) };
-      if (name === './useScreenPower') return { useScreenPower: () => ({ prepareOnOpen: () => Promise.resolve(), observeScreenState() {} }) };
+      if (name === './useScreenPower') return { useScreenPower: () => ({ prepareOnOpen: () => Promise.resolve(), observeScreenState() {}, wakeScreen() { wakes.push(Date.now()); }, pressPower: () => Promise.resolve(), autoUnlockOnWake: { value: false }, powerBusy: { value: false } }) };
       if (name === '@/composables/usePlayerSettings') return { usePlayerSettings: () => settings };
       if (name === '@/composables/useGroupControl') return { useGroupControl: () => ({ registerChannel(value) { channel = value; return () => {}; }, broadcastControl(...args) { broadcasts.push(args); } }) };
       throw new Error(name);
@@ -65,12 +66,12 @@ async function fixture(mode = 'sdk') {
   });
   const player = module.exports.usePlayer('xiaomi', { onOp: (type, data) => operations.push({ type, ...data }) });
   player.canvasRef.value = canvas;
-  player.stageRef.value = { clientWidth: 360, clientHeight: 800 };
+  player.stageRef.value = { clientWidth: 360, clientHeight: 800, querySelector: () => null, getBoundingClientRect: () => ({ left: 0, top: 0, width: 360, height: 800 }) };
   mounted.forEach(cb => cb()); await Promise.resolve(); await Promise.resolve();
   sockets[0].ready();
   const frame = () => { const copy = [...frames]; frames.clear(); copy.forEach(([, cb]) => cb()); };
   frame(); frame();
-  return { player, canvas, window, settings, sockets, frames, timers, broadcasts, logs, operations, frame, channel, setInspecting(value) { inspecting = value; }, unmount() { unmounted.forEach(cb => cb()); } };
+  return { player, canvas, window, settings, sockets, frames, timers, broadcasts, logs, operations, wakes, frame, channel, setInspecting(value) { inspecting = value; }, unmount() { unmounted.forEach(cb => cb()); } };
 }
 (async () => {
   for (const mode of ['sdk', 'adb', 'hid']) {
@@ -155,5 +156,20 @@ async function fixture(mode = 'sdk') {
     assert.ok(f.logs.some(args => args[0] === '[input]'));
     const count = ws.sent.length; f.frame(); assert.equal(ws.sent.length, count, 'old move never leaks to a reconnect'); f.unmount();
   }
-  console.log('PASS: usePlayer right-click Back, inspection guards, mouse/touch event bursts, final coordinates, group no-echo, cancellation, unchanged ADB/HID and congestion recovery');
+  {
+    const f = await fixture(); const ws = f.sockets[0];
+    const tap = () => { f.canvas.fire('mousedown', { button: 0, clientX: 10, clientY: 10 }); f.window.fire('mouseup', { clientX: 10, clientY: 10 }); f.frame(); };
+    tap();
+    assert.equal(f.wakes.length, 0, '亮屏时单击不触发唤醒');
+    f.player.screenOff.value = true;
+    tap();
+    assert.equal(f.wakes.length, 0, '熄屏时单击只计数，不唤醒');
+    tap();
+    assert.equal(f.wakes.length, 1, '熄屏时双击画面唤醒一次');
+    tap(); tap(); tap();
+    assert.equal(f.wakes.length, 2, '三击只按一次双击处理，需要重新计数');
+    assert.ok(ws.sent.length > 0, '熄屏期间的触摸仍然按原逻辑下发');
+    f.unmount();
+  }
+  console.log('PASS: usePlayer right-click Back, inspection guards, mouse/touch event bursts, final coordinates, group no-echo, cancellation, unchanged ADB/HID, double-tap wake and congestion recovery');
 })().catch(error => { console.error(error); process.exitCode = 1; });

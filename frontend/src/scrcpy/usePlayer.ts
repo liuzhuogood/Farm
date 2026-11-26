@@ -2,7 +2,9 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { inspectorConsumesInput } from '@/inspector/guard'
 import { type OpPayload, type OpType } from '@/inspector/opLog'
 import { DeviceAudio, type AudioStatus } from './audio'
+import type { ConnectionInfo } from './connection'
 import { ScrcpyDecoder } from './decoder'
+import { createDoubleTapDetector } from './doubleTap'
 import { ControlSender } from './controlSender'
 import { PictureInPicture } from './pip'
 import { useClipboardSync } from './useClipboardSync'
@@ -81,6 +83,9 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
   const live = ref(false)
   const fps = ref('')
   const showFps = ref(false)
+  // 投屏连接方式：当前播放器走 WS（经服务端 TCP 转发）。接入 WebRTC 通道后
+  // 由传输层写入 direct/relay，这里只承载展示所需的最小信息。
+  const connection = ref<ConnectionInfo>({ channel: 'ws', mode: 'forward', protocol: 'tcp' })
   const videoSize = ref({ w: 0, h: 0 })
   let decodedFrameVersion = 0
   const screenOff = ref(false)
@@ -95,7 +100,7 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
   const pipActive = ref(false)
   const fullscreen = ref(false)
   const rebooting = ref(false)
-  const { autoUnlockOnWake, powerBusy, pressPower, observeScreenState, prepareOnOpen } = useScreenPower(serial, {
+  const { autoUnlockOnWake, powerBusy, pressPower, wakeScreen, observeScreenState, prepareOnOpen } = useScreenPower(serial, {
     sendPowerKey: () => {
       keyPress(AKEYCODE.POWER)
       op('key', { label: '电源键', keycode: 'KEYCODE_POWER' })
@@ -141,6 +146,13 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
   let pseudoFs = false
   let resizeObserver: ResizeObserver | undefined
   let mouseDown = false
+
+  // 熄屏时双击画面唤醒；屏幕亮着时完全不介入，避免改变原有的点击行为。
+  const doubleTapWake = createDoubleTapDetector(400, () => { void wakeScreen() })
+  function noteWakeTap() {
+    if (screenOff.value)
+      doubleTapWake.tap()
+  }
 
   // ---------- 状态 ----------
   function setStatus(text: string, isLive: boolean) {
@@ -219,7 +231,8 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
     if (reconnectTimer !== undefined)
       return
     reconnectAttempts++
-    const delay = Math.min(1000 * reconnectAttempts, 5000)
+    // 设备离线或 scrcpy 启动失败时会连续失败，指数退避避免每 1~5 秒打一次 ADB。
+    const delay = Math.min(1000 * 2 ** Math.min(reconnectAttempts - 1, 5), 30000)
     setStatus(`重连中...(${reconnectAttempts})`, false)
     console.log('[ws]', delay, 'ms 后重连')
     reconnectTimer = window.setTimeout(() => {
@@ -261,7 +274,6 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
     socket.onopen = () => {
       if (ws !== socket || currentId !== connectionId)
         return
-      reconnectAttempts = 0
       setStatus('已连接，等待画面...', true)
     }
     socket.onmessage = ev => handleMessage(socket, currentId, ev)
@@ -344,6 +356,9 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
 
   function onMeta(msg: WsMeta) {
     clearConnectTimer()
+    // 只有握手成功（拿到视频参数）才算真正连上；仅 socket open 就重置会
+    // 让 scrcpy 启动失败在 1 秒内无限重试。
+    reconnectAttempts = 0
     serverErrorAttempts = 0
     lastServerError = ''
     errorShown = false
@@ -366,6 +381,8 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
     loading.value = false
     setStatus(`${w}x${h}`, true)
     showFps.value = true
+    // 握手成功即确认当前通道；WebRTC 通道接入后在此改为对应的直连/中继结论。
+    connection.value = { channel: 'ws', mode: 'forward', protocol: 'tcp' }
     connected = true
     startWatchdog()
     requestAnimationFrame(() => requestAnimationFrame(fitCanvas))
@@ -510,6 +527,7 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
       } else {
         op('tap', { x, y })
         opts.onTouch?.({ kind: 'tap', x: x / packer.deviceWidth, y: y / packer.deviceHeight })
+        noteWakeTap()
       }
     }
     else {
@@ -1155,6 +1173,7 @@ export function usePlayer(serial: string, opts: { embedded?: boolean, onOp?: (ty
     live,
     fps,
     showFps,
+    connection,
     videoSize,
     screenOff,
     displayScale,

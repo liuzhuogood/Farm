@@ -74,8 +74,9 @@ MCP 来源任务以现有审计记录只读展示，不能通过本接口结束�
 GET /api/automation/observe?serial=10.0.0.30:5555&format=text
 
 serial：必填，设备序列号。
-formats：可选，ref,ocr（默认）、ref 或 ocr。
-diff：可选，默认 true，返回相对上次观察的变化；false 返回全量。
+formats：可选，ref,ocr（默认）、ref、ocr 或 xml。
+formats=xml：非默认，需显式指定；单独使用时以 text/xml 格式返回当前控件树的原始 XML，不执行 ref/ocr 渲染，diff 不适用。
+diff：可选，默认 true，返回相对上次观察的变化；false 返回全量；formats=xml 时不适用。
 settle_ms：可选，观察前等待毫秒数，默认 300。
 format=text：包含出错信息在内均返回文本。
 
@@ -84,6 +85,9 @@ screen 1080x2400 · app: Settings (com.android.settings)
 [1] button "返回" @60,120
 [2] input "搜索设置" @540,240 editable
 ocr "WLAN" @160,420
+
+需要原始控件树时显式指定：
+GET /api/automation/observe?serial=10.0.0.30:5555&formats=xml
 
 @X,Y 是当前屏幕像素坐标，可直接交给 tap 或 swipe。
 ref 优先读取已启用的 Farm Companion，失败时回退 uiautomator dump；仅 ocr 跳过控件树。树采集或解析失败会明确报错；默认 ref,ocr 在 OCR 不可用时保留树文字并记录原因，formats=ocr 时识别失败明确报错。
