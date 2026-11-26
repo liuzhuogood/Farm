@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Mac mini 测试报告 · 2026-11-26</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#596579;--blue:#155eef;--line:#dbe2ec;--pass:#087443;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1050px;margin:36px auto;padding:0 22px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin:16px 0;box-shadow:0 4px 18px #14213d0a}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:19px;margin:0 0 12px}.muted{color:var(--muted)}.badge{display:inline-block;padding:3px 10px;border-radius:999px;background:#e7f6ee;color:var(--pass);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.metric{padding:14px;border:1px solid var(--line);border-radius:12px}.metric strong{display:block;font-size:18px}.metric small{color:var(--muted)}
+ul{padding-left:22px;margin:0}li{margin:7px 0}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}.shot{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}.shot img{display:block;width:100%;height:auto}.shot figcaption{padding:9px 12px;color:var(--muted);font-size:13px}a{color:var(--blue)}code{background:#eef2f7;border-radius:5px;padding:1px 5px}.warn{border-left:4px solid #f0a000;padding:10px 14px;background:#fff8e7;border-radius:8px}
+</style>
+</head>
+<body><main>
+<section class="card">
+  <h1>Farm Mac mini 测试报告</h1>
+  <p class="muted">2026-11-26 · main <code>544d2fb</code></p>
+  <p><span class="badge">Mac mini / WebSocket / WebRTC 通过</span></p>
+  <div class="grid">
+    <div class="metric"><small>安装包</small><strong>v2026.11.25-beta.1</strong><small>macOS arm64 DMG，SHA-256 已核验</small></div>
+    <div class="metric"><small>测试设备</small><strong>10.0.0.11</strong><small>macOS 26.7.1 · arm64</small></div>
+    <div class="metric"><small>Android 设备</small><strong>emulator-5554</strong><small>H.264 · 920×2048 (WS)</small></div>
+    <div class="metric"><small>WebRTC 实测</small><strong>460×1024 · 84 帧</strong><small>抖动缓冲 4ms · 丢包 0</small></div>
+  </div>
+</section>
+<section class="card">
+  <h2>结果</h2>
+  <ul>
+    <li>Release DMG 摘要匹配，替换安装成功；版本、桌面窗口、原生菜单和服务健康检查通过。</li>
+    <li>配置 Mac mini 已有的 ADB 后发现模拟器。WebSocket H.264 投屏可用，触控计算器输入 <code>2 + 2 =</code> 显示 <code>4</code>。</li>
+    <li>WebRTC PoC 协商成功，接收并解码视频；设备 SPS、ICE connected、84 帧发送和 0 帧丢弃均见服务日志。</li>
+    <li>关闭测试开关后再次正常启动；健康检查为 200，PoC 路由按预期返回 404。</li>
+  </ul>
+</section>
+<section class="card">
+  <h2>界面证据</h2>
+  <div class="gallery">
+    <figure class="shot"><a href="macmini-home-before.png"><img src="macmini-home-before.png" alt="ADB 尚未配置时的设备页"></a><figcaption>初次启动：设备页显示 ADB 不可用。</figcaption></figure>
+    <figure class="shot"><a href="macmini-devices-after-adb.png"><img src="macmini-devices-after-adb.png" alt="ADB 配置后的在线设备"></a><figcaption>配置 ADB 后发现在线模拟器。</figcaption></figure>
+    <figure class="shot"><a href="macmini-device-control.png"><img src="macmini-device-control.png" alt="设备实时画面"></a><figcaption>设备画面已连接，触控输入生效。</figcaption></figure>
+    <figure class="shot"><a href="macmini-touch-control.png"><img src="macmini-touch-control.png" alt="计算器触控结果"></a><figcaption>真实点击计算器后显示 2+2=4。</figcaption></figure>
+    <figure class="shot"><a href="macmini-webrtc.png"><img src="macmini-webrtc.png" alt="WebRTC 实时视频"></a><figcaption>WebRTC 视频到达，抖动缓冲 4ms、丢包 0。</figcaption></figure>
+  </div>
+</section>
+<section class="card">
+  <h2>未覆盖项</h2>
+  <p class="warn">完整 beta 验收尚未完成。版本任务记录 beta 服务实例 8081 未提供，因此通道隔离、通道切换和应用内更新没有执行；Windows 原生测试也未覆盖。不得将本次 Mac mini 结果视为整个 beta 版本验收完成。</p>
+  <p>SSH 屏幕截图受 macOS 权限限制；界面截图来自测试界面的浏览器实际渲染，原生窗口和菜单另由 AppleScript 确认。详细步骤和脱敏日志见 <a href="steps.md">steps.md</a> 与 <a href="logs.txt">logs.txt</a>。</p>
+</section>
+</main></body>
+</html>

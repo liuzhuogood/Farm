@@ -1,0 +1,49 @@
+=== Target ===
+hostname: ipv6.mini.5slive.com
+macOS: 26.7.1
+architecture: arm64
+app version: 2026.11.25-beta.1
+app pid: 30616
+desktop health: 200 {"status":"ready"}
+adb config: {'source': 'system', 'path': '/Users/liuzhuo/Library/Android/sdk/platform-tools/adb'}
+adb devices:
+List of devices attached
+emulator-5554          device product:sdk_gphone64_arm64 model:sdk_gphone64_arm64 device:emu64a transport_id:1
+native window/menu: true, Farm, Apple, Farm, 编辑, 视图, 窗口
+WebRTC service log:
+2026/11/26 23:20:15 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/26 23:20:15 [Desktop] 服务就绪: http://127.0.0.1:1989
+2026/11/26 23:23:33 [Dependencies] 已保存依赖来源，新操作使用新配置
+2026/11/26 23:23:54 [ws] 客户端连接 serial=emulator-5554
+2026/11/26 23:23:55 [ws] server 就绪 serial=emulator-5554 codec=h264 920x2048
+2026/11/26 23:26:35 [ws] shared video ended serial=emulator-5554: read tcp 127.0.0.1:61282->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:26:35 [ws] control reader ended serial=emulator-5554: read tcp 127.0.0.1:1989->127.0.0.1:61260: use of closed network connection
+2026/11/26 23:26:35 [ws] 会话结束 serial=emulator-5554
+2026/11/26 23:26:35 [ws] shared control ended serial=emulator-5554: read tcp 127.0.0.1:61284->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:26:35 [ws] shared audio ended serial=emulator-5554: read tcp 127.0.0.1:61283->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:26:37 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/26 23:26:37 [Desktop] 服务就绪: http://127.0.0.1:1989
+2026/11/26 23:26:38 [ws] 客户端连接 serial=emulator-5554
+2026/11/26 23:26:39 [ws] server 就绪 serial=emulator-5554 codec=h264 920x2048
+2026/11/26 23:27:31 [ws] control reader ended serial=emulator-5554: read tcp 127.0.0.1:1989->127.0.0.1:62091: use of closed network connection
+2026/11/26 23:27:31 [ws] 会话结束 serial=emulator-5554
+2026/11/26 23:27:31 [ws] shared video ended serial=emulator-5554: read tcp 127.0.0.1:62110->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:27:31 [ws] shared control ended serial=emulator-5554: read tcp 127.0.0.1:62112->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:27:31 [ws] shared audio ended serial=emulator-5554: read tcp 127.0.0.1:62111->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:27:32 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/26 23:27:32 [Desktop] 服务就绪: http://127.0.0.1:1989
+2026/11/26 23:28:11 [webrtc] SDP 使用设备 SPS serial=emulator-5554 profile=42c029 sps=18B pps=6B
+2026/11/26 23:28:11 [webrtc] 已生成 offer serial=emulator-5554 id=emulator-5554-1795706891028455000 460x1024
+2026/11/26 23:28:11 [webrtc] 协商完成 serial=emulator-5554 视频编码=m=video 9 UDP/TLS/RTP/SAVPF 102 a=rtpmap:102 H264/90000
+2026/11/26 23:28:11 [webrtc] 已开始推流 id=emulator-5554-1795706891028455000
+2026/11/26 23:28:11 [webrtc] 开始推流 serial=emulator-5554 id=emulator-5554-1795706891028455000 首帧 pts=1227070673403us
+2026/11/26 23:28:11 [webrtc] 连接状态 serial=emulator-5554 id=emulator-5554-1795706891028455000 state=connecting
+2026/11/26 23:28:11 [webrtc] 连接状态 serial=emulator-5554 id=emulator-5554-1795706891028455000 state=connected
+2026/11/26 23:28:35 [webrtc] 连接状态 serial=emulator-5554 id=emulator-5554-1795706891028455000 state=closed
+2026/11/26 23:28:35 [webrtc] 连接状态 serial=emulator-5554 id=emulator-5554-1795706891028455000 state=closed
+2026/11/26 23:28:35 [webrtc] 桥接结束 serial=emulator-5554 id=emulator-5554-1795706891028455000 发送=84 丢弃=0
+2026/11/26 23:28:50 [ws] shared video ended serial=emulator-5554: read tcp 127.0.0.1:62478->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:28:50 [ws] shared audio ended serial=emulator-5554: read tcp 127.0.0.1:62479->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:28:50 [ws] shared control ended serial=emulator-5554: read tcp 127.0.0.1:62480->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:28:52 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/26 23:28:52 [Desktop] 服务就绪: http://127.0.0.1:1989
