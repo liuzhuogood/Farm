@@ -16,4 +16,4 @@ lz-auto 自动化技能
 
 测试目标设备：Windows11 ， 这是一台Windows11 x86设备，下载（https://github.com/liuzhuogood/Farm/releases）最新发布包进行测试，替换安装（桌面/Farm.exe）
 
-
+测试不通过使用 lz-workflow issues.md 提交问题
