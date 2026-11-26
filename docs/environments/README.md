@@ -5,6 +5,7 @@
 | 环境 | 文件 | 用途 | 负责人 |
 | --- | --- | --- | --- |
 | 生产环境 | [prod.md](./prod.md) | 对外提供 Farm 投屏服务 | liuzhuo |
+| Windows 11 测试机 | [win11-test.md](./win11-test.md) | Farm 在 Windows 上的部署与兼容性测试（VM） | liuzhuo |
 
 ## 访问入口
 
@@ -17,6 +18,7 @@
 详见各环境资产文档，部署脚本统一存放于 `scripts/deploy/`：
 
 - 生产环境：`scripts/deploy/deploy-prod.sh`
+- Windows 测试机：手工上传二进制运行，步骤见 `win11-test.md`
 
 ## 脱敏与保密约定
 
@@ -28,4 +30,5 @@
 ## 变更提示
 
 - 初始化资产文档：登记生产环境服务器 `liuzhuo@10.0.0.6`（hostname C93）。
+- 2026-11-22：新增 Windows 11 测试机（虚机 `WIN11TEST` @10.0.0.119，宿主 `10.0.0.12`）。
 - 2026-08-20：生产环境部署 `v1.3.0`，补充文件管理和 systemd 配置记录；随后完成 `v1.3.1` 部署与文件管理生产冒烟验证。
