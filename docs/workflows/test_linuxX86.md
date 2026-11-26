@@ -1,20 +1,5 @@
-# 测试工作流（test）
+# 测试工作流
 
-用途：在 beta 发布之后对 beta 产物做全量验收，通过才进入正式发布。测试对象是 main 打出的 beta 包与 beta 服务实例，不是本地开发环境。
-
-前提：已按 [release-beta.md](release-beta.md) 发出 beta，并拿到 beta 版本号、Release 链接与 8081 地址。
-
-1. 核对测试对象：beta tag 指向的提交与 main 最新提交一致；本地开发环境的临时改动不计入验收结论。
-2. 跟踪 GitHub Actions 到最终成功：
-   - 推送 beta tag 后记录 `Build and Release`、`macos-dmg`、`desktop` 等运行链接，持续查看作业状态，直到所有非 beta 跳过的作业均为 `success`。
-   - 任一步失败先查失败步骤与日志，判断是代码缺陷还是 runner 偶发；代码缺陷修复后重发 beta，不复用旧 beta 结论。偶发失败可重跑失败作业，但仍须等待重跑全部成功。
-   - 不得在 Actions 仍在运行、失败或未核对时宣称 beta 已发布。
-3. 覆盖该版本全部功能点，逐条对应 `tasks.md` 的验收口径；未通过退回开发，不跳过、不降级为「人工确认」。
-4. 不通过时退回开发：按 [issues.md](issues.md) 登记或追评 GitHub issue（带截图、日志），链接回填 `tasks.md`，开发修复后重发 beta.N+1 再重测，不复用旧 beta 的结论。
-5. 每步保留证据：截图、日志、请求与响应，归档到 `docs/versions/<版本>/evidence/`。
-6. 在版本目录生成自包含 HTML 测试报告，可离线打开。
-7. 报告中的图片用（lz-act 的 OSS 模块）上传，目录固定 `test/`，正文引用 OSS 链接。
-8. 全部通过后更新 `tasks.md` 的验收记录，进入 [release.md](release.md)。
 
 可使用技能：
 lz-dev 的 lz-ui-style 模块
