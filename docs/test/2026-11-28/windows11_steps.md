@@ -39,7 +39,7 @@
 | 11 | 画面活动（连续滑动）时统计 13~16 fps、约 2 Mbps、抖动缓冲 10~12 ms、丢包 0 | 通过 |
 | 12 | 静态画面时统计 0 fps / 0 kbps，服务端每约 4 s 收到 PLI 并 `RESET_VIDEO` | 观察项（见下） |
 | 13 | 关闭 PoC、恢复常规启动：健康检查 200、PoC 回到 404、设备仍在列表 | 通过 |
-| 14 | 设备设置还原并复核 `screen_off_timeout` / `stayon` | **未复核**：设备在还原阶段掉线，见下 |
+| 14 | 设备设置还原并复核 `screen_off_timeout` / `stayon` | 延迟通过：还原命令成功，复核时设备短暂掉线；设备重新连回后复核 `screen_off_timeout=60000`、`mStayOn=false` |
 
 ## 结论
 
@@ -49,7 +49,7 @@
 ## 观察项与未完成
 
 - **静态画面下的关键帧风暴**：PoC 会话开着且设备画面静止时（scrcpy 画面不变则不产生新帧），浏览器约每 4 s 发一次 PLI，服务端翻译成 `RESET_VIDEO`；期间统计为 0 fps / 0 kbps，一旦有画面变化立刻恢复（实测 6~16 fps）。本次未判定为缺陷：出画不受影响，是否需要“空闲时忽略 PLI”待确认。
-- **设备在还原阶段掉线**：还原脚本中 `settings get` 报 `Failure calling service settings: Broken pipe (32)`，随后 adb 显示设备 `offline`、`10.0.0.30:5555` 拒绝连接（设备仍能 ping 通、未再广播 `_adb._tcp`），符合设备侧 `system_server` 重启/整机重启后无线 ADB 未恢复的特征。因此 `screen_off_timeout`（测试中临时改为 600000）与 `svc power stayon` 的还原结果**未能复核**，需设备重新连回后确认；可能诱因是静态画面期 42 次 `RESET_VIDEO` 或设备温度（复原前 cpu_temp 53℃），尚未定位。
+- **设备在还原阶段短暂掉线**：还原脚本中 `settings get` 报 `Failure calling service settings: Broken pipe (32)`，随后 adb 显示设备 `offline`、`10.0.0.30:5555` 拒连（设备仍能 ping 通、未再广播 `_adb._tcp`）。设备随后自行恢复连回（仍为 `adb connect` 直连的无线 ADB），复核 `screen_off_timeout=60000`、`mStayOn=false`，**还原已生效**。掉线诱因未定位（符合设备侧 adbd/`system_server` 短暂重启的特征，可能与静态画面期 42 次 `RESET_VIDEO` 或温度有关）。
 - 未执行：应用内更新（虚机内更新地址不可达，与 11-27 一致）、beta 服务实例 8081 的通道隔离与切换、长时间稳定性、多设备群控。
 
 ## 测试机侧产物

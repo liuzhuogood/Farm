@@ -37,7 +37,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
     <tr><th>通过</th><td>Release 包摘要核验与替换安装、桌面端启动、<code>/api/version/health</code>、ADB 设备发现、亮屏与解锁、WS H.264 投屏与设备页渲染、<code>/api/automation/observe</code>、PoC 路由默认 404；<strong>修复版服务</strong>的 offer SDP profile 归一化、浏览器协商成功（answer <code>m=video 9</code>）、首帧到达、活动画面 13~16 fps 且丢包 0、恢复常规启动后 PoC 回到 404。</td></tr>
     <tr><th>不通过</th><td>无阻塞项。11-27 的 <code>400 Bad Request</code> + <code>codec is not supported by remote</code> 在本次修复验证中不再出现。</td></tr>
     <tr><th>观察项</th><td>静态画面（scrcpy 无新帧）时浏览器约每 4 s 发 PLI，服务端翻译成 <code>RESET_VIDEO</code>，统计显示 0 fps / 0 kbps；画面一变化立即恢复。本次未判定为缺陷。</td></tr>
-    <tr><th>未复核</th><td>设备在还原阶段掉线（<code>settings</code> 服务 <code>Broken pipe</code> → adb <code>offline</code> → <code>:5555</code> 拒连，设备仍可 ping），<code>screen_off_timeout</code>（临时 600000）与 <code>stayon</code> 的还原结果未能确认。</td></tr>
+    <tr><th>未复核</th><td>无。<span class="pass">已复核</span>：设备在还原阶段短暂掉线（<code>settings</code> 服务 <code>Broken pipe</code> → adb <code>offline</code> → <code>:5555</code> 拒连），自行连回后确认 <code>screen_off_timeout=60000</code>、<code>mStayOn=false</code>，还原已生效。</td></tr>
   </table>
 </section>
 
@@ -68,8 +68,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
   <ul>
     <li><a href="https://github.com/liuzhuogood/Farm/issues/5">issue #5</a> 的失败场景（High profile 被浏览器拒收）已在 Windows 11 + Edge 158 上修复验证通过，含 Windows 侧 H.264 解码路径。</li>
     <li>打包路径待补：<code>v2026.11.25-beta.1</code> 内嵌服务早于修复，需发 beta.2 后重跑安装包路径，才能勾选 <code>v2026.11.25-feature/tasks.md</code> 的 Windows beta 验收项。</li>
-    <li>静态画面 PLI/`RESET_VIDEO` 频次是否需要收敛待确认；设备掉线诱因（可能为 <code>RESET_VIDEO</code> 重启编码或温度）未定位。</li>
+    <li>静态画面 PLI/`RESET_VIDEO` 频次是否需要收敛待确认；设备在还原阶段短暂掉线（随后自行连回，设置还原经复核已生效）的诱因未定位。</li>
   </ul>
-  <p class="warnbox">未覆盖：应用内更新（虚机内更新地址不可达）、beta 服务实例 8081 的通道隔离与通道切换、长时间稳定性、多设备群控；设备侧设置还原结果待设备重新连回后确认。</p>
+  <p class="warnbox">未覆盖：应用内更新（虚机内更新地址不可达）、beta 服务实例 8081 的通道隔离与通道切换、长时间稳定性、多设备群控。设备侧设置已复核还原（<code>screen_off_timeout=60000</code>、<code>mStayOn=false</code>）。</p>
 </section>
 </main></body></html>

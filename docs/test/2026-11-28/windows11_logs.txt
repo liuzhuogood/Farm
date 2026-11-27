@@ -84,3 +84,19 @@ timeout now => [200] {"command_id":"adb_3","serial":"10.0.0.30:5555","status":"f
 
 shot=True
 procs=Farm:9904,farm:10964
+
+=== 7. 设备事后复核（2026-11-28 00:2x，设备重新连回后从开发机执行） ===
+$ adb devices
+List of devices attached
+10.0.0.30:5555	device
+emulator-5554	device
+
+$ adb -s 10.0.0.30:5555 shell settings get system screen_off_timeout
+60000
+
+$ adb -s 10.0.0.30:5555 shell "dumpsys power | grep -E 'mStayOn|mWakefulness='"
+  mWakefulness=Asleep
+  mStayOn=false
+  mStayOnWhilePluggedInSetting=0
+
+结论：还原命令已生效（原因：还原脚本里紧随其后的 settings get 报 Broken pipe 只是设备侧 adbd/system_server 短暂异常，并非还原失败）。
