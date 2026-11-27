@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm S12 测试报告 · 2026-11-27</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#596579;--blue:#155eef;--line:#dbe2ec;--fail:#b42318;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1050px;margin:36px auto;padding:0 22px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin:16px 0;box-shadow:0 4px 18px #14213d0a}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:19px;margin:0 0 12px}.muted{color:var(--muted)}.badge{display:inline-block;padding:3px 10px;border-radius:999px;background:#fdeceb;color:var(--fail);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.metric{padding:14px;border:1px solid var(--line);border-radius:12px}.metric strong{display:block;font-size:18px}.metric small{color:var(--muted)}
+ul{padding-left:22px;margin:0}li{margin:7px 0}.shot{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}.shot img{display:block;width:100%;height:auto}.shot figcaption{padding:9px 12px;color:var(--muted);font-size:13px}a{color:var(--blue)}code{background:#eef2f7;border-radius:5px;padding:1px 5px}pre{background:#0f172a;color:#e6edf7;padding:14px;border-radius:12px;overflow:auto;font-size:13px}
+.warn{border-left:4px solid #f0a000;padding:10px 14px;background:#fff8e7;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;border-bottom:1px solid var(--line);padding:8px 6px}th{color:var(--muted);font-weight:600}
+</style>
+</head>
+<body><main>
+<section class="card">
+  <h1>Farm S12 测试报告</h1>
+  <p class="muted">2026-11-27 09:53–10:10 · main <code>520f0ad</code></p>
+  <p><span class="badge">S12 / 安装成功但无法启动 · 不通过</span></p>
+  <div class="grid">
+    <div class="metric"><small>安装包</small><strong>v2026.11.25-beta.1</strong><small>macOS amd64 DMG，SHA-256 已核验</small></div>
+    <div class="metric"><small>测试设备</small><strong>S12 · Mac Intel</strong><small>macOS 11.7.6 (20G1231) · x86_64</small></div>
+    <div class="metric"><small>包内最低系统</small><strong>macOS 12.0</strong><small>Go 服务二进制实测 minos</small></div>
+    <div class="metric"><small>启动结果</small><strong>dyld 崩溃</strong><small>exit=134，健康检查 http=000</small></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>结果</h2>
+  <ul>
+    <li>从 GitHub Release 下载 <code>farm-v2026.11.25-beta.1-macos-amd64-gui.dmg</code>（22,681,040 字节），摘要 <code>532ca1e5…</code> 与 Release 资产 digest 一致。</li>
+    <li>挂载复制到 <code>/Applications/Farm.app</code> 并剥离 quarantine 后安装成功，bundle 版本 <code>2026.11.25-beta.1</code>，<code>LSMinimumSystemVersion</code> 声明为 <code>10.13</code>。</li>
+    <li>双击/`open` 启动弹出“Farm 意外退出”，主窗口不出现；包内服务 <code>farm --no-gui</code> 直接被 dyld 终止：缺少 <code>_SecTrustCopyCertificateChain</code>，该符号自 macOS 12 才有。</li>
+    <li>崩溃报告为 <code>DYLD, [0x4] Symbol missing</code>；<code>/api/desktop/health</code> 返回 <code>http=000</code>，没有任何后续功能可验证。</li>
+    <li>版本声明不一致可复现：<code>farm-gui</code> 为 <code>LC_VERSION_MIN_MACOSX 10.13</code>，随包 Go 服务 <code>farm</code> 为 <code>LC_BUILD_VERSION minos 12.0</code>（Go 1.25 起最低 macOS 12）；回查 <code>v2026.11.24</code>、<code>v2026.11.17-1</code> 的 amd64 包同样是 12.0/10.13，问题不是 beta.1 新引入。</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>关键证据</h2>
+  <div class="shot"><a href="s12-launch-crash.png"><img src="s12-launch-crash.png" alt="S12 启动失败：Farm 意外退出与 dyld 错误"></a><figcaption>启动即退出：系统“Farm 意外退出”对话框与命令行 dyld 缺符号错误（已裁掉用户名与主机名）。</figcaption></div>
+</section>
+
+<section class="card">
+  <h2>版本声明对照</h2>
+  <table>
+    <thead><tr><th>检查项</th><th>实测值</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>Info.plist LSMinimumSystemVersion</code></td><td><code>10.13</code></td><td>安装包对外声明的最低系统</td></tr>
+      <tr><td><code>farm-gui</code> 最低版本</td><td><code>10.13</code></td><td>Tauri 外壳（Rust，部署目标 10.13）</td></tr>
+      <tr><td><code>farm</code> 最低版本</td><td><code>12.0</code></td><td>Go 侧 sidecar，Go 1.25 起最低 macOS 12</td></tr>
+      <tr><td>S12 实际系统</td><td><code>11.7.6</code></td><td>该机型最高只能到 macOS 11</td></tr>
+      <tr><td>历史包回查</td><td><code>12.0 / 10.13</code></td><td><code>v2026.11.24</code>、<code>v2026.11.17-1</code> 同样 minos 12.0 但声明 10.13</td></tr>
+    </tbody>
+  </table>
+  <p class="warn">本次不通过的原因与业务功能无关：桌面包在 macOS 11 上无法启动，需要在最低系统声明与构建目标之间做取舍，并在文档中写明支持范围。</p>
+</section>
+
+<section class="card">
+  <h2>未覆盖项</h2>
+  <p class="warn">由于 App 无法启动，设备发现、WebSocket/WebRTC 投屏、自动化触控、依赖管理、应用内更新等 S12 侧功能均未验证；本次不代表 <code>v2026.11.25-beta.1</code> 整体验收通过。问题已按 <code>docs/workflows/issues.md</code> 登记：<a href="https://github.com/liuzhuogood/Farm/issues/4">#4 桌面：macOS 11 x86 上桌面包启动即崩溃</a>。</p>
+  <p>详细步骤见 <a href="s12_steps.md">s12_steps.md</a>，脱敏日志见 <a href="s12-logs.txt">s12-logs.txt</a>。</p>
+</section>
+</main></body></html>

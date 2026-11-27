@@ -1,0 +1,72 @@
+### 环境
+ProductName:	macOS
+ProductVersion:	11.7.6
+BuildVersion:	20G1231
+x86_64
+Intel(R) Core(TM) i7-4850HQ CPU @ 2.30GHz
+
+### 资产校验
+22681040 /tmp/s12-test/farm-beta1-amd64.dmg
+532ca1e50c9f5b8c282c9a62a6e9f50893bf375d93435f7081341b7bf74823ea  /tmp/s12-test/farm-beta1-amd64.dmg
+
+### 安装结果
+drwxr-xr-x  3 <user>  admin  96 11 27 10:03 /Applications/Farm.app
+2026.11.25-beta.1
+2026.11.25-beta.1
+10.13
+Executable=/Applications/Farm.app/Contents/MacOS/farm-gui
+Identifier=com.farm.desktop
+Format=app bundle with Mach-O thin (x86_64)
+CodeDirectory v=20500 size=142353 flags=0x10002(adhoc,runtime) hashes=4442+3 location=embedded
+/Applications/Farm.app: rejected
+
+### 二进制最低系统版本
+      cmd LC_BUILD_VERSION
+  cmdsize 24
+ platform 1
+    minos 12.0
+      sdk 12.0
+      cmd LC_VERSION_MIN_MACOSX
+  cmdsize 16
+  version 10.13
+      sdk 15.5
+
+### 启动输出
+dyld: Symbol not found: _SecTrustCopyCertificateChain
+  Referenced from: /Applications/Farm.app/Contents/MacOS/farm (which was built for Mac OS X 12.0)
+  Expected in: /System/Library/Frameworks/Security.framework/Versions/A/Security
+ in /Applications/Farm.app/Contents/MacOS/farm
+exit=134
+
+### 健康检查
+http=000
+
+### desktop.log
+dyld: Symbol not found: _SecTrustCopyCertificateChain
+  Referenced from: /Applications/Farm.app/Contents/MacOS/farm (which was built for Mac OS X 12.0)
+  Expected in: /System/Library/Frameworks/Security.framework/Versions/A/Security
+ in /Applications/Farm.app/Contents/MacOS/farm
+dyld: Symbol not found: _SecTrustCopyCertificateChain
+  Referenced from: /Applications/Farm.app/Contents/MacOS/farm (which was built for Mac OS X 12.0)
+  Expected in: /System/Library/Frameworks/Security.framework/Versions/A/Security
+ in /Applications/Farm.app/Contents/MacOS/farm
+dyld: Symbol not found: _SecTrustCopyCertificateChain
+  Referenced from: /Applications/Farm.app/Contents/MacOS/farm (which was built for Mac OS X 12.0)
+  Expected in: /System/Library/Frameworks/Security.framework/Versions/A/Security
+ in /Applications/Farm.app/Contents/MacOS/farm
+
+### 崩溃报告摘要
+Process:               farm [11957]
+Path:                  /Applications/Farm.app/Contents/MacOS/farm
+OS Version:            macOS 11.7.6 (20G1231)
+Exception Type:        EXC_CRASH (SIGABRT)
+Termination Reason:    DYLD, [0x4] Symbol missing
+Dyld Error Message:
+  Symbol not found: _SecTrustCopyCertificateChain
+  Referenced from: /Applications/Farm.app/Contents/MacOS/farm (which was built for Mac OS X 12.0)
+  Expected in: /System/Library/Frameworks/Security.framework/Versions/A/Security
+
+### 历史版本最低系统核对（本机挂载 DMG 读取 Mach-O 头）
+- v2026.11.25-beta.1：farm minos 12.0 / sdk 12.0，Info.plist LSMinimumSystemVersion 10.13
+- v2026.11.24：farm minos 12.0 / sdk 12.0，Info.plist LSMinimumSystemVersion 10.13
+- v2026.11.17-1：farm minos 12.0 / sdk 12.0，Info.plist LSMinimumSystemVersion 10.13
