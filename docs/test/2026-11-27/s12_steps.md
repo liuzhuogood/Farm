@@ -2,9 +2,9 @@
 
 ## 范围
 
-验证最新发布包在 S12（Mac Intel）上的替换安装与启动。自 2026-11-26 起仓库只有测试与工作流文档提交（`8d047c5`、`f5e3c6b`、`520f0ad`），没有产品代码变更，因此按最新发布包复测。
+验证最新发布包在 S12（Mac Intel）上的替换安装与启动。自 2026-11-26 起的变更含 `a37fa2a`（设备自动恢复、投屏诊断、熄屏策略与播放器前端）及后续测试/工作流文档提交（`8d047c5`、`f5e3c6b`、`520f0ad`、`37c6525`）；本轮只能验证到安装与启动，`a37fa2a` 的功能面因启动崩溃未覆盖。
 
-- 代码：`main`，`520f0ad`
+- 代码：`main`，`37c6525`
 - 包：`v2026.11.25-beta.1`，GitHub Release：<https://github.com/liuzhuogood/Farm/releases/tag/v2026.11.25-beta.1>
 - 资产：`farm-v2026.11.25-beta.1-macos-amd64-gui.dmg`（22,681,040 字节）
 - SHA-256：`532ca1e50c9f5b8c282c9a62a6e9f50893bf375d93435f7081341b7bf74823ea`，与 Release 资产 digest 一致
@@ -35,10 +35,12 @@
 
 根因是包内最低系统版本声明不一致：DMG 与 `Info.plist` 声明 `10.13`，Go 侧 sidecar 实际要求 `12.0`（Go 1.25 起最低 macOS 12）。已按 `docs/workflows/issues.md` 登记 [#4](https://github.com/liuzhuogood/Farm/issues/4)。
 
+未覆盖：`a37fa2a` 涉及的设备自动恢复、投屏诊断、熄屏策略与播放器前端，以及设备发现、投屏、自动化触控、依赖管理、应用内更新等 S12 侧功能。
+
 ## 操作限制与环境调整
 
-- SSH 会话直接执行 `screencapture` 只得到桌面壁纸（`Terminal.app` 没有“屏幕录制”权限），改用 `sudo launchctl asuser <uid> sudo -u <user> /usr/sbin/screencapture` 在图形会话内截图；已回写避坑指南。
-- 用 AppleScript 驱动 `Terminal` 会被 TCC 自动化授权拦住并挂起（退出码 142），截图脚本改用 `open -a Terminal <script>` 触发。
+- SSH 会话里 `screencapture` 在 macOS 11 上可直接出图；`sudo launchctl asuser <uid> sudo -u <user> /usr/sbin/screencapture` 也可用，仅显示器休眠时只会拍到壁纸，先 `caffeinate -u -t 5` 唤醒再拍。已回写避坑指南。
+- 用 AppleScript 驱动 `Terminal` 会被 TCC 自动化授权拦住并挂起（`osascript` 不返回、退出码 142），截图脚本改用 `open -a Terminal <script>` 触发；卡住的授权弹窗用 `killall tccd` 收掉。
 - 落库截图已裁掉用户名与主机名。
 
 ## 文件证据
