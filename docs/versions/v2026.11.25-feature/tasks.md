@@ -22,3 +22,4 @@
 - [ ] beta 服务实例地址：**未提供**。`scripts/deploy/deploy-beta.sh`、`docs/environments/beta.md` 与 8081 实例均不存在（v2026.11.20 的 S4 未落地），10.0.0.6 上只有 8080 的 `mywebscrcpy.service`。
 - [ ] 按 [test.md](../../workflows/test.md) 完成测试工作流：beta 包相关项（通道隔离、通道切换、应用内更新、8081 实例链路）因缺少 beta 实例阻塞；Windows 原生构建已在 Actions 中通过。
 - [ ] Mac Intel 测试机（macOS 11.7.6）实测：包可安装但启动即崩溃，包内 Go 服务 `minos 12.0` 与 `Info.plist 10.13` 声明不一致，见 [#4](https://github.com/liuzhuogood/Farm/issues/4) 与 `docs/test/2026-11-27/s12_steps.md`。
+- [ ] Windows 11 测试机（build 26100 虚机）实测：`v2026.11.25-beta.1` 桌面包替换安装、启动、ADB 发现、WS 投屏、镜像鼠标输入与自动化接口通过；新增 WebRTC 通道在 Edge 158 上 answer 被拒（视频 m-line 置 0），见 [#5](https://github.com/liuzhuogood/Farm/issues/5) 与 `docs/test/2026-11-27/windows11_steps.md`。

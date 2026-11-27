@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Windows 11 测试报告 · 2026-11-27</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#596579;--blue:#155eef;--line:#dbe2ec;--pass:#087443;--fail:#b42318;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1050px;margin:36px auto;padding:0 22px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin:16px 0;box-shadow:0 4px 18px #14213d0a}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:19px;margin:0 0 12px}h3{font-size:15px;margin:18px 0 6px}.muted{color:var(--muted)}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;background:#e7f6ee;color:var(--pass);font-weight:700;margin-right:6px}
+.badge.bad{background:#fdecea;color:var(--fail)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.metric{padding:14px;border:1px solid var(--line);border-radius:12px}.metric strong{display:block;font-size:18px}.metric small{color:var(--muted)}
+ul{padding-left:22px;margin:0}li{margin:7px 0}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}.shot{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}.shot img{display:block;width:100%;height:auto}.shot figcaption{padding:9px 12px;color:var(--muted);font-size:13px}
+a{color:var(--blue)}code{background:#eef2f7;border-radius:5px;padding:1px 5px}.warn{border-left:4px solid #f0a000;padding:10px 14px;background:#fff8e7;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #eef2f7;vertical-align:top}th{width:150px;color:var(--muted);font-weight:500}
+.pass{color:var(--pass);font-weight:600}.fail{color:var(--fail);font-weight:600}
+</style>
+</head>
+<body><main>
+<section class="card">
+  <h1>Farm Windows 11 测试报告</h1>
+  <p class="muted">2026-11-27 · main <code>520f0ad</code> · 目标机 WIN11TEST（Windows 11 企业版 LTSC 2024 · build 26100 · VMware 虚机）</p>
+  <p><span class="badge">桌面端 / ADB / WS 投屏 / 鼠标输入 / 自动化接口 通过</span><span class="badge bad">WebRTC 浏览器协商失败</span></p>
+  <div class="grid">
+    <div class="metric"><small>安装包</small><strong>v2026.11.25-beta.1</strong><small>farm-windows-gui-amd64.exe · SHA-256 与 Release digest 一致</small></div>
+    <div class="metric"><small>替换安装</small><strong>桌面 Farm.exe</strong><small>旧版 2026.11.24-beta.1 已备份</small></div>
+    <div class="metric"><small>Android 设备</small><strong>Redmi M2004J7AC</strong><small>Android 12 · MIUI 13.0.8 · H.264 448×1024（WS）</small></div>
+    <div class="metric"><small>WebRTC 协商</small><strong>浏览器侧拒绝</strong><small>answer 视频 m-line 端口 0，同包 macOS 对另一设备可协商</small></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>结果</h2>
+  <table>
+    <tr><th>通过</th><td>Release 包下载与摘要核验、替换安装、桌面端启动、<code>/api/version/health</code>、ADB 设备发现（WiFi 自动重连）、亮屏与解锁、WS H.264 实时投屏、镜像画面鼠标点击（打开小窗 → 点开设备 WLAN 页）、<code>observe</code> / <code>act</code>（含中文 <code>check 设置</code> 命中）/ <code>adb commands</code>、设备列表 / 任务记录 / API 页面渲染、PoC 路由默认 404。</td></tr>
+    <tr><th>不通过</th><td><span class="fail">WebRTC 调试页在 Edge 158 点「连接」返回 <code>400 Bad Request</code></span>：服务端生成 offer 正常（<code>h264</code>、<code>448x1024</code>、<code>profile-level-id=64000a</code>），浏览器的 answer 把视频 m-line 置 0，pion 报 <code>unable to start track, codec is not supported by remote</code>。已登记 <a href="https://github.com/liuzhuogood/Farm/issues/5">issue #5</a>。</td></tr>
+    <tr><th>未受影响</th><td>失败期间 WS 投屏通道持续正常出画面并可点击控制；关闭 PoC 开关重启后 PoC 路由回到 404。</td></tr>
+  </table>
+</section>
+
+<section class="card">
+  <h2>界面证据</h2>
+  <div class="gallery">
+    <figure class="shot"><a href="windows11_01-before-install.png"><img src="windows11_01-before-install.png" alt="替换前已安装版本"></a><figcaption>替换前：桌面端为 v2026.11.24-beta.1，设备在线但屏幕锁屏。</figcaption></figure>
+    <figure class="shot"><a href="windows11_02-after-install.png"><img src="windows11_02-after-install.png" alt="替换后启动"></a><figcaption>替换为 v2026.11.25-beta.1 后首次启动，设备列表正常。</figcaption></figure>
+    <figure class="shot"><a href="windows11_03-mirror-settings.png"><img src="windows11_03-mirror-settings.png" alt="WS 投屏实时画面"></a><figcaption>WS H.264 投屏出画面，设备页镜像显示设置页。</figcaption></figure>
+    <figure class="shot"><a href="windows11_04-small-window-click.png"><img src="windows11_04-small-window-click.png" alt="鼠标点击小窗画面打开 WLAN"></a><figcaption>在小窗画面点击设备坐标后打开 WLAN 页：鼠标输入链路生效。</figcaption></figure>
+    <figure class="shot"><a href="windows11_05-home-mirror.png"><img src="windows11_05-home-mirror.png" alt="首页镜像"></a><figcaption>首页设备卡片镜像同步到 WLAN 页面。</figcaption></figure>
+    <figure class="shot"><a href="windows11_06-task-records.png"><img src="windows11_06-task-records.png" alt="任务记录页"></a><figcaption>任务记录页显示本次自动化任务。</figcaption></figure>
+    <figure class="shot"><a href="windows11_07-api-page.png"><img src="windows11_07-api-page.png" alt="API 页"></a><figcaption>API 页给出本机服务地址与接口文档入口。</figcaption></figure>
+    <figure class="shot"><a href="windows11_08-webrtc-poc-fail.png"><img src="windows11_08-webrtc-poc-fail.png" alt="WebRTC 调试页失败"></a><figcaption>WebRTC 调试页协商失败（serial 已打码）。</figcaption></figure>
+    <figure class="shot"><a href="windows11_09-restored.png"><img src="windows11_09-restored.png" alt="恢复常规启动"></a><figcaption>关闭 PoC 开关重启后的最终状态。</figcaption></figure>
+  </div>
+</section>
+
+<section class="card">
+  <h2>未覆盖项</h2>
+  <p class="warn">本次不构成 <code>v2026.11.25</code> 的完整 beta 验收：<code>a37fa2a</code>（设备自动恢复与投屏诊断）在 beta.1 之后、包内不含；beta 服务实例 8081 仍不存在，通道隔离与通道切换未执行；应用内更新因虚机内更新地址不可达未判定；长时间稳定性与多设备群控未执行。</p>
+  <p>执行方式：SSH + 计划任务在交互会话运行 PowerShell 脚本完成启动、截图与鼠标点击；设备控制通过本机 REST/自动化接口完成。详细步骤与日志见 <a href="windows11_steps.md">windows11_steps.md</a> 与 <a href="windows11_logs.txt">windows11_logs.txt</a>。</p>
+</section>
+</main></body>
+</html>

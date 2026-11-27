@@ -1,0 +1,119 @@
+=== 1. 替换安装与摘要核对（t_deploy.txt） ===
+src version=2026.11.25-beta.1 sha=779C4065FA62A71E14EEC83301112BBFE11B2F0D3A41F696564C1ED7606706F6
+old installed version=2026.11.24-beta.1 sha=98C9BEC2940A398153687ED37F1EA8EA59169C3EBBD51DC48EAF59BD4EB1330E
+after stop procs=0
+backup=C:\Users\test\Desktop\Farm-2026.11.24-beta.1.exe.bak version=2026.11.24-beta.1
+installed version=2026.11.25-beta.1 sha=779C4065FA62A71E14EEC83301112BBFE11B2F0D3A41F696564C1ED7606706F6 size=44710400
+
+=== 2. 启动后版本、设备与唤醒解锁（t_api.txt） ===
+== start 2026-11-27T10:00:35
+version/health => [200] {"version":"v2026.11.25-beta.1"}
+
+version/status => [200] {"state":"idle","percent":0,"downloaded":0,"total":0,"speed":"","updated_at":"0001-01-01T00:00:00Z"}
+
+devices => [200] [{"serial":"10.0.0.30:5555","state":"device","source":"manual","identifier":"Redmi","product":"atom","model":"M2004J7AC","device":"atom","transport_id":"9","auto_reconnect":true,"brand":"Redmi","manufacturer":"Xiaomi","android_release":"12","sdk_version":31,"cpu_abi":"arm64-v8a","build_display_id":"SP1A.210812.016","battery_level":100,"battery_temp":22,"battery_charging":true,"cpu_temp":27.966,"cpu_temp_supported":true,"foreground_pkg":"com.miui.home","foreground_app_name":"ç³»ç»æ¡é¢","foreground_app_icon":"launcher","screen_on":false,"screen_locked":true,"telemetry_updated_at":1795744839023,"identity":"hw:9lmn897livkzprnf","identity_source":"ro.serialno","active_kind":"wifi","connections":[{"kind":"wifi","serial":"10.0.0.30:5555","address":"10.0.0.30:5555","state":"device","online":true,"active":true,"last_seen_at":1795744839506}]}]
+
+webrtc/poc => ERR 远程服务器返回错误: (404) 未找到。
+screen-state#1 => [200] {"screenOn":false,"screenLocked":true}
+
+wakeup => [200] {"command_id":"adb_1","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:00:46.8515655Z","started_at":"2026-11-27T02:00:48.7241894Z","ended_at":"2026-11-27T02:00:50.5391804Z","exit_code":0,"elapsed_ms":1814}
+
+screen-state#2 => [200] {"screenOn":true,"screenLocked":true}
+
+dismiss-keyguard => [200] {"command_id":"adb_2","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:00:54.5176735Z","started_at":"2026-11-27T02:00:54.5176735Z","ended_at":"2026-11-27T02:00:54.6519331Z","exit_code":0,"elapsed_ms":134}
+
+screen-state#3 => [200] {"screenOn":true,"screenLocked":false}
+
+observe => [200] screen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus none
+[1] button "dialog_dim_bg" @540,1143
+[2] button "USB 用于 仅限充电 传输文件 传输照片 取消" @540,1958
+[3] text "USB 用于" @539,1725
+[4] text "仅限充电" @286,2016
+[5] text "传输文件" @539,2016
+[6] text "传输照片" @792,2016
+[7] button "取消" @540,2193
+== end 2026-11-27T10:01:11
+
+=== 3. 镜像与自动化接口（t_unlock.txt 摘录） ===
+screen_off_timeout(before) => [200] {"command_id":"adb_3","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:05:18.8952702Z","started_at":"2026-11-27T02:05:18.8966544Z","ended_at":"2026-11-27T02:05:19.0446434Z","exit_code":0,"stdout":"60000\r\n","elapsed_ms":147}
+set screen_off_timeout => [200] {"command_id":"adb_4","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:05:19.1904159Z","started_at":"2026-11-27T02:05:19.1904159Z","ended_at":"2026-11-27T02:05:19.3479231Z","exit_code":0,"elapsed_ms":157}
+stayon => [200] {"command_id":"adb_5","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:05:19.4685815Z","started_at":"2026-11-27T02:05:19.4685815Z","ended_at":"2026-11-27T02:05:20.8173873Z","exit_code":0,"elapsed_ms":1348}
+wakeup => [200] {"command_id":"adb_6","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:05:20.9396245Z","started_at":"2026-11-27T02:05:20.9396245Z","ended_at":"2026-11-27T02:05:21.0886368Z","exit_code":0,"elapsed_ms":149}
+dismiss => [200] {"command_id":"adb_7","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:05:23.2195324Z","started_at":"2026-11-27T02:05:23.2195324Z","ended_at":"2026-11-27T02:05:23.3583622Z","exit_code":0,"elapsed_ms":138}
+screen-state => [200] {"screenOn":true,"screenLocked":false}
+start settings => [200] {"command_id":"adb_8","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:05:26.195662Z","started_at":"2026-11-27T02:05:26.195662Z","ended_at":"2026-11-27T02:05:26.5363192Z","exit_code":0,"stdout":"Starting: Intent { cmp=com.android.settings/.Settings }\r\n","elapsed_ms":340}
+screen-state2 => [200] {"screenOn":true,"screenLocked":false}
+observe => screen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus none
+shot c=True
+window=6484 Farm
+
+=== 4. 鼠标点击设备小窗画面（t_click2.txt，观察结果摘录） ===
+small window handle=0
+observe-before => screen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus none / [1] button "设置" @139,263 disabled / [2] button "搜索系统设置项" @540,406 / [3] text "搜索系统设置项" @592,400
+clicked 204,435 in window Redmi
+observe-after => screen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus [4]
+shot=True
+
+=== 5. 中文正文编码复测（t_cn.txt） ===
+back => [200] {"command_id":"adb_11","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:12:42.1711458Z","started_at":"2026-11-27T02:12:42.1711458Z","ended_at":"2026-11-27T02:12:42.3491818Z","exit_code":0,"elapsed_ms":178}
+
+act => [200] 任务 "cn-encoding-test"
+任务 ID task_f8cc081ede33c9b9d894ce09
+设备 "10.0.0.30:5555"
+状态 已完成
+完成 2/2
+第 1 行 sleep：已完成（1/1）
+第 2 行 check：命中（1/1）
+目标 "设置"
+匹配来源 tree:uiautomator
+
+tasks => {"tasks":[{"id":"task_f8cc081ede33c9b9d894ce09","serial":"10.0.0.30:5555","title":"cn-encoding-test","source":"automation","state":"done","summary":"","started_at":"2026-11-27T02:12:44.4982989Z","updated_at":"2026-11-27T02:12:51.0128117Z","ended_at":"2026-11-27T02:12:51.0128117Z","active":false,"steps":[{"index":1,"line":1,"title":"sleep","command":"sleep 500","status":"done","started_at":"2026-11-27T02:12:44.4982989Z","ended_at":"2026-11-27T02:12:44.9986121Z","elapsed_ms":500,"artifacts":[]},{"index":2,"line":2,"title":"check","command":"check 设置","status":"done","started_at":"2026-11-27T02:12:44.9986121Z","ended_at":"2026-11-27T02:12:51.0128117Z","elapsed_ms":6014,"result":"命中：tree:uiautomator","artifacts":[]}],"artifacts":[],"directory":"tasks/task_f8cc081ede33c9b9d894ce09"},{"id":"task_8361006eda9449583be5a51e","serial":"10.0.0.30:5555","title":"close-usb-dialog","source":"automation","state":"failed","summary":"check target was not found; later operations were not executed","started_at":"2026-11-27T02:02:19.3633267Z","updated_at":"2026-11-27T02:02:33.9484831Z","ended_at":"2026-11-27T02:02:33.9484831Z","active":false,"steps":[{"index":1,"line":1,"title":"tap","command":"tap @540,2193","status":"done","started_at":"2026-11-27T02:02:19.3673498Z","ended_at":"2026-11-27T02:02:20.0463094Z","elapsed_ms":678,"artifacts":[]},{"index":2,"line":2,"title":"sleep","command":"sleep 1200","status":"done","started_at":"2026-11-27T02:02:20.0463094Z","ended_at":"2026-11-27T02:02:21.2484026Z","elapsed_ms":1202,"artifacts":[]},{"index":3,"line":3,"title":"check","command":"check 璁剧疆","status":"failed","started_at":"2026-11-27T02:02:21.2484026Z","ended_at":"2026-11-27T02:02:33.9484831Z","elapsed_ms":12700,"result":"未命中","error":"check target was not found","artifacts":[]}],"artifacts":[],"directory":"tasks/task_8361006eda9449583be5a51e"}]}
+
+
+=== 6. WebRTC offer / session / PoC 路由（t_rtc.txt） ===
+offer => [200] id=10.0.0.30:5555-1795745608646887500 codec=h264 size=448x1024
+sdp video lines => m=video 9 UDP/TLS/RTP/SAVPF 102 ;; a=rtpmap:102 H264/90000 ;; a=fmtp:102 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=64000a;sprop-parameter-sets=Z2QACqwbGoHAIGmoCAgIPCIRqA==,aOpDyw==
+sdp size chars => 4092
+close session => [204]
+poc => ERR 远程服务器返回错误: (404) 未找到。
+
+=== 7. WebRTC 调试页协商失败（desktop.log 中 [webrtc]/[rtc] 行） ===
+2026/11/27 09:58:40 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/27 10:13:28 [rtc] 会话已打开 serial=10.0.0.30:5555 codec=h264 448x1024
+2026/11/27 10:13:28 [webrtc] SDP 使用设备 SPS serial=10.0.0.30:5555 profile=64000a sps=19B pps=4B
+2026/11/27 10:13:28 [webrtc] 已生成 offer serial=10.0.0.30:5555 id=10.0.0.30:5555-1795745608646887500 448x1024
+2026/11/27 10:13:29 [rtc] 会话已关闭 serial=10.0.0.30:5555 dropped=0
+2026/11/27 10:13:29 [webrtc] 桥接结束 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795745608646887500 发送=0 丢弃=0
+2026/11/27 10:13:29 [webrtc] 连接状态 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795745608646887500 state=closed
+2026/11/27 10:14:16 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/27 10:15:46 [rtc] 会话已打开 serial=10.0.0.30:5555 codec=h264 448x1024
+2026/11/27 10:15:46 [webrtc] SDP 使用设备 SPS serial=10.0.0.30:5555 profile=64000a sps=19B pps=4B
+2026/11/27 10:15:46 [webrtc] 已生成 offer serial=10.0.0.30:5555 id=10.0.0.30:5555-1795745746217191200 448x1024
+2026/11/27 10:15:49 [webrtc] 协商完成 serial=10.0.0.30:5555 视频编码=m=video 0 UDP/TLS/RTP/SAVPF 0
+2026/11/27 10:15:49 [webrtc] 应用 answer 失败 id=10.0.0.30:5555-1795745746217191200 err=应用 answer 失败: unable to start track, codec is not supported by remote
+2026/11/27 10:15:49 [rtc] 会话已关闭 serial=10.0.0.30:5555 dropped=0
+2026/11/27 10:15:49 [webrtc] 桥接结束 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795745746217191200 发送=0 丢弃=0
+2026/11/27 10:15:49 [webrtc] 连接状态 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795745746217191200 state=closed
+2026/11/27 10:17:04 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/27 10:23:01 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/27 10:24:37 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/27 10:25:37 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+
+=== 8. 恢复常规启动（t_restore.txt） ===
+health => {"version":"v2026.11.25-beta.1"}
+
+poc => ERR 远程服务器返回错误: (404) 未找到。
+restore screen_off_timeout => [200] {"command_id":"adb_1","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:23:26.7336282Z","started_at":"2026-11-27T02:23:26.7336282Z","ended_at":"2026-11-27T02:23:26.8661749Z","exit_code":0,"elapsed_ms":132}
+
+restore stayon => [200] {"command_id":"adb_2","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:23:26.9865363Z","started_at":"2026-11-27T02:23:26.9865363Z","ended_at":"2026-11-27T02:23:28.136039Z","exit_code":0,"elapsed_ms":1149}
+
+get screen_off_timeout => [200] {"command_id":"adb_3","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T02:23:28.2543315Z","started_at":"2026-11-27T02:23:28.2543315Z","ended_at":"2026-11-27T02:23:28.3933219Z","exit_code":0,"stdout":"60000\r\n","elapsed_ms":138}
+
+devices => 858 chars
+shot=True
+procs=Farm:544,farm:8612
+
+=== 9. 媒体能力检查（t_media.txt） ===
+feature MediaPlayback: Enabled
+feature WindowsMediaPlayer: Enabled
+H264 decoder mft: 
