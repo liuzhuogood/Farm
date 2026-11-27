@@ -1,0 +1,86 @@
+=== 1. 替换安装（t2_install.txt） ===
+src version=2026.11.25-beta.1 sha=779C4065FA62A71E14EEC83301112BBFE11B2F0D3A41F696564C1ED7606706F6 size=44710400
+before installed version=2026.11.25-beta.1 sha=779C4065FA62A71E14EEC83301112BBFE11B2F0D3A41F696564C1ED7606706F6
+procs after stop=0
+backup=C:\Users\test\Desktop\Farm-2026.11.25-beta.1.exe.bak version=2026.11.25-beta.1
+installed version=2026.11.25-beta.1 sha=779C4065FA62A71E14EEC83301112BBFE11B2F0D3A41F696564C1ED7606706F6 size=44710400
+
+=== 2. 启动与健康检查（t2_launch.txt） ===
+console session check start=2026-11-28T00:05:04
+health => {"version":"v2026.11.25-beta.1"}
+
+status => {"state":"idle","percent":0,"downloaded":0,"total":0,"speed":"","updated_at":"0001-01-01T00:00:00Z"}
+
+poc => ERR 远程服务器返回错误: (404) 未找到。
+shot=True
+procs=Farm:2652,farm:7772
+end=2026-11-28T00:05:44
+
+=== 3. 设备与自动化接口（t2_api.txt 摘录） ===
+== start 2026-11-28T00:07:38
+version/health => [200] {"version":"v2026.11.25-beta.1"}
+version/status => [200] {"state":"idle","percent":0,"downloaded":0,"total":0,"speed":"","updated_at":"0001-01-01T00:00:00Z"}
+devices => [200] [{"serial":"10.0.0.30:5555","state":"device","source":"manual","identifier":"Redmi","product":"atom","model":"M2004J7AC","device":"atom","transport_id":"12","auto_reconnect":true,"brand":"Redmi","manufacturer":"Xiaomi","android_release":"12"," …（截断）
+webrtc/poc => ERR 远程服务器返回错误: (404) 未找到。
+screen-state#1 => [200] {"screenOn":false,"screenLocked":true}
+screen_off_timeout(before) => [200] {"command_id":"adb_1","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T16:07:39.7599244Z","started_at":"2026-11-27T16:07:39.7611703Z","ended_at":"2026-11-27T16:07:39.9293521Z","exit_code":0,"stdout":"60000\r\n","elapsed_ms":168}
+set screen_off_timeout=600000 => [200] {"command_id":"adb_2","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T16:07:40.019284Z","started_at":"2026-11-27T16:07:40.019284Z","ended_at":"2026-11-27T16:07:40.2173416Z","exit_code":0,"elapsed_ms":198}
+stayon => [200] {"command_id":"adb_3","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T16:07:40.2715731Z","started_at":"2026-11-27T16:07:40.2715731Z","ended_at":"2026-11-27T16:07:41.7119359Z","exit_code":0,"elapsed_ms":1440}
+wakeup => [200] {"command_id":"adb_4","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T16:07:41.7689274Z","started_at":"2026-11-27T16:07:41.7689274Z","ended_at":"2026-11-27T16:07:41.9082289Z","exit_code":0,"elapsed_ms":139}
+dismiss-keyguard => [200] {"command_id":"adb_5","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T16:07:45.0106402Z","started_at":"2026-11-27T16:07:45.0106402Z","ended_at":"2026-11-27T16:07:45.1875426Z","exit_code":0,"elapsed_ms":176}
+screen-state#2 => [200] {"screenOn":true,"screenLocked":false}
+start settings => [200] {"command_id":"adb_6","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T16:07:47.7766469Z","started_at":"2026-11-27T16:07:47.7766469Z","ended_at":"2026-11-27T16:07:47.960967Z","exit_code":0,"stdout":"Starting: Intent { cmp=com.android.settings/.Settings }\r\n","elapsed_ms":184}
+observe => [200] screen 1080x2400 · app: Settings (com.android.settings) · portrait · keyboard hidden · focus none …（界面树后续条目略）
+== end 2026-11-28T00:08:02
+
+=== 4. 修复版服务启动与 offer SDP（t2_fixed_server.txt + t2_offer.txt） ===
+exe sha=8A2C13C9DF58F424E6411B33896BE9D2A3F19447BC1795E8BBF2E318420A82D1 size=28719104
+server pid=10736
+health => {"version":"v2026.11.25"}
+
+poc => [200]
+adb connect => already connected to 10.0.0.30:5555
+devices => [{"serial":"10.0.0.30:5555","state":"device","source":"auto","identifier":"Redmi","product":"atom","model":"M2004J7AC","device":"atom","transport_id":"12","auto_reconnect":false,"brand":"Redmi","manufacturer":"Xiaomi","android_release":"12","sdk_version":31,"cpu_abi":"arm64-v8a","build_display_id":"SP1A.210812.016","battery_level":100,"battery_temp":22.7,"battery_charging":true,"cpu_temp":27.508,"cpu_temp_supported":true,"foreground_pkg":"com.android.settings","foreground_app_name":"ç³»ç»è®¾ç½®","foreground_app_icon":"settings","screen_on":true,"screen_locked":false,"telemetry_updated_at":1795795829291,"identity":"hw:9lmn897livkzprnf","identity_source":"ro.serialno","active_kind" …（截断）
+
+edge procs=15
+poc listen 9222=4
+offer => [200] id=10.0.0.30:5555-1795796048442189700 codec=h264 size=448x1024
+sdp a=fmtp:102 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f;sprop-parameter-sets=Z2QACqwbGoHAIGmoCAgIPCIRqA==,aOpDyw==
+sdp m=video 9 UDP/TLS/RTP/SAVPF 102
+close session => [204]
+
+=== 5. WebRTC 协商与推流日志（C:\Users\test\farm-fixed\server.err.log 摘录） ===
+2026/11/28 00:11:13 [rtc] 会话已打开 serial=10.0.0.30:5555 codec=h264 448x1024
+2026/11/28 00:11:14 [webrtc] 设备 SPS serial=10.0.0.30:5555 profile=64000a sps=19B pps=4B
+2026/11/28 00:11:14 [webrtc] 浏览器不接受设备 profile 64000a，SDP 声明 42e01f serial=10.0.0.30:5555
+2026/11/28 00:11:14 [webrtc] 已生成 offer serial=10.0.0.30:5555 id=10.0.0.30:5555-1795795873163595400 448x1024
+2026/11/28 00:11:14 [webrtc] 协商完成 serial=10.0.0.30:5555 视频编码=m=video 9 UDP/TLS/RTP/SAVPF 102 a=rtpmap:102 H264/90000
+2026/11/28 00:11:14 [webrtc] 已开始推流 id=10.0.0.30:5555-1795795873163595400
+2026/11/28 00:11:14 [webrtc] 连接状态 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795795873163595400 state=connecting
+2026/11/28 00:11:14 [webrtc] 开始推流 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795795873163595400 首帧 pts=5761077516us
+2026/11/28 00:11:15 [webrtc] 连接状态 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795795873163595400 state=connected
+（静态画面期间每约 4s 一次的 RESET_VIDEO 共 42 条，首条与末条如下）
+2026/11/28 00:11:15 [rtc] 已请求关键帧（RESET_VIDEO） serial=10.0.0.30:5555
+2026/11/28 00:14:30 [rtc] 已请求关键帧（RESET_VIDEO） serial=10.0.0.30:5555
+2026/11/28 00:14:08 [rtc] 会话已打开 serial=10.0.0.30:5555 codec=h264 448x1024
+2026/11/28 00:14:08 [webrtc] 设备 SPS serial=10.0.0.30:5555 profile=64000a sps=19B pps=4B
+2026/11/28 00:14:08 [webrtc] 浏览器不接受设备 profile 64000a，SDP 声明 42e01f serial=10.0.0.30:5555
+2026/11/28 00:14:08 [webrtc] 已生成 offer serial=10.0.0.30:5555 id=10.0.0.30:5555-1795796048442189700 448x1024
+2026/11/28 00:14:08 [webrtc] 连接状态 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795796048442189700 state=closed
+2026/11/28 00:14:08 [rtc] 会话已关闭 serial=10.0.0.30:5555 dropped=0
+2026/11/28 00:14:08 [webrtc] 桥接结束 serial=10.0.0.30:5555 id=10.0.0.30:5555-1795796048442189700 发送=0 丢弃=0
+
+=== 6. 恢复常规启动（t2_restore.txt 摘录） ===
+procs after stop=0
+health => [200] {"version":"v2026.11.25-beta.1"}
+
+poc => ERR 远程服务器返回错误: (404) 未找到。
+devices => [200] [{"serial":"10.0.0.30:5555","state":"device","source":"manual","identifier":"Redmi","product":"atom","model":"M2004J7AC","device":"atom","transport_id":"12","auto_reconnect":true,"brand":"Redmi","manufacturer":"Xiaomi","android_release":"12","sdk_version":31,"cpu_abi":"arm64-v8a","build_display_id":"SP1A.210812.016","battery_level":100,"battery_temp":24,"battery_charging":true,"cpu_temp":53.
+restore timeout => [200] {"command_id":"adb_1","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T16:15:11.064586Z","started_at":"2026-11-27T16:15:11.064586Z","ended_at":"2026-11-27T16:15:11.2452415Z","exit_code":0,"elapsed_ms":180}
+
+restore stayon => [200] {"command_id":"adb_2","serial":"10.0.0.30:5555","status":"completed","queued_at":"2026-11-27T16:15:11.361746Z","started_at":"2026-11-27T16:15:11.361746Z","ended_at":"2026-11-27T16:15:13.7771789Z","exit_code":0,"elapsed_ms":2415}
+
+timeout now => [200] {"command_id":"adb_3","serial":"10.0.0.30:5555","status":"failed","queued_at":"2026-11-27T16:15:13.8993368Z","started_at":"2026-11-27T16:15:13.8993368Z","ended_at":"2026-11-27T16:15:14.2325267Z","exit_code":224,"stdout":"cmd: Failure calling service settings: Broken pipe (32)\r\n","elapsed_ms":333,"error":"exit status 224"}
+
+shot=True
+procs=Farm:9904,farm:10964
