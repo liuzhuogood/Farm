@@ -1,0 +1,29 @@
+p 127.0.0.1:49190->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:43:34 [ws] shared audio ended serial=emulator-5554: read tcp 127.0.0.1:49189->127.0.0.1:27183: use of closed network connection
+2026/11/26 23:43:34 [scrcpy:emulator-5554] server 进程退出: signal: killed
+2026/11/27 09:52:52 [webrtc] WebRTC 视频通道已启用（H.264 直通，ICE-Lite，无 STUN/TURN）
+2026/11/27 09:52:52 模板存储目录: data/templates
+2026/11/27 09:52:52 adb 路径: @farm/adb
+2026/11/27 09:52:52 [Desktop] 服务就绪: http://127.0.0.1:1989
+2026/11/27 09:53:37 [scrcpy:emulator-5554] 设备端 jar 已存在且大小匹配 (732226 bytes)，跳过 push
+2026/11/27 09:53:38 [scrcpy:emulator-5554] startSession 就绪耗时=730ms skippedPush=true size=460x1024
+2026/11/27 09:53:38 [StreamKeeper] 启动视频流自主保活 serial=emulator-5554 ttl=15m0s
+2026/11/27 09:53:38 [scrcpy:emulator-5554] [server] WARN: Could not get initial audio timestamp
+2026/11/27 09:53:43 [UIXML] snapshot serial=emulator-5554 elapsed_ms=2106 xml_bytes=16220 error=<nil>
+2026/11/27 09:53:59 [ws] 客户端连接 serial=emulator-5554
+2026/11/27 09:53:59 [ws] server 就绪 serial=emulator-5554 codec=h264 460x1024
+2026/11/27 09:54:05 [ws] control reader ended serial=emulator-5554: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/11/27 09:54:05 [ws] 会话结束 serial=emulator-5554
+2026/11/27 09:54:29 [UIXML] snapshot serial=emulator-5554 elapsed_ms=2041 xml_bytes=16220 error=<nil>
+2026/11/27 09:54:35 [Automation] automation.request serial=emulator-5554 title="macmini触控回归" 统一自动化批次开始 task_id=task_ba2fa9e25a2050b3dec84e81 total=8
+2026/11/27 09:54:36 [Automation] automation.observe serial=emulator-5554 title="macmini触控回归" 感知请求开始 diff=false formats= settle_ms=0 step_index=8 task_id=task_ba2fa9e25a2050b3dec84e81
+2026/11/27 09:54:36 [Companion] snapshot serial=emulator-5554 elapsed_ms=48 xml_bytes=0 error=companion accessibility service is not enabled
+2026/11/27 09:54:36 [Companion] falling back serial=emulator-5554 error=companion accessibility service is not enabled
+2026/11/27 09:54:38 [UIXML] snapshot serial=emulator-5554 elapsed_ms=2066 xml_bytes=16222 error=<nil>
+2026/11/27 09:54:38 [Automation] automation.observe.stage serial=emulator-5554 title="macmini触控回归" Accessibility 快照获取完成 display_height=2400 display_width=1080 elapsed_ms=2170 source=uiautomator stage=fetch_ui_xml step_index=8 task_id=task_ba2fa9e25a2050b3dec84e81 xml_bytes=16222
+2026/11/27 09:54:38 [Automation] automation.observe.stage serial=emulator-5554 title="macmini触控回归" Accessibility 树解析完成 elements=26 focus_ref=0 stage=parse_hierarchy step_index=8 task_id=task_ba2fa9e25a2050b3dec84e81
+2026/11/27 09:54:42 [Automation] automation.observe.stage serial=emulator-5554 title="macmini触控回归" OCR 识别完成 deduped_boxes=4 elapsed_ms=3301 engine=indraocr kept_boxes=10 raw_boxes=14 stage=ocr_detect step_index=8 task_id=task_ba2fa9e25a2050b3dec84e81
+2026/11/27 09:54:42 [Automation] automation.observe.stage serial=emulator-5554 title="macmini触控回归" 键盘状态检测完成 keyboard_visible=false stage=keyboard_state step_index=8 task_id=task_ba2fa9e25a2050b3dec84e81
+2026/11/27 09:54:42 [Automation] automation.diff serial=emulator-5554 title="macmini触控回归" 全量渲染完成 is_diff=false mode=full next_elements=26 next_ocr=10 output_bytes=1006 output_lines=37 step_index=8 task_id=task_ba2fa9e25a2050b3dec84e81
+2026/11/27 09:54:42 [Automation] automation.response serial=emulator-5554 title="macmini触控回归" 感知响应完成 app=Calculator elapsed_ms=5714 orientation=portrait package=com.simplemobiletools.calculator screen=1080x2400 step_index=8 task_id=task_ba2fa9e25a2050b3dec84e81
+2026/11/27 09:54:42 [Automation] automation.response serial=emulator-5554 title="macmini触控回归" 统一自动化批次完成 completed=8 failed_line=0 task_id=task_ba2fa9e25a2050b3dec84e81 total=8

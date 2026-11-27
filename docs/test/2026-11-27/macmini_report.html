@@ -16,33 +16,38 @@ ul{padding-left:22px;margin:0}li{margin:7px 0}.gallery{display:grid;grid-templat
 <body><main>
 <section class="card">
   <h1>Farm Mac mini 测试报告</h1>
-  <p class="muted">2026-11-27 · main <code>8d047c5</code></p>
-  <p><span class="badge">Mac mini / 安装验证通过</span></p>
+  <p class="muted">2026-11-27 09:52–09:56 · main <code>520f0ad</code></p>
+  <p><span class="badge">Mac mini / 替换安装与回归通过</span></p>
   <div class="grid">
     <div class="metric"><small>安装包</small><strong>v2026.11.25-beta.1</strong><small>macOS arm64 DMG，SHA-256 已核验</small></div>
     <div class="metric"><small>测试设备</small><strong>10.0.0.11</strong><small>macOS 26.7.1 · arm64</small></div>
-    <div class="metric"><small>Android 设备</small><strong>emulator-5554</strong><small>H.264 · 920×2048 (WS)</small></div>
+    <div class="metric"><small>Android 设备</small><strong>emulator-5554</strong><small>H.264 · 460×1024（WS）</small></div>
     <div class="metric"><small>WebRTC 状态</small><strong>未运行</strong><small>调试页默认关闭（/api/webrtc/poc → 404）</small></div>
   </div>
 </section>
 <section class="card">
   <h2>结果</h2>
   <ul>
-    <li>Release DMG 摘要匹配，替换安装成功；版本 <code>2026.11.25-beta.1</code>、服务健康检查通过。</li>
-    <li>ADB 已配置，设备 <code>emulator-5554</code> 正常检测。</li>
-    <li>本次无代码变更（自 <code>v2026.11.26</code> 仅有工作流文档更新），不涉及新的功能或缺陷验证。</li>
-    <li>WebRTC PoC 调试页默认关闭（/api/webrtc/poc 返回 404），符合预期。</li>
+    <li>本次从 GitHub Release 重新下载 DMG（21,132,033 字节），摘要 <code>a6a6871f…</code> 与记录一致，09:52 替换安装到 <code>/Applications/Farm.app</code>，版本 <code>2026.11.25-beta.1</code>。</li>
+    <li>桌面服务端口 <code>1989</code>，<code>/api/desktop/health</code> → <code>200 {"status":"ready"}</code>；<code>/api/desktop/config</code> 与端口一致，未被环境变量覆盖。</li>
+    <li>设备发现正常：<code>emulator-5554</code>（Android 14 / sdk 34）在线，前台为计算器。</li>
+    <li>WS 投屏直连：握手 <code>101</code>，元数据 <code>h264 460×1024</code> + <code>aac</code> 音频，6 秒内 327 个视频帧。</li>
+    <li>自动化触控回归：<code>/api/automation/act</code> 提交 <code>C 7 × 8 =</code> 共 8 行全部完成，<code>check 56</code> 命中，计算结果确为 <code>56</code>。</li>
+    <li>投屏自恢复回归：设备端杀掉 scrcpy 服务后端后，StreamKeeper 在 3 秒内重新建立会话（<code>startSession</code> 254ms）并继续供帧。</li>
+    <li>代码自上次测试后无新增提交，<code>v2026.11.25-beta.1</code> 仍是最新发布包，因此本轮以发布产物可安装性与既有链路回归为主。</li>
   </ul>
 </section>
 <section class="card">
-  <h2>界面证据</h2>
+  <h2>界面与设备证据</h2>
   <div class="gallery">
-    <figure class="shot"><a href="../2026-11-26/macmini-home-before.png"><img src="../2026-11-26/macmini-home-before.png" alt="ADB 尚未配置时的设备页"></a><figcaption>本机安装状态截图（2026-11-26 复用证据）。</figcaption></figure>
+    <figure class="shot"><a href="macmini-farm-ui.png"><img src="macmini-farm-ui.png" alt="Farm 原生窗口与设备页"></a><figcaption>替换安装后的 Farm 原生窗口：设备列表、设备小窗与计算器前台。</figcaption></figure>
+    <figure class="shot"><a href="macmini-touch-56.png"><img src="macmini-touch-56.png" alt="设备画面 7×8=56"></a><figcaption>自动化触控后设备画面：<code>7 × 8 = 56</code>。</figcaption></figure>
+    <figure class="shot"><a href="../2026-11-26/macmini-touch-control.png"><img src="../2026-11-26/macmini-touch-control.png" alt="2026-11-26 触控证据"></a><figcaption>历史对照：2026-11-26 触控 <code>2 + 2 = 4</code>。</figcaption></figure>
   </div>
 </section>
 <section class="card">
-  <h2>未覆盖项</h2>
-  <p class="warn">本次为安装与基础运行验证；完整 beta 验收未完成。版本任务记录 beta 服务实例 8081 未提供，因此通道隔离、通道切换和应用内更新没有执行；Windows 原生测试也未覆盖。不得将本次 Mac mini 结果视为整个 beta 版本验收完成。</p>
-  <p>SSH 屏幕截图受 macOS 权限限制；界面截图来自测试界面的浏览器实际渲染，原生窗口和菜单另由 AppleScript 确认。详细步骤和脱敏日志见 <a href="steps.md">steps.md</a> 与 <a href="../2026-11-26/logs.txt">../2026-11-26/logs.txt</a>。</p>
+  <h2>未覆盖项与观察</h2>
+  <p class="warn">本次为 Mac mini 侧发布包替换安装与回归，不等于整个 beta 版本验收完成。版本任务记录 beta 服务实例 8081 仍未提供，所以通道隔离、beta/正式通道切换、应用内更新与 8081 实例链路没有执行；Windows 原生测试不在本机范围。</p>
+  <p>取帧接口在保活租约刚清理时会走 ADB <code>screencap</code> 回退（返回 PNG 1080×2400），属既有回退设计，未按缺陷记录。详细步骤与脱敏日志见 <a href="steps.md">steps.md</a> 与 <a href="logs.txt">logs.txt</a>。</p>
 </section>
 </main></body></html>
