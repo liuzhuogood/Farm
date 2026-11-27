@@ -37,6 +37,15 @@ const (
 	maxPendingFrames = 240
 )
 
+const (
+	// sdpLevelID 是 SDP 里统一声明的 H.264 level（3.1）。浏览器的接受判断只看
+	// profile，level 会被它改写成自己的取值，这里不跟设备走。
+	sdpLevelID = "1f"
+	// sdpFallbackProfileLevelID 是浏览器不接受设备 profile 时的回落值：
+	// constrained baseline，Chromium/Edge/Firefox/Safari 都收。
+	sdpFallbackProfileLevelID = "42e0" + sdpLevelID
+)
+
 // bridge 把一个设备会话的视频推给一个 WebRTC 观看端。
 type bridge struct {
 	id      string
@@ -98,7 +107,7 @@ func newBridge(id, serial string, hub *ws.Hub) (*bridge, string, error) {
 	}
 
 	if len(b.sps) >= 4 {
-		log.Printf("[webrtc] SDP 使用设备 SPS serial=%s profile=%02x%02x%02x sps=%dB pps=%dB", b.serial, b.sps[1], b.sps[2], b.sps[3], len(b.sps), len(b.pps))
+		log.Printf("[webrtc] 设备 SPS serial=%s profile=%02x%02x%02x sps=%dB pps=%dB", b.serial, b.sps[1], b.sps[2], b.sps[3], len(b.sps), len(b.pps))
 	} else {
 		log.Printf("[webrtc] 未取到 SPS，SDP 使用默认 profile serial=%s", b.serial)
 	}
@@ -160,9 +169,8 @@ func newBridge(id, serial string, hub *ws.Hub) (*bridge, string, error) {
 	return b, local.SDP, nil
 }
 
-// newAPI 按本次码流的 fmtp 注册唯一视频编码：SDP 里的 profile-level-id 必须与设备
-// 实际码流一致，否则浏览器会用错误的解码配置（Chrome 软件解码只接受 constrained
-// baseline），表现为连接成功但画面一直不出来。
+// newAPI 按本次协商出的 fmtp 注册唯一视频编码。offer 里只放一个 H.264 编码，
+// 由 fmtpLine 决定声明哪个 profile；设备码流的真实参数集走 in-band SPS/PPS。
 // ICE 只用 host 候选并启用 ICE-Lite：媒体端点就是本服务，不需要 STUN/TURN。
 func newAPI(fmtp string) (*pion.API, error) {
 	settingEngine := pion.SettingEngine{}
@@ -186,13 +194,13 @@ func newAPI(fmtp string) (*pion.API, error) {
 }
 
 // collectStartupFrames 取握手期需要的信息：首帧 config 提供 SPS/PPS，
-// 用于把 SDP 的 profile-level-id 与设备实际码流对齐（不一致时 Safari 会直接黑屏）。
+// 用于生成 SDP 的 sprop-parameter-sets，并决定声明哪个 profile。
 func (b *bridge) collectStartupFrames() error {
 	deadline := time.After(waitConfigTimeout)
 	for {
 		select {
 		case <-deadline:
-			log.Printf("[webrtc] 未在超时内取到 config 包，SDP 使用默认 profile serial=%s", b.serial)
+			log.Printf("[webrtc] 未在超时内取到 config 包，SDP 使用默认 profile-level-id serial=%s", b.serial)
 			return nil
 		case frame, ok := <-b.session.Frames():
 			if !ok {
@@ -234,26 +242,47 @@ func (b *bridge) absorb(frame ws.RTCVideoFrame) {
 	}
 }
 
-// fmtpLine 用真实 SPS 生成 fmtp；取不到时退回 WebRTC 通用的 baseline 参数。
+// fmtpLine 生成 SDP 的 fmtp：profile-level-id 用浏览器能接受的取值，
+// sprop-parameter-sets 用设备真实参数集。
 func (b *bridge) fmtpLine() string {
 	b.mu.Lock()
 	sps, pps := b.sps, b.pps
 	b.mu.Unlock()
-	if len(sps) < 4 {
-		return "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f"
+	profile, fallback := sdpProfileLevelID(sps)
+	if fallback {
+		log.Printf("[webrtc] 浏览器不接受设备 profile %02x%02x%02x，SDP 声明 %s serial=%s", sps[1], sps[2], sps[3], profile, b.serial)
 	}
-	profile := fmt.Sprintf("%02x%02x%02x", sps[1], sps[2], sps[3])
 	fmtp := "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=" + profile
-	if pps != nil {
+	if len(sps) >= 4 && pps != nil {
 		fmtp += ";sprop-parameter-sets=" + base64.StdEncoding.EncodeToString(sps) + "," + base64.StdEncoding.EncodeToString(pps)
 	}
 	return fmtp
+}
+
+// sdpProfileLevelID 把设备 SPS 的 profile 映射成浏览器能接受的 profile-level-id，
+// 第二个返回值表示设备 profile 是否被回落。
+// Chromium 系的 WebRTC 接收端只接受 baseline(0x42)/main(0x4d)：设备给出 High(0x64，
+// 多数 Android 编码器的默认值)时 answer 会把视频 m-line 置 0，协商直接失败。
+// level 不参与浏览器的接受判断，统一声明 3.1；设备真实参数集仍随关键帧 in-band 下发，
+// 解码器按 SPS 解码，不依赖这里声明的 profile。
+func sdpProfileLevelID(sps []byte) (string, bool) {
+	if len(sps) < 4 {
+		return sdpFallbackProfileLevelID, false
+	}
+	switch sps[1] {
+	case 0x42, 0x4d:
+		return fmt.Sprintf("%02x%02x%s", sps[1], sps[2], sdpLevelID), false
+	default:
+		return sdpFallbackProfileLevelID, true
+	}
 }
 
 // setAnswer 应用浏览器回答并启动推流。
 func (b *bridge) setAnswer(sdp string) error {
 	log.Printf("[webrtc] 协商完成 serial=%s 视频编码=%s", b.serial, answerVideoSummary(sdp))
 	if err := b.pc.SetRemoteDescription(pion.SessionDescription{Type: pion.SDPTypeAnswer, SDP: sdp}); err != nil {
+		// 完整 answer 只有在这里才有价值：m-line 被置 0 时摘要看不出来原因。
+		log.Printf("[webrtc] answer 应用失败 serial=%s err=%v answer=%s", b.serial, err, strings.ReplaceAll(sdp, "\r\n", " | "))
 		return fmt.Errorf("应用 answer 失败: %w", err)
 	}
 	go b.pump()
