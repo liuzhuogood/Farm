@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Mac mini 测试报告 · 2026-11-27</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#596579;--blue:#155eef;--line:#dbe2ec;--pass:#087443;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1050px;margin:36px auto;padding:0 22px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin:16px 0;box-shadow:0 4px 18px #14213d0a}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:19px;margin:0 0 12px}.muted{color:var(--muted)}.badge{display:inline-block;padding:3px 10px;border-radius:999px;background:#e7f6ee;color:var(--pass);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.metric{padding:14px;border:1px solid var(--line);border-radius:12px}.metric strong{display:block;font-size:18px}.metric small{color:var(--muted)}
+ul{padding-left:22px;margin:0}li{margin:7px 0}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}.shot{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}.shot img{display:block;width:100%;height:auto}.shot figcaption{padding:9px 12px;color:var(--muted);font-size:13px}a{color:var(--blue)}code{background:#eef2f7;border-radius:5px;padding:1px 5px}.warn{border-left:4px solid #f0a000;padding:10px 14px;background:#fff8e7;border-radius:8px}
+</style>
+</head>
+<body><main>
+<section class="card">
+  <h1>Farm Mac mini 测试报告</h1>
+  <p class="muted">2026-11-27 · main <code>8d047c5</code></p>
+  <p><span class="badge">Mac mini / 安装验证通过</span></p>
+  <div class="grid">
+    <div class="metric"><small>安装包</small><strong>v2026.11.25-beta.1</strong><small>macOS arm64 DMG，SHA-256 已核验</small></div>
+    <div class="metric"><small>测试设备</small><strong>10.0.0.11</strong><small>macOS 26.7.1 · arm64</small></div>
+    <div class="metric"><small>Android 设备</small><strong>emulator-5554</strong><small>H.264 · 920×2048 (WS)</small></div>
+    <div class="metric"><small>WebRTC 状态</small><strong>未运行</strong><small>调试页默认关闭（/api/webrtc/poc → 404）</small></div>
+  </div>
+</section>
+<section class="card">
+  <h2>结果</h2>
+  <ul>
+    <li>Release DMG 摘要匹配，替换安装成功；版本 <code>2026.11.25-beta.1</code>、服务健康检查通过。</li>
+    <li>ADB 已配置，设备 <code>emulator-5554</code> 正常检测。</li>
+    <li>本次无代码变更（自 <code>v2026.11.26</code> 仅有工作流文档更新），不涉及新的功能或缺陷验证。</li>
+    <li>WebRTC PoC 调试页默认关闭（/api/webrtc/poc 返回 404），符合预期。</li>
+  </ul>
+</section>
+<section class="card">
+  <h2>界面证据</h2>
+  <div class="gallery">
+    <figure class="shot"><a href="../2026-11-26/macmini-home-before.png"><img src="../2026-11-26/macmini-home-before.png" alt="ADB 尚未配置时的设备页"></a><figcaption>本机安装状态截图（2026-11-26 复用证据）。</figcaption></figure>
+  </div>
+</section>
+<section class="card">
+  <h2>未覆盖项</h2>
+  <p class="warn">本次为安装与基础运行验证；完整 beta 验收未完成。版本任务记录 beta 服务实例 8081 未提供，因此通道隔离、通道切换和应用内更新没有执行；Windows 原生测试也未覆盖。不得将本次 Mac mini 结果视为整个 beta 版本验收完成。</p>
+  <p>SSH 屏幕截图受 macOS 权限限制；界面截图来自测试界面的浏览器实际渲染，原生窗口和菜单另由 AppleScript 确认。详细步骤和脱敏日志见 <a href="steps.md">steps.md</a> 与 <a href="../2026-11-26/logs.txt">../2026-11-26/logs.txt</a>。</p>
+</section>
+</main></body></html>
