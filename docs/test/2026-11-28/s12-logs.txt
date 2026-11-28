@@ -1,0 +1,74 @@
+### 环境（ssh <user>@<s12>）
+ProductName:	macOS
+ProductVersion:	11.7.6
+BuildVersion:	20G1231
+x86_64
+Intel(R) Core(TM) i7-4850HQ CPU @ 2.30GHz
+
+### 资产校验（GUI DMG）
+22681040 /tmp/s12-test/farm-amd64.dmg
+532ca1e50c9f5b8c282c9a62a6e9f50893bf375d93435f7081341b7bf74823ea  /tmp/s12-test/farm-amd64.dmg
+# Release 资产 digest：sha256:532ca1e5…1723ea（与本地一致）
+
+### 安装结果
+2026.11.25-beta.1        # CFBundleShortVersionString
+2026.11.25-beta.1        # CFBundleVersion
+10.13                    # LSMinimumSystemVersion
+Executable=/Applications/Farm.app/Contents/MacOS/farm-gui
+Identifier=com.farm.desktop
+Format=app bundle with Mach-O thin (x86_64)
+/Applications/Farm.app: rejected   # adhoc 签名，已 xattr -dr com.apple.quarantine
+-rwxr-xr-x  1 <user>  admin  28682560 11 28 10:03 farm
+-rwxr-xr-x  1 <user>  admin  18353728 11 28 10:03 farm-gui
+
+### 二进制最低系统版本
+# farm（Go 服务）
+      cmd LC_BUILD_VERSION
+  cmdsize 24
+ platform 1
+    minos 12.0
+      sdk 12.0
+# farm-gui（Tauri 外壳）
+      cmd LC_VERSION_MIN_MACOSX
+  cmdsize 16
+  version 10.13
+      sdk 15.5
+
+### 启动输出（open -a /Applications/Farm.app，10:02:44）
+dyld: Symbol not found: _SecTrustCopyCertificateChain
+  Referenced from: /Applications/Farm.app/Contents/MacOS/farm (which was built for Mac OS X 12.0)
+  Expected in: /System/Library/Frameworks/Security.framework/Versions/A/Security
+ in /Applications/Farm.app/Contents/MacOS/farm
+exit=134
+
+### 健康检查
+curl http://127.0.0.1:1989/api/desktop/health -> http=000（服务未监听）
+pgrep -fl Farm.app -> 无进程
+
+### 崩溃报告摘要（~/Library/Logs/DiagnosticReports）
+farm_2026-11-28-100244.crash
+  Process: farm [23244]   Code Type: X86-64 (Native)
+  OS Version: macOS 11.7.6 (20G1231)
+  Exception Type: EXC_CRASH (SIGABRT)
+  Termination Reason: DYLD, [0x4] Symbol missing
+
+farm-gui_2026-11-28-100247.crash
+  Process: farm-gui [23237]   Version: 2026.11.25-beta.1
+  Exception Type: EXC_CRASH (SIGABRT)   Crashed Thread: 0 main
+  Thread 0: abort_internal <- rust_panic_with_hook <- panic_nounwind
+            <- tao::platform_impl::platform::app_delegate::did_finish_launching
+
+### 桌面外壳日志
+~/Library/Application Support/com.farm.desktop/desktop.log（尾部同一条 dyld 错误，未出现服务就绪记录）
+~/Library/Application Support/com.farm.desktop/desktop-gui.log
+  [1795831364] [Desktop] 桌面外壳启动 data=/Users/<user>/Library/Application Support/com.farm.desktop
+  # 1795831364 = 2026-11-28 10:02:44；此前 6 条为 2026-11-27 复测
+
+### CLI 资产对照（同一 Release）
+farm-macos-amd64-cli  28442096 字节  Mach-O 64-bit executable x86_64
+      cmd LC_BUILD_VERSION
+ platform 1
+    minos 12.0
+dyld: Symbol not found: _SecTrustCopyCertificateChain
+  Referenced from: /private/tmp/s12-test/./farm-macos-amd64-cli (which was built for Mac OS X 12.0)
+exit=134
