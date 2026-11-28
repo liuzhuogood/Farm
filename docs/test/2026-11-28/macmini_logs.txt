@@ -1,0 +1,94 @@
+== [2026-11-28 09:02:49] 替换安装 v2026.11.25-beta.1 完成，启动 ==
+token_len=64
+== [2026-11-28 09:03:01] 打包路径（beta.1）基础接口 ==
+-- /api/version/health
+{"version":"v2026.11.25-beta.1"}
+ [200]
+-- /api/desktop/config
+{"port":1989,"effective":1989,"env_port":0,"is_overridden":false}
+ [200]
+-- /api/webrtc/poc
+404
+-- /api/devices
+[{"serial":"10.0.0.30:5555","state":"offline","source":"manual","identifier":"10.0.0.30:5555","product":"atom","model":"M2004J7AC","device":"atom","transport_id":"5","auto_reconnect":true,"cpu_temp_supported":false,"identity":"","identity_source":"pending","active_kind":"","connections":[{"kind":"wifi","serial":"10.0.0.30:5555","address":"10.0.0.30:5555","state":"offline","online":false,"active":false,"last_seen_at":1795827781657}]},{"serial":"emulator-5554","state":"device","source":"auto","identifier":"google","product":"sdk_gphone64_arm64","model":"sdk_gphone64_arm64","device":"emu64a","transport_id":"1","auto_reconnect":false,"brand":"google","manufacturer":"Google","android_release":"14","sdk_version":34,"cpu_abi":"arm64-v8a","build_display_id":"UE1A.230829.036.A4","battery_level":100,"battery_temp":25,"battery_charging":false,"cpu_temp_supported":false,"foreground_pkg":"com.simplemobiletools.calculator","foreground_app_name":"Calculator","foreground_app_icon":"app_default","screen_on":true,"screen_locked":false,"telemetry_updated_at":1795827778600,"identity":"hw:EMULATOR35X4X9X0","identity_source":"ro.serialno","active_kind":"usb","connections":[{"kind":"usb","serial":"emulat
+== [2026-11-28 09:04:09] 修复路径：本地 main 构建的服务（18080，FARM_WEBRTC_POC=1） ==
+-- 构建
+f2ec04942314d5050c7fa4220426c50f5a9b47ab4d16fe33ee69fb8c4305ae73  /tmp/farm-fixed/farm
+27252306 bytes
+-- /api/webrtc/poc
+200
+-- POST /api/webrtc/offer (emulator-5554)
+keys= ['codec', 'height', 'id', 'sdp', 'serial', 'width']
+session_id= emulator-5554-1795827849745730000
+SDP: m=video 9 UDP/TLS/RTP/SAVPF 102
+SDP: a=fmtp:102 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42c01f;sprop-parameter-sets=Z0LAKY1oHQIHvkICAgIPCIRq,aM4BqDXI
+-- Chrome 版本: 158.0.8127.88
+-- 修复路径 PoC 实测：浏览器状态/统计
+   首次到达: 视频已到达 460x1024 readyState=4
+   画面活动: 460x1024 4fps→16fps 238~502kbps 抖动缓冲 12~227ms 丢包 0
+   静态画面: 0fps 29kbps 抖动缓冲 283ms 丢包 0
+-- 服务端日志（webrtc/rtc 相关，近 20 行）
+2026/11/28 09:04:12 [webrtc] 设备 SPS serial=emulator-5554 profile=42c029 sps=18B pps=6B
+2026/11/28 09:04:12 [webrtc] 已生成 offer serial=emulator-5554 id=emulator-5554-1795827849745730000 460x1024
+2026/11/28 09:05:07 [rtc] 会话已打开 serial=emulator-5554 codec=h264 460x1024
+2026/11/28 09:05:07 [webrtc] 设备 SPS serial=emulator-5554 profile=42c029 sps=18B pps=6B
+2026/11/28 09:05:07 [webrtc] 已生成 offer serial=emulator-5554 id=emulator-5554-1795827907257975000 460x1024
+2026/11/28 09:05:07 [webrtc] 协商完成 serial=emulator-5554 视频编码=m=video 9 UDP/TLS/RTP/SAVPF 102 a=rtpmap:102 H264/90000
+2026/11/28 09:05:07 [webrtc] 已开始推流 id=emulator-5554-1795827907257975000
+2026/11/28 09:05:07 [webrtc] 开始推流 serial=emulator-5554 id=emulator-5554-1795827907257975000 首帧 pts=1348030477716us
+2026/11/28 09:05:07 [webrtc] 连接状态 serial=emulator-5554 id=emulator-5554-1795827907257975000 state=connecting
+2026/11/28 09:05:07 [webrtc] 连接状态 serial=emulator-5554 id=emulator-5554-1795827907257975000 state=connected
+2026/11/28 09:05:12 [rtc] 已请求关键帧（RESET_VIDEO） serial=emulator-5554
+2026/11/28 09:05:12 [rtc] 已请求关键帧（RESET_VIDEO） serial=emulator-5554
+2026/11/28 09:05:13 [webrtc] 回收空闲会话 id=emulator-5554-1795827849745730000
+2026/11/28 09:05:13 [webrtc] 连接状态 serial=emulator-5554 id=emulator-5554-1795827849745730000 state=closed
+2026/11/28 09:05:13 [rtc] 会话已关闭 serial=emulator-5554 dropped=0
+2026/11/28 09:05:13 [webrtc] 桥接结束 serial=emulator-5554 id=emulator-5554-1795827849745730000 发送=0 丢弃=0
+2026/11/28 09:05:16 [rtc] 已请求关键帧（RESET_VIDEO） serial=emulator-5554
+2026/11/28 09:05:23 [rtc] 已请求关键帧（RESET_VIDEO） serial=emulator-5554
+2026/11/28 09:05:29 [rtc] 已请求关键帧（RESET_VIDEO） serial=emulator-5554
+2026/11/28 09:05:52 [rtc] 已请求关键帧（RESET_VIDEO） serial=emulator-5554
+== [2026-11-28 09:06:14] 打包路径（beta.1，1989）WS 投屏与自动化回归 ==
+-- WS /ws?serial=emulator-5554
+meta: {"type": "meta", "codec": "h264", "width": 460, "height": 1024, "serial": "emulator-5554", "session_id": "8cd2b0d79eccca3deccc5da2", "audio_available": true, "audio_codec": "aac"}
+binary_frames: 200
+other_msgs: [{"codec": "aac", "status": "connecting", "type": "audio.status"}, {"session_id": "8cd2b0d79eccca3deccc5da2", "timestamp": 1795827979180, "type": "stream.heartbeat"}]
+-- /api/devices/emulator-5554/latest-frame
+http=200 type=image/png size=199226
+-- POST /api/automation/act 计算器 7×8（tap 像素坐标 + check 56）
+任务 "计算器触控回归"
+任务 ID task_bf2e6000f1d2d658549e9c2c
+设备 "emulator-5554"
+状态 已完成
+完成 7/7
+第 1 行 tap：已完成（1/1）
+第 2 行 tap：已完成（1/1）
+第 3 行 tap：已完成（1/1）
+第 4 行 tap：已完成（1/1）
+第 5 行 tap：已完成（1/1）
+第 6 行 sleep：已完成（1/1）
+第 7 行 check：命中（1/1）
+目标 "56"
+匹配来源 tree:uiautomator
+-- UI 画面点击下传（浏览器端 CDP 点击小窗画面）
+screen 1080x2400 · app: Calculator (com.simplemobiletools.calculator) · portrait · keyboard hidden · focus none
+~ [5] text "7×8" @540,399
+~ [6] text "56" @540,722
+- ocr "09:13 时" @120,73
+- ocr "६" @758,221
+- ocr "&" @895,220
+- ocr "53." @939,726
++ ocr "09:14 时" @120,73
+== [2026-11-28 09:15:06] 修复路径源码侧验证 ==
+-- go vet ./internal/devicertc/ ./internal/ws/
+-- go test ./internal/devicertc/ -run 'Profile|SDP|Format|Fmtp' -v (关键行)
+=== RUN   TestSDPProfileLevelID
+--- PASS: TestSDPProfileLevelID (0.00s)
+=== RUN   TestFmtpLineKeepsDeviceParameterSets
+--- PASS: TestFmtpLineKeepsDeviceParameterSets (0.00s)
+=== RUN   TestFmtpLineWithoutParameterSets
+--- PASS: TestFmtpLineWithoutParameterSets (0.00s)
+=== RUN   TestOfferSDPUsesBrowserCompatibleProfile
+--- PASS: TestOfferSDPUsesBrowserCompatibleProfile (0.00s)
+PASS
+ok  	farm/internal/devicertc	1.384s

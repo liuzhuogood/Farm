@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Mac mini 测试报告 · 2026-11-28</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#596579;--blue:#155eef;--line:#dbe2ec;--pass:#087443;--fail:#b42318;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1050px;margin:36px auto;padding:0 22px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin:16px 0;box-shadow:0 4px 18px #14213d0a}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:19px;margin:0 0 12px}h3{font-size:15px;margin:18px 0 6px}.muted{color:var(--muted)}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;background:#e7f6ee;color:var(--pass);font-weight:700;margin-right:6px}
+.badge.warn{background:#fff4e0;color:#a26000}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.metric{padding:14px;border:1px solid var(--line);border-radius:12px}.metric strong{display:block;font-size:18px}.metric small{color:var(--muted)}
+ul{padding-left:22px;margin:0}li{margin:7px 0}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}.shot{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}.shot img{display:block;width:100%;height:auto}.shot figcaption{padding:9px 12px;color:var(--muted);font-size:13px}
+a{color:var(--blue)}code{background:#eef2f7;border-radius:5px;padding:1px 5px}.warnbox{border-left:4px solid #f0a000;padding:10px 14px;background:#fff8e7;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #eef2f7;vertical-align:top}th{width:150px;color:var(--muted);font-weight:500}
+.pass{color:var(--pass);font-weight:600}.fail{color:var(--fail);font-weight:600}
+</style>
+</head>
+<body><main>
+<section class="card">
+  <h1>Farm Mac mini 测试报告</h1>
+  <p class="muted">2026-11-28 · main <code>a6bfaa4</code> · 目标机 Mac mini <code>10.0.0.11</code>（macOS 26.7.1 · arm64）· Chrome 158.0.8127.88</p>
+  <p><span class="badge">打包路径回归通过</span><span class="badge">profile 归一化在 Mac + Chrome 实测通过</span><span class="badge warn">包内含修复需等 beta.2</span></p>
+  <div class="grid">
+    <div class="metric"><small>安装包</small><strong>v2026.11.25-beta.1</strong><small>macos-arm64-gui.dmg · SHA-256 与 Release 一致（a6a6871f…c371a）</small></div>
+    <div class="metric"><small>替换安装</small><strong>/Applications/Farm.app</strong><small>Bundle 2026.11.25-beta.1 · 端口 1989 · health 200</small></div>
+    <div class="metric"><small>WS 投屏</small><strong>460×1024 · 200 帧/6 s</strong><small>H.264 + aac 元数据、心跳、latest-frame 1080×2400</small></div>
+    <div class="metric"><small>WebRTC 出画</small><strong>460×1024 · 16 fps</strong><small>丢包 0 · 抖动缓冲 12~227 ms · state=connected</small></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>结果</h2>
+  <table>
+    <tr><th>通过</th><td>Release 包摘要核验与替换安装、桌面端启动、<code>/api/version/health</code>、<code>/api/desktop/config</code>、设备发现、PoC 路由默认 404、WS H.264 投屏与心跳、<code>latest-frame</code>、UI 设备列表与镜像面板、镜像画面点击下传（设备端 7×8=56）、<code>/api/automation/act</code> 的 tap + <code>check 56</code>；<strong>修复版服务</strong>的 offer SDP profile 归一化、浏览器协商成功、首帧到达、活动画面 16 fps 丢包 0、单测与 <code>go vet</code> 全过。</td></tr>
+    <tr><th>不通过</th><td>无阻塞项。</td></tr>
+    <tr><th>未覆盖 / 待复测</th><td><span class="warnbox">High profile 场景未在 Mac mini 复核</span>：目标设备 Redmi（上次 SPS <code>64000a</code>）本次 <code>adb connect</code> 返回 <code>No route to host</code>（设备可 ping 通、adbd 未监听），全程未恢复；本次仅有模拟器（<code>42c029</code>）。High 分支由单测 <code>TestOfferSDPUsesBrowserCompatibleProfile</code> 与 11-28 Windows 11 + Edge 实测覆盖，Mac 端同场景待设备恢复后复测。</td></tr>
+    <tr><th>观察项</th><td>静态画面（scrcpy 无新帧）时浏览器请求关键帧，服务端 <code>RESET_VIDEO</code>，统计 0 fps；画面一变化立即回到 16 fps，与 11-28 Windows 记录一致，未判定为缺陷。</td></tr>
+    <tr><th>未覆盖项</th><td>应用内更新、beta 服务实例 8081 的通道隔离与切换（该实例仍未提供）、长稳与多设备群控；工作区未提交的 <code>links.rs</code>/<code>FloatingPlayer.vue</code> 不在包内，未验证。</td></tr>
+  </table>
+</section>
+
+<section class="card">
+  <h2>关键证据</h2>
+  <table>
+    <tr><th>设备 SPS</th><td><code>[webrtc] 设备 SPS serial=emulator-5554 profile=42c029 sps=18B pps=6B</code></td></tr>
+    <tr><th>offer SDP</th><td><code>a=fmtp:102 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42c01f;sprop-parameter-sets=Z0LAKY1oHQIHvkICAgIPCIRq,aM4BqDXI</code>（声明值按归一化规则改写为 level 1f，参数集仍是设备真实值）</td></tr>
+    <tr><th>协商结果</th><td><code>[webrtc] 协商完成 视频编码=m=video 9 UDP/TLS/RTP/SAVPF 102 a=rtpmap:102 H264/90000</code>、<code>state=connected</code>、<code>首帧 pts=1348030477716us</code></td></tr>
+    <tr><th>浏览器侧</th><td>PoC 页 <code>视频已到达</code>、<code>readyState=4</code>；活动时 <code>460x1024 4fps→16fps 238~502kbps 抖动缓冲 12~227ms 丢包 0</code></td></tr>
+    <tr><th>WS 通道</th><td><code>{"codec":"h264","width":460,"height":1024,"audio_codec":"aac"}</code> · 6 s 内 200 个二进制帧 + <code>stream.heartbeat</code></td></tr>
+    <tr><th>自动化触控</th><td><code>tap @675,2198 …</code> 7/7 行完成，<code>check 56</code> 命中（<code>tree:uiautomator</code>）</td></tr>
+  </table>
+</section>
+
+<section class="card">
+  <h2>界面与画面证据</h2>
+  <div class="gallery">
+    <figure class="shot"><a href="macmini_01-ui-home.png"><img src="macmini_01-ui-home.png" alt="设备列表"></a><figcaption>替换安装 beta.1 后打开本机服务：设备卡片、遥测与底部操作栏渲染正常。</figcaption></figure>
+    <figure class="shot"><a href="macmini_02-ui-mirror-input.png"><img src="macmini_02-ui-mirror-input.png" alt="镜像面板"></a><figcaption>点开设备后 WS H.264 实时出画；随后在画面内点击 7×8= 得到 56。</figcaption></figure>
+    <figure class="shot"><a href="macmini_03-webrtc-poc.png"><img src="macmini_03-webrtc-poc.png" alt="WebRTC 出画"></a><figcaption>修复版服务的 WebRTC 调试页：协商成功、画面到达，活动时 9 fps、丢包 0。</figcaption></figure>
+    <figure class="shot"><a href="macmini_04-native-app.png"><img src="macmini_04-native-app.png" alt="Farm 原生窗口"></a><figcaption>Farm 原生桌面窗口（设备列表 + 设备镜像 + WebRTC 调试页同屏）。</figcaption></figure>
+    <figure class="shot"><a href="macmini_05-device-7x8-56.png"><img src="macmini_05-device-7x8-56.png" alt="设备端结果"></a><figcaption>设备端实测结果 7×8=56（UI 点击与自动化 tap 两条路径都得到该结果）。</figcaption></figure>
+  </div>
+</section>
+
+<section class="card">
+  <h2>版本与后续</h2>
+  <ul>
+    <li>代码：<code>main</code> <code>a6bfaa4</code>；本次唯一代码变更为 <code>1f6aab8</code>（<code>internal/devicertc/bridge.go</code> 的 profile 归一化）。</li>
+    <li>打包路径未被覆盖：<code>v2026.11.25-beta.1</code> 内嵌服务早于修复，需发 <code>v2026.11.25-beta.2</code> 后重跑安装包路径，beta 验收才算闭环。</li>
+    <li>Redmi 设备恢复在线后，补一次 Mac mini 上的 High profile WebRTC 复测（对齐 11-28 Windows 记录）。</li>
+  </ul>
+  <p class="muted">步骤与日志：<a href="macmini_steps.md">macmini_steps.md</a> · <a href="macmini_logs.txt">macmini_logs.txt</a>（截图内设备 serial 为模拟器，无内网服务地址）</p>
+</section>
+</main></body>
+</html>
